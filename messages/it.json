@@ -1,0 +1,148 @@
+{
+  "navigation": {
+    "dashboard": "Dashboard",
+    "books": "Libri",
+    "content": "Contenuti",
+    "social": "Social Media",
+    "analytics": "Analytics",
+    "settings": "Impostazioni",
+    "profile": "Profilo",
+    "logout": "Esci",
+    "login": "Accedi",
+    "signup": "Registrati",
+    "library": "Libreria",
+    "contentManager": "Gestione Contenuti",
+    "generateContent": "Genera Contenuto",
+    "performance": "Performance",
+    "general": "Generale",
+    "socialAccounts": "Account Social"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Benvenuto in Book Marketing Takeoff",
+    "subtitle": "Gestisci i tuoi libri e contenuti marketing",
+    "stats": {
+      "totalBooks": "Libri Totali",
+      "totalContent": "Contenuti Creati",
+      "socialPosts": "Post Social",
+      "engagement": "Engagement"
+    }
+  },
+  "books": {
+    "title": "I Miei Libri",
+    "addNew": "Aggiungi Nuovo Libro",
+    "upload": "Carica Libro",
+    "processing": "Elaborazione in corso...",
+    "noBooks": "Nessun libro caricato",
+    "uploadDescription": "Carica i tuoi libri per iniziare a creare contenuti marketing"
+  },
+  "content": {
+    "title": "Contenuti Marketing",
+    "generate": "Genera Contenuto",
+    "templates": "Template",
+    "blogPost": "Post Blog",
+    "socialPost": "Post Social",
+    "emailNewsletter": "Newsletter Email",
+    "description": "Descrizione",
+    "generating": "Generazione in corso..."
+  },
+  "social": {
+    "title": "Social Media",
+    "schedule": "Pianifica Post",
+    "published": "Pubblicati",
+    "draft": "Bozze",
+    "scheduled": "Programmati",
+    "platforms": {
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "twitter": "Twitter",
+      "linkedin": "LinkedIn"
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "overview": "Panoramica",
+    "performance": "Performance",
+    "engagement": "Engagement",
+    "reach": "Copertura",
+    "clicks": "Click",
+    "impressions": "Impressioni"
+  },
+  "auth": {
+    "signIn": "Accedi",
+    "signUp": "Registrati",
+    "signOut": "Esci",
+    "welcomeBack": "Bentornato!",
+    "createAccount": "Crea il tuo account",
+    "forgotPassword": "Password dimenticata?",
+    "rememberMe": "Ricordami"
+  },
+  "common": {
+    "save": "Salva",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "create": "Crea",
+    "upload": "Carica",
+    "download": "Scarica",
+    "share": "Condividi",
+    "copy": "Copia",
+    "search": "Cerca",
+    "filter": "Filtra",
+    "sort": "Ordina",
+    "loading": "Caricamento...",
+    "error": "Errore",
+    "success": "Successo",
+    "warning": "Attenzione",
+    "info": "Informazione",
+    "confirm": "Conferma",
+    "yes": "Sì",
+    "no": "No"
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "profile": "Profilo",
+    "account": "Account",
+    "notifications": "Notifiche",
+    "privacy": "Privacy",
+    "language": "Lingua",
+    "theme": "Tema",
+    "darkMode": "Modalità Scura",
+    "lightMode": "Modalità Chiara"
+  },
+  "forms": {
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Conferma Password",
+    "firstName": "Nome",
+    "lastName": "Cognome",
+    "title": "Titolo",
+    "description": "Descrizione",
+    "category": "Categoria",
+    "tags": "Tag",
+    "required": "Campo obbligatorio",
+    "invalid": "Formato non valido"
+  },
+  "errors": {
+    "notFound": "Pagina non trovata",
+    "serverError": "Errore del server",
+    "unauthorized": "Non autorizzato",
+    "forbidden": "Accesso negato",
+    "badRequest": "Richiesta non valida",
+    "networkError": "Errore di rete",
+    "tryAgain": "Riprova più tardi"
+  },
+  "payments": {
+    "subscription": "Abbonamento",
+    "billing": "Fatturazione",
+    "plan": "Piano",
+    "upgrade": "Aggiorna",
+    "downgrade": "Riduci",
+    "free": "Gratuito",
+    "pro": "Pro",
+    "enterprise": "Enterprise",
+    "monthly": "Mensile",
+    "yearly": "Annuale",
+    "cancel": "Annulla Abbonamento"
+  }
+}

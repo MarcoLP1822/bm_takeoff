@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1750112706924,
+      "tag": "0000_flaky_vindicator",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1753269000953,
+      "tag": "0001_kind_blindfold",
+      "breakpoints": true
+    }
+  ]
+}

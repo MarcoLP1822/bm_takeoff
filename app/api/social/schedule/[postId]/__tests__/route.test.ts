@@ -7,7 +7,9 @@ import { NextRequest } from "next/server"
 jest.mock("@/lib/scheduling-service")
 jest.mock("@clerk/nextjs/server")
 
-const mockSchedulingService = SchedulingService as jest.Mocked<typeof SchedulingService>
+const mockSchedulingService = SchedulingService as jest.Mocked<
+  typeof SchedulingService
+>
 const mockAuth = auth as jest.MockedFunction<typeof auth>
 
 describe("/api/social/schedule/[postId]", () => {
@@ -94,9 +96,10 @@ describe("/api/social/schedule/[postId]", () => {
   })
 
   describe("PUT", () => {
-    const mockRequest = (body: Record<string, unknown>) => ({
-      json: () => Promise.resolve(body)
-    }) as NextRequest
+    const mockRequest = (body: Record<string, unknown>) =>
+      ({
+        json: () => Promise.resolve(body)
+      }) as NextRequest
 
     it("should reschedule post successfully", async () => {
       const futureDate = new Date(Date.now() + 48 * 60 * 60 * 1000)
@@ -161,7 +164,9 @@ describe("/api/social/schedule/[postId]", () => {
       const data = await response.json()
 
       expect(response.status).toBe(400)
-      expect(data).toEqual({ error: "New scheduled time must be in the future" })
+      expect(data).toEqual({
+        error: "New scheduled time must be in the future"
+      })
     })
 
     it("should handle post not found", async () => {

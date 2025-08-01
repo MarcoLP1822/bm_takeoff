@@ -9,13 +9,16 @@ export const booksRelations = relations(books, ({ many }) => ({
 }))
 
 // Generated content relations
-export const generatedContentRelations = relations(generatedContent, ({ one, many }) => ({
-  book: one(books, {
-    fields: [generatedContent.bookId],
-    references: [books.id]
-  }),
-  analytics: many(postAnalytics)
-}))
+export const generatedContentRelations = relations(
+  generatedContent,
+  ({ one, many }) => ({
+    book: one(books, {
+      fields: [generatedContent.bookId],
+      references: [books.id]
+    }),
+    analytics: many(postAnalytics)
+  })
+)
 
 // Post analytics relations
 export const postAnalyticsRelations = relations(postAnalytics, ({ one }) => ({

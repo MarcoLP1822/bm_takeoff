@@ -34,20 +34,24 @@ describe("SocialMediaService", () => {
   describe("generateAuthUrl", () => {
     it("should generate correct Twitter OAuth URL", () => {
       const url = SocialMediaService.generateAuthUrl("twitter", "test-state")
-      
+
       expect(url).toContain("https://twitter.com/i/oauth2/authorize")
       expect(url).toContain("client_id=test_twitter_client_id")
-      expect(url).toContain("redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fsocial%2Fcallback%2Ftwitter")
-      expect(url).toContain("scope=tweet.read%20tweet.write%20users.read%20offline.access")
+      expect(url).toContain(
+        "redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fsocial%2Fcallback%2Ftwitter"
+      )
+      expect(url).toContain(
+        "scope=tweet.read%20tweet.write%20users.read%20offline.access"
+      )
       expect(url).toContain("state=test-state")
       expect(url).toContain("code_challenge=challenge")
     })
 
     it("should generate correct Instagram OAuth URL", () => {
       process.env.INSTAGRAM_CLIENT_ID = "test_instagram_client_id"
-      
+
       const url = SocialMediaService.generateAuthUrl("instagram", "test-state")
-      
+
       expect(url).toContain("https://api.instagram.com/oauth/authorize")
       expect(url).toContain("client_id=test_instagram_client_id")
       expect(url).toContain("scope=user_profile%2Cuser_media")
@@ -55,7 +59,7 @@ describe("SocialMediaService", () => {
 
     it("should generate random state if not provided", () => {
       const url = SocialMediaService.generateAuthUrl("twitter")
-      
+
       expect(url).toContain("state=")
       // Should contain a UUID-like string
       expect(url).toMatch(/state=[a-f0-9-]{36}/)
@@ -88,7 +92,10 @@ describe("SocialMediaService", () => {
           json: () => Promise.resolve(mockUserResponse)
         })
 
-      const result = await SocialMediaService.exchangeCodeForToken("twitter", "test_code")
+      const result = await SocialMediaService.exchangeCodeForToken(
+        "twitter",
+        "test_code"
+      )
 
       expect(result.accessToken).toBe("test_access_token")
       expect(result.refreshToken).toBe("test_refresh_token")
@@ -124,7 +131,10 @@ describe("SocialMediaService", () => {
         json: () => Promise.resolve(mockResponse)
       })
 
-      const result = await SocialMediaService.getUserInfo("twitter", "test_token")
+      const result = await SocialMediaService.getUserInfo(
+        "twitter",
+        "test_token"
+      )
 
       expect(result.id).toBe("123456789")
       expect(result.name).toBe("Test User")
@@ -142,7 +152,10 @@ describe("SocialMediaService", () => {
         json: () => Promise.resolve(mockResponse)
       })
 
-      const result = await SocialMediaService.getUserInfo("instagram", "test_token")
+      const result = await SocialMediaService.getUserInfo(
+        "instagram",
+        "test_token"
+      )
 
       expect(result.id).toBe("123456789")
       expect(result.name).toBe("testuser")
@@ -169,7 +182,10 @@ describe("SocialMediaService", () => {
         json: () => Promise.resolve(mockResponse)
       })
 
-      const result = await SocialMediaService.refreshAccessToken("twitter", "refresh_token")
+      const result = await SocialMediaService.refreshAccessToken(
+        "twitter",
+        "refresh_token"
+      )
 
       expect(result.accessToken).toBe("new_access_token")
       expect(result.refreshToken).toBe("new_refresh_token")
@@ -183,7 +199,10 @@ describe("SocialMediaService", () => {
       })
 
       await expect(
-        SocialMediaService.refreshAccessToken("twitter", "invalid_refresh_token")
+        SocialMediaService.refreshAccessToken(
+          "twitter",
+          "invalid_refresh_token"
+        )
       ).rejects.toThrow("Token refresh failed: Unauthorized")
     })
   })
@@ -220,18 +239,22 @@ describe("oauthConfigs", () => {
 
   it("should have correct Twitter configuration", () => {
     const config = oauthConfigs.twitter
-    
+
     expect(config.clientId).toBe("twitter_id")
     expect(config.clientSecret).toBe("twitter_secret")
-    expect(config.redirectUri).toBe("http://localhost:3000/api/social/callback/twitter")
-    expect(config.scope).toBe("tweet.read tweet.write users.read offline.access")
+    expect(config.redirectUri).toBe(
+      "http://localhost:3000/api/social/callback/twitter"
+    )
+    expect(config.scope).toBe(
+      "tweet.read tweet.write users.read offline.access"
+    )
     expect(config.authUrl).toBe("https://twitter.com/i/oauth2/authorize")
     expect(config.tokenUrl).toBe("https://api.twitter.com/2/oauth2/token")
   })
 
   it("should have correct Instagram configuration", () => {
     const config = oauthConfigs.instagram
-    
+
     expect(config.clientId).toBe("instagram_id")
     expect(config.scope).toBe("user_profile,user_media")
     expect(config.authUrl).toBe("https://api.instagram.com/oauth/authorize")
@@ -239,17 +262,21 @@ describe("oauthConfigs", () => {
 
   it("should have correct LinkedIn configuration", () => {
     const config = oauthConfigs.linkedin
-    
+
     expect(config.clientId).toBe("linkedin_id")
     expect(config.scope).toBe("r_liteprofile r_emailaddress w_member_social")
-    expect(config.authUrl).toBe("https://www.linkedin.com/oauth/v2/authorization")
+    expect(config.authUrl).toBe(
+      "https://www.linkedin.com/oauth/v2/authorization"
+    )
   })
 
   it("should have correct Facebook configuration", () => {
     const config = oauthConfigs.facebook
-    
+
     expect(config.clientId).toBe("facebook_id")
-    expect(config.scope).toBe("pages_manage_posts,pages_read_engagement,publish_to_groups")
+    expect(config.scope).toBe(
+      "pages_manage_posts,pages_read_engagement,publish_to_groups"
+    )
     expect(config.authUrl).toBe("https://www.facebook.com/v18.0/dialog/oauth")
   })
 })

@@ -1,6 +1,23 @@
 import { db } from "@/db"
-import { postAnalytics, generatedContent, socialAccounts, books } from "@/db/schema"
-import { eq, and, desc, asc, sql, gte, lte, avg, sum, count, or } from "drizzle-orm"
+import {
+  postAnalytics,
+  generatedContent,
+  socialAccounts,
+  books
+} from "@/db/schema"
+import {
+  eq,
+  and,
+  desc,
+  asc,
+  sql,
+  gte,
+  lte,
+  avg,
+  sum,
+  count,
+  or
+} from "drizzle-orm"
 import { SocialMediaService, type SocialPlatform } from "./social-media"
 
 export interface AnalyticsData {
@@ -88,10 +105,12 @@ export class AnalyticsService {
       )
 
       // Calculate engagement rate
-      const totalEngagement = analyticsData.likes + analyticsData.shares + analyticsData.comments
-      const engagementRateNumber = analyticsData.impressions > 0 
-        ? (totalEngagement / analyticsData.impressions) * 100
-        : 0
+      const totalEngagement =
+        analyticsData.likes + analyticsData.shares + analyticsData.comments
+      const engagementRateNumber =
+        analyticsData.impressions > 0
+          ? (totalEngagement / analyticsData.impressions) * 100
+          : 0
       const engagementRateString = engagementRateNumber.toFixed(2)
 
       // Store or update analytics data
@@ -110,7 +129,10 @@ export class AnalyticsService {
         engagementRate: engagementRateNumber
       }
     } catch (error) {
-      console.error(`Failed to collect analytics for ${platform} post ${socialPostId}:`, error)
+      console.error(
+        `Failed to collect analytics for ${platform} post ${socialPostId}:`,
+        error
+      )
       throw error
     }
   }
@@ -148,7 +170,7 @@ export class AnalyticsService {
       `https://api.twitter.com/2/tweets/${tweetId}?tweet.fields=public_metrics`,
       {
         headers: {
-          "Authorization": `Bearer ${accessToken}`
+          Authorization: `Bearer ${accessToken}`
         }
       }
     )
@@ -182,15 +204,19 @@ export class AnalyticsService {
     )
 
     if (!response.ok) {
-      throw new Error(`Instagram analytics fetch failed: ${response.statusText}`)
+      throw new Error(
+        `Instagram analytics fetch failed: ${response.statusText}`
+      )
     }
 
     const data = await response.json()
     const metrics: Record<string, number> = {}
-    
-    data.data.forEach((metric: { name: string; values: Array<{ value: number }> }) => {
-      metrics[metric.name] = metric.values[0]?.value || 0
-    })
+
+    data.data.forEach(
+      (metric: { name: string; values: Array<{ value: number }> }) => {
+        metrics[metric.name] = metric.values[0]?.value || 0
+      }
+    )
 
     return {
       impressions: metrics.impressions || 0,
@@ -213,7 +239,7 @@ export class AnalyticsService {
       `https://api.linkedin.com/v2/socialActions/${postId}/statistics`,
       {
         headers: {
-          "Authorization": `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
           "X-Restli-Protocol-Version": "2.0.0"
         }
       }
@@ -251,17 +277,21 @@ export class AnalyticsService {
 
     const data = await response.json()
     const metrics: Record<string, number> = {}
-    
-    data.data.forEach((metric: { name: string; values: Array<{ value: number }> }) => {
-      metrics[metric.name] = metric.values[0]?.value || 0
-    })
+
+    data.data.forEach(
+      (metric: { name: string; values: Array<{ value: number }> }) => {
+        metrics[metric.name] = metric.values[0]?.value || 0
+      }
+    )
 
     // Get basic engagement metrics
     const engagementResponse = await fetch(
       `https://graph.facebook.com/${postId}?fields=likes.summary(true),comments.summary(true),shares&access_token=${accessToken}`
     )
 
-    let likes = 0, comments = 0, shares = 0
+    let likes = 0,
+      comments = 0,
+      shares = 0
     if (engagementResponse.ok) {
       const engagementData = await engagementResponse.json()
       likes = engagementData.likes?.summary?.total_count || 0
@@ -344,8 +374,15 @@ export class AnalyticsService {
       platform?: SocialPlatform
       bookId?: string
       search?: string
-      sortBy?: 'createdAt' | 'publishedAt' | 'engagementRate' | 'impressions' | 'likes' | 'shares' | 'comments'
-      sortOrder?: 'asc' | 'desc'
+      sortBy?:
+        | "createdAt"
+        | "publishedAt"
+        | "engagementRate"
+        | "impressions"
+        | "likes"
+        | "shares"
+        | "comments"
+      sortOrder?: "asc" | "desc"
       minEngagementRate?: number
       maxEngagementRate?: number
       startDate?: Date
@@ -364,18 +401,18 @@ export class AnalyticsService {
       books: { id: string; title: string; author?: string }[]
     }
   }> {
-    const { 
-      limit = 50, 
+    const {
+      limit = 50,
       offset = 0,
-      platform, 
-      bookId, 
+      platform,
+      bookId,
       search,
-      sortBy = 'publishedAt',
-      sortOrder = 'desc',
+      sortBy = "publishedAt",
+      sortOrder = "desc",
       minEngagementRate,
       maxEngagementRate,
-      startDate, 
-      endDate 
+      startDate,
+      endDate
     } = options
 
     // Build base query
@@ -398,12 +435,15 @@ export class AnalyticsService {
         analysisData: books.analysisData
       })
       .from(postAnalytics)
-      .innerJoin(generatedContent, eq(postAnalytics.contentId, generatedContent.id))
+      .innerJoin(
+        generatedContent,
+        eq(postAnalytics.contentId, generatedContent.id)
+      )
       .innerJoin(books, eq(generatedContent.bookId, books.id))
 
     // Apply filters
     const conditions = [eq(generatedContent.userId, userId)]
-    
+
     // Search filter
     if (search) {
       const searchTerm = `%${search}%`
@@ -415,31 +455,41 @@ export class AnalyticsService {
         )!
       )
     }
-    
+
     // Platform filter
     if (platform) {
       conditions.push(eq(generatedContent.platform, platform))
     }
-    
+
     // Book filter
     if (bookId) {
       conditions.push(eq(generatedContent.bookId, bookId))
     }
-    
+
     // Engagement rate filters
     if (minEngagementRate !== undefined) {
-      conditions.push(gte(sql`CAST(${postAnalytics.engagementRate} AS DECIMAL)`, minEngagementRate))
+      conditions.push(
+        gte(
+          sql`CAST(${postAnalytics.engagementRate} AS DECIMAL)`,
+          minEngagementRate
+        )
+      )
     }
-    
+
     if (maxEngagementRate !== undefined) {
-      conditions.push(lte(sql`CAST(${postAnalytics.engagementRate} AS DECIMAL)`, maxEngagementRate))
+      conditions.push(
+        lte(
+          sql`CAST(${postAnalytics.engagementRate} AS DECIMAL)`,
+          maxEngagementRate
+        )
+      )
     }
-    
+
     // Date range filters
     if (startDate) {
       conditions.push(gte(generatedContent.publishedAt, startDate))
     }
-    
+
     if (endDate) {
       conditions.push(lte(generatedContent.publishedAt, endDate))
     }
@@ -450,29 +500,48 @@ export class AnalyticsService {
     // Apply sorting
     let orderByClause
     switch (sortBy) {
-      case 'engagementRate':
-        orderByClause = sortOrder === 'asc' 
-          ? asc(sql`CAST(${postAnalytics.engagementRate} AS DECIMAL)`)
-          : desc(sql`CAST(${postAnalytics.engagementRate} AS DECIMAL)`)
+      case "engagementRate":
+        orderByClause =
+          sortOrder === "asc"
+            ? asc(sql`CAST(${postAnalytics.engagementRate} AS DECIMAL)`)
+            : desc(sql`CAST(${postAnalytics.engagementRate} AS DECIMAL)`)
         break
-      case 'impressions':
-        orderByClause = sortOrder === 'asc' ? asc(postAnalytics.impressions) : desc(postAnalytics.impressions)
+      case "impressions":
+        orderByClause =
+          sortOrder === "asc"
+            ? asc(postAnalytics.impressions)
+            : desc(postAnalytics.impressions)
         break
-      case 'likes':
-        orderByClause = sortOrder === 'asc' ? asc(postAnalytics.likes) : desc(postAnalytics.likes)
+      case "likes":
+        orderByClause =
+          sortOrder === "asc"
+            ? asc(postAnalytics.likes)
+            : desc(postAnalytics.likes)
         break
-      case 'shares':
-        orderByClause = sortOrder === 'asc' ? asc(postAnalytics.shares) : desc(postAnalytics.shares)
+      case "shares":
+        orderByClause =
+          sortOrder === "asc"
+            ? asc(postAnalytics.shares)
+            : desc(postAnalytics.shares)
         break
-      case 'comments':
-        orderByClause = sortOrder === 'asc' ? asc(postAnalytics.comments) : desc(postAnalytics.comments)
+      case "comments":
+        orderByClause =
+          sortOrder === "asc"
+            ? asc(postAnalytics.comments)
+            : desc(postAnalytics.comments)
         break
-      case 'createdAt':
-        orderByClause = sortOrder === 'asc' ? asc(generatedContent.createdAt) : desc(generatedContent.createdAt)
+      case "createdAt":
+        orderByClause =
+          sortOrder === "asc"
+            ? asc(generatedContent.createdAt)
+            : desc(generatedContent.createdAt)
         break
-      case 'publishedAt':
+      case "publishedAt":
       default:
-        orderByClause = sortOrder === 'asc' ? asc(generatedContent.publishedAt) : desc(generatedContent.publishedAt)
+        orderByClause =
+          sortOrder === "asc"
+            ? asc(generatedContent.publishedAt)
+            : desc(generatedContent.publishedAt)
         break
     }
 
@@ -480,15 +549,15 @@ export class AnalyticsService {
     const countQuery = db
       .select({ count: count() })
       .from(postAnalytics)
-      .innerJoin(generatedContent, eq(postAnalytics.contentId, generatedContent.id))
+      .innerJoin(
+        generatedContent,
+        eq(postAnalytics.contentId, generatedContent.id)
+      )
       .innerJoin(books, eq(generatedContent.bookId, books.id))
       .where(and(...conditions))
 
     const [results, [totalResult]] = await Promise.all([
-      queryWithConditions
-        .orderBy(orderByClause)
-        .limit(limit)
-        .offset(offset),
+      queryWithConditions.orderBy(orderByClause).limit(limit).offset(offset),
       countQuery
     ])
 
@@ -497,57 +566,65 @@ export class AnalyticsService {
       db
         .selectDistinct({ platform: generatedContent.platform })
         .from(postAnalytics)
-        .innerJoin(generatedContent, eq(postAnalytics.contentId, generatedContent.id))
+        .innerJoin(
+          generatedContent,
+          eq(postAnalytics.contentId, generatedContent.id)
+        )
         .where(eq(generatedContent.userId, userId))
         .orderBy(asc(generatedContent.platform)),
       db
-        .selectDistinct({ 
-          id: books.id, 
-          title: books.title, 
-          author: books.author 
+        .selectDistinct({
+          id: books.id,
+          title: books.title,
+          author: books.author
         })
         .from(postAnalytics)
-        .innerJoin(generatedContent, eq(postAnalytics.contentId, generatedContent.id))
+        .innerJoin(
+          generatedContent,
+          eq(postAnalytics.contentId, generatedContent.id)
+        )
         .innerJoin(books, eq(generatedContent.bookId, books.id))
         .where(eq(generatedContent.userId, userId))
         .orderBy(asc(books.title))
     ])
 
-    const posts = results.map((row: {
-      contentId: string
-      platform: string
-      postId: string
-      content: string
-      publishedAt: Date | null
-      impressions: number
-      likes: number
-      shares: number
-      comments: number
-      clicks: number
-      reach: number | null
-      engagementRate: string | null
-      bookTitle: string
-      bookAuthor: string | null
-      analysisData: unknown
-    }) => ({
-      contentId: row.contentId,
-      platform: row.platform as SocialPlatform,
-      postId: row.postId,
-      content: row.content,
-      publishedAt: row.publishedAt!,
-      analytics: {
-        impressions: row.impressions,
-        likes: row.likes,
-        shares: row.shares,
-        comments: row.comments,
-        clicks: row.clicks,
-        reach: row.reach || 0,
-        engagementRate: parseFloat(row.engagementRate || "0")
-      },
-      bookTitle: row.bookTitle,
-      bookAuthor: row.bookAuthor || undefined,
-      themes: this.extractThemesFromAnalysisData(row.analysisData)
-    }))
+    const posts = results.map(
+      (row: {
+        contentId: string
+        platform: string
+        postId: string
+        content: string
+        publishedAt: Date | null
+        impressions: number
+        likes: number
+        shares: number
+        comments: number
+        clicks: number
+        reach: number | null
+        engagementRate: string | null
+        bookTitle: string
+        bookAuthor: string | null
+        analysisData: unknown
+      }) => ({
+        contentId: row.contentId,
+        platform: row.platform as SocialPlatform,
+        postId: row.postId,
+        content: row.content,
+        publishedAt: row.publishedAt!,
+        analytics: {
+          impressions: row.impressions,
+          likes: row.likes,
+          shares: row.shares,
+          comments: row.comments,
+          clicks: row.clicks,
+          reach: row.reach || 0,
+          engagementRate: parseFloat(row.engagementRate || "0")
+        },
+        bookTitle: row.bookTitle,
+        bookAuthor: row.bookAuthor || undefined,
+        themes: this.extractThemesFromAnalysisData(row.analysisData)
+      })
+    )
 
     return {
       posts,
@@ -571,19 +648,26 @@ export class AnalyticsService {
   /**
    * Get platform comparison data
    */
-  static async getPlatformComparison(userId: string): Promise<PlatformComparison[]> {
+  static async getPlatformComparison(
+    userId: string
+  ): Promise<PlatformComparison[]> {
     const results = await db
       .select({
         platform: generatedContent.platform,
         totalPosts: count(postAnalytics.id),
-        avgEngagementRate: avg(sql`CAST(${postAnalytics.engagementRate} AS DECIMAL)`),
+        avgEngagementRate: avg(
+          sql`CAST(${postAnalytics.engagementRate} AS DECIMAL)`
+        ),
         totalImpressions: sum(postAnalytics.impressions),
         totalLikes: sum(postAnalytics.likes),
         totalShares: sum(postAnalytics.shares),
         totalComments: sum(postAnalytics.comments)
       })
       .from(postAnalytics)
-      .innerJoin(generatedContent, eq(postAnalytics.contentId, generatedContent.id))
+      .innerJoin(
+        generatedContent,
+        eq(postAnalytics.contentId, generatedContent.id)
+      )
       .where(eq(generatedContent.userId, userId))
       .groupBy(generatedContent.platform)
 
@@ -614,16 +698,21 @@ export class AnalyticsService {
   /**
    * Get theme-based performance analysis
    */
-  static async getThemePerformance(userId: string): Promise<ThemePerformance[]> {
+  static async getThemePerformance(
+    userId: string
+  ): Promise<ThemePerformance[]> {
     // Get all posts with their analytics and book analysis data
     const postsData = await this.getPostPerformance(userId, { limit: 1000 })
     const posts = postsData.posts
-    
+
     // Group by themes
-    const themeMap = new Map<string, {
-      posts: PostPerformance[]
-      platforms: Map<SocialPlatform, PostPerformance[]>
-    }>()
+    const themeMap = new Map<
+      string,
+      {
+        posts: PostPerformance[]
+        platforms: Map<SocialPlatform, PostPerformance[]>
+      }
+    >()
 
     posts.forEach((post: PostPerformance) => {
       if (post.themes) {
@@ -650,21 +739,32 @@ export class AnalyticsService {
     const themePerformances: ThemePerformance[] = []
 
     themeMap.forEach((data, theme) => {
-      const totalEngagement = data.posts.reduce((sum, post) => 
-        sum + post.analytics.likes + post.analytics.shares + post.analytics.comments, 0
+      const totalEngagement = data.posts.reduce(
+        (sum, post) =>
+          sum +
+          post.analytics.likes +
+          post.analytics.shares +
+          post.analytics.comments,
+        0
       )
-      
-      const avgEngagementRate = data.posts.reduce((sum, post) => 
-        sum + post.analytics.engagementRate!, 0
-      ) / data.posts.length
 
-      const platforms = Array.from(data.platforms.entries()).map(([platform, platformPosts]) => ({
-        platform,
-        avgEngagementRate: platformPosts.reduce((sum, post) => 
-          sum + post.analytics.engagementRate!, 0
-        ) / platformPosts.length,
-        postCount: platformPosts.length
-      }))
+      const avgEngagementRate =
+        data.posts.reduce(
+          (sum, post) => sum + post.analytics.engagementRate!,
+          0
+        ) / data.posts.length
+
+      const platforms = Array.from(data.platforms.entries()).map(
+        ([platform, platformPosts]) => ({
+          platform,
+          avgEngagementRate:
+            platformPosts.reduce(
+              (sum, post) => sum + post.analytics.engagementRate!,
+              0
+            ) / platformPosts.length,
+          postCount: platformPosts.length
+        })
+      )
 
       themePerformances.push({
         theme,
@@ -675,21 +775,28 @@ export class AnalyticsService {
       })
     })
 
-    return themePerformances.sort((a, b) => b.avgEngagementRate - a.avgEngagementRate)
+    return themePerformances.sort(
+      (a, b) => b.avgEngagementRate - a.avgEngagementRate
+    )
   }
 
   /**
    * Get optimal posting times based on historical data
    */
-  static async getOptimalPostingTimes(userId: string): Promise<OptimalPostingTime[]> {
+  static async getOptimalPostingTimes(
+    userId: string
+  ): Promise<OptimalPostingTime[]> {
     const postsData = await this.getPostPerformance(userId, { limit: 1000 })
     const posts = postsData.posts
-    
+
     // Group by platform, day of week, and hour
-    const timeMap = new Map<string, {
-      posts: PostPerformance[]
-      totalEngagementRate: number
-    }>()
+    const timeMap = new Map<
+      string,
+      {
+        posts: PostPerformance[]
+        totalEngagementRate: number
+      }
+    >()
 
     posts.forEach((post: PostPerformance) => {
       const date = new Date(post.publishedAt)
@@ -713,9 +820,10 @@ export class AnalyticsService {
     const optimalTimes: OptimalPostingTime[] = []
 
     timeMap.forEach((data, key) => {
-      const [platform, dayOfWeek, hour] = key.split('-')
-      
-      if (data.posts.length >= 3) { // Only include times with sufficient data
+      const [platform, dayOfWeek, hour] = key.split("-")
+
+      if (data.posts.length >= 3) {
+        // Only include times with sufficient data
         optimalTimes.push({
           platform: platform as SocialPlatform,
           dayOfWeek: parseInt(dayOfWeek),
@@ -726,33 +834,49 @@ export class AnalyticsService {
       }
     })
 
-    return optimalTimes.sort((a, b) => b.avgEngagementRate - a.avgEngagementRate)
+    return optimalTimes.sort(
+      (a, b) => b.avgEngagementRate - a.avgEngagementRate
+    )
   }
 
   /**
    * Get comprehensive analytics insights
    */
-  static async getAnalyticsInsights(userId: string): Promise<AnalyticsInsights> {
-    const [postsData, platformComparison, themePerformance, optimalTimes] = await Promise.all([
-      this.getPostPerformance(userId),
-      this.getPlatformComparison(userId),
-      this.getThemePerformance(userId),
-      this.getOptimalPostingTimes(userId)
-    ])
+  static async getAnalyticsInsights(
+    userId: string
+  ): Promise<AnalyticsInsights> {
+    const [postsData, platformComparison, themePerformance, optimalTimes] =
+      await Promise.all([
+        this.getPostPerformance(userId),
+        this.getPlatformComparison(userId),
+        this.getThemePerformance(userId),
+        this.getOptimalPostingTimes(userId)
+      ])
 
     const posts = postsData.posts
 
-    const totalEngagement = posts.reduce((sum: number, post: PostPerformance) => 
-      sum + post.analytics.likes + post.analytics.shares + post.analytics.comments, 0
+    const totalEngagement = posts.reduce(
+      (sum: number, post: PostPerformance) =>
+        sum +
+        post.analytics.likes +
+        post.analytics.shares +
+        post.analytics.comments,
+      0
     )
 
-    const avgEngagementRate = posts.length > 0 
-      ? posts.reduce((sum: number, post: PostPerformance) => sum + post.analytics.engagementRate!, 0) / posts.length
-      : 0
+    const avgEngagementRate =
+      posts.length > 0
+        ? posts.reduce(
+            (sum: number, post: PostPerformance) =>
+              sum + post.analytics.engagementRate!,
+            0
+          ) / posts.length
+        : 0
 
-    const bestPlatform = platformComparison.length > 0 
-      ? platformComparison[0].platform
-      : "twitter" as SocialPlatform
+    const bestPlatform =
+      platformComparison.length > 0
+        ? platformComparison[0].platform
+        : ("twitter" as SocialPlatform)
 
     // Calculate recent trends (last 30 days vs previous 30 days)
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
@@ -760,19 +884,45 @@ export class AnalyticsService {
 
     const [recentPostsData, previousPostsData] = await Promise.all([
       this.getPostPerformance(userId, { startDate: thirtyDaysAgo }),
-      this.getPostPerformance(userId, { startDate: sixtyDaysAgo, endDate: thirtyDaysAgo })
+      this.getPostPerformance(userId, {
+        startDate: sixtyDaysAgo,
+        endDate: thirtyDaysAgo
+      })
     ])
 
     const recentPosts = recentPostsData.posts
     const previousPosts = previousPostsData.posts
 
-    const recentEngagement = recentPosts.reduce((sum: number, post: PostPerformance) => sum + post.analytics.engagementRate!, 0) / (recentPosts.length || 1)
-    const previousEngagement = previousPosts.reduce((sum: number, post: PostPerformance) => sum + post.analytics.engagementRate!, 0) / (previousPosts.length || 1)
-    const engagementChange = previousEngagement > 0 ? ((recentEngagement - previousEngagement) / previousEngagement) * 100 : 0
+    const recentEngagement =
+      recentPosts.reduce(
+        (sum: number, post: PostPerformance) =>
+          sum + post.analytics.engagementRate!,
+        0
+      ) / (recentPosts.length || 1)
+    const previousEngagement =
+      previousPosts.reduce(
+        (sum: number, post: PostPerformance) =>
+          sum + post.analytics.engagementRate!,
+        0
+      ) / (previousPosts.length || 1)
+    const engagementChange =
+      previousEngagement > 0
+        ? ((recentEngagement - previousEngagement) / previousEngagement) * 100
+        : 0
 
-    const recentImpressions = recentPosts.reduce((sum: number, post: PostPerformance) => sum + post.analytics.impressions, 0)
-    const previousImpressions = previousPosts.reduce((sum: number, post: PostPerformance) => sum + post.analytics.impressions, 0)
-    const impressionsChange = previousImpressions > 0 ? ((recentImpressions - previousImpressions) / previousImpressions) * 100 : 0
+    const recentImpressions = recentPosts.reduce(
+      (sum: number, post: PostPerformance) => sum + post.analytics.impressions,
+      0
+    )
+    const previousImpressions = previousPosts.reduce(
+      (sum: number, post: PostPerformance) => sum + post.analytics.impressions,
+      0
+    )
+    const impressionsChange =
+      previousImpressions > 0
+        ? ((recentImpressions - previousImpressions) / previousImpressions) *
+          100
+        : 0
 
     return {
       totalPosts: posts.length,
@@ -802,10 +952,13 @@ export class AnalyticsService {
         accountId: socialAccounts.id
       })
       .from(generatedContent)
-      .innerJoin(socialAccounts, and(
-        eq(socialAccounts.userId, userId),
-        eq(socialAccounts.platform, generatedContent.platform)
-      ))
+      .innerJoin(
+        socialAccounts,
+        and(
+          eq(socialAccounts.userId, userId),
+          eq(socialAccounts.platform, generatedContent.platform)
+        )
+      )
       .where(
         and(
           eq(generatedContent.userId, userId),
@@ -829,7 +982,10 @@ export class AnalyticsService {
           accessToken
         )
       } catch (error) {
-        console.error(`Failed to update analytics for post ${post.contentId}:`, error)
+        console.error(
+          `Failed to update analytics for post ${post.contentId}:`,
+          error
+        )
         // Continue with other posts even if one fails
       }
     }
@@ -838,23 +994,25 @@ export class AnalyticsService {
   /**
    * Extract themes from book analysis data
    */
-  private static extractThemesFromAnalysisData(analysisData: unknown): string[] {
-    if (!analysisData || typeof analysisData !== 'object') {
+  private static extractThemesFromAnalysisData(
+    analysisData: unknown
+  ): string[] {
+    if (!analysisData || typeof analysisData !== "object") {
       return []
     }
 
     const themes: string[] = []
     const data = analysisData as Record<string, unknown>
-    
+
     if (data.themes && Array.isArray(data.themes)) {
-      themes.push(...data.themes.filter(theme => typeof theme === 'string'))
+      themes.push(...data.themes.filter(theme => typeof theme === "string"))
     }
-    
+
     if (data.topics && Array.isArray(data.topics)) {
-      themes.push(...data.topics.filter(topic => typeof topic === 'string'))
+      themes.push(...data.topics.filter(topic => typeof topic === "string"))
     }
-    
-    if (typeof data.genre === 'string') {
+
+    if (typeof data.genre === "string") {
       themes.push(data.genre)
     }
 
@@ -865,7 +1023,7 @@ export class AnalyticsService {
 // Export individual functions for backward compatibility with tests
 export const getPostAnalytics = AnalyticsService.getPostPerformance
 export const getEngagementMetrics = AnalyticsService.getAnalyticsInsights
-export const getPerformanceInsights = AnalyticsService.getAnalyticsInsights  
+export const getPerformanceInsights = AnalyticsService.getAnalyticsInsights
 export const getOptimalPostingTimes = AnalyticsService.getOptimalPostingTimes
 export const getPlatformComparison = AnalyticsService.getPlatformComparison
 export const getThemePerformance = AnalyticsService.getThemePerformance

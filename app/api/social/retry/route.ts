@@ -11,12 +11,9 @@ const retrySchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const body = await request.json()
@@ -32,14 +29,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: result.success,
       result,
-      message: result.success 
-        ? "Publication retry successful" 
+      message: result.success
+        ? "Publication retry successful"
         : "Publication retry failed"
     })
-
   } catch (error) {
     console.error("Retry publication error:", error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid request data", details: error.errors },
@@ -48,10 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
     return NextResponse.json(

@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
-import { db } from '@/db'
-import { books } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
+import { db } from "@/db"
+import { books } from "@/db/schema"
+import { eq, and } from "drizzle-orm"
 
 export async function GET(
   request: NextRequest,
@@ -12,10 +12,7 @@ export async function GET(
     // Check authentication
     const { userId } = await auth()
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { bookId } = await params
@@ -35,10 +32,7 @@ export async function GET(
       .limit(1)
 
     if (!book) {
-      return NextResponse.json(
-        { error: 'Book not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Book not found" }, { status: 404 })
     }
 
     return NextResponse.json({
@@ -52,13 +46,12 @@ export async function GET(
         lastUpdated: book.updatedAt
       }
     })
-
   } catch (error) {
-    console.error('Get analysis endpoint error:', error)
+    console.error("Get analysis endpoint error:", error)
     return NextResponse.json(
       {
-        error: 'Internal server error',
-        details: 'Failed to retrieve book analysis'
+        error: "Internal server error",
+        details: "Failed to retrieve book analysis"
       },
       { status: 500 }
     )

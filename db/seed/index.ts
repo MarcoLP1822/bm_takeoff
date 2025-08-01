@@ -43,14 +43,19 @@ async function seed() {
     ...content,
     bookId: insertedBooks[index < 2 ? 0 : index < 4 ? 1 : 2].id // Map to actual book IDs
   }))
-  const insertedContent = await db.insert(generatedContent).values(contentDataWithBookIds).returning()
+  const insertedContent = await db
+    .insert(generatedContent)
+    .values(contentDataWithBookIds)
+    .returning()
 
   // Seed post analytics with actual content IDs
   console.warn("Seeding post analytics...")
-  const analyticsDataWithContentIds = postAnalyticsData.map((analytics, index) => ({
-    ...analytics,
-    contentId: insertedContent[index].id // Map to actual content IDs
-  }))
+  const analyticsDataWithContentIds = postAnalyticsData.map(
+    (analytics, index) => ({
+      ...analytics,
+      contentId: insertedContent[index].id // Map to actual content IDs
+    })
+  )
   await db.insert(postAnalytics).values(analyticsDataWithContentIds)
 
   console.warn("Seeding complete!")

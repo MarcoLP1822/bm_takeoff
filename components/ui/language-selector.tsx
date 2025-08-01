@@ -1,21 +1,21 @@
-'use client'
+"use client"
 
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import { locales, type Locale } from '@/i18n'
+import { locales, type Locale } from "@/i18n"
 import { Languages } from "lucide-react"
-import { useLocale } from 'next-intl'
-import { useRouter, usePathname, useParams } from 'next/navigation'
-import { useTransition } from 'react'
+import { useLocale } from "next-intl"
+import { useRouter, usePathname, useParams } from "next/navigation"
+import { useTransition } from "react"
 
 const localeNames: Record<Locale, string> = {
-  it: '🇮🇹 Italiano',
-  en: '🇬🇧 English'
+  it: "🇮🇹 Italiano",
+  en: "🇬🇧 English"
 }
 
 export function LanguageSelector() {
@@ -27,20 +27,23 @@ export function LanguageSelector() {
 
   function changeLanguage(newLocale: Locale) {
     if (newLocale === locale) return // Don't change if same locale
-    
+
     startTransition(() => {
       // Get current URL and split it into parts
       const url = new URL(window.location.href)
-      const pathSegments = url.pathname.split('/').filter(Boolean) // Remove empty strings
-      
+      const pathSegments = url.pathname.split("/").filter(Boolean) // Remove empty strings
+
       // First segment should be the locale
-      if (pathSegments.length > 0 && locales.includes(pathSegments[0] as Locale)) {
+      if (
+        pathSegments.length > 0 &&
+        locales.includes(pathSegments[0] as Locale)
+      ) {
         pathSegments[0] = newLocale // Replace the locale
       } else {
         pathSegments.unshift(newLocale) // Add locale if not present
       }
-      
-      const newPath = '/' + pathSegments.join('/')
+
+      const newPath = "/" + pathSegments.join("/")
       router.push(newPath)
     })
   }
@@ -48,9 +51,9 @@ export function LanguageSelector() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           className="h-8 w-8 px-0"
           disabled={isPending}
         >
@@ -59,7 +62,7 @@ export function LanguageSelector() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {locales.map((loc) => (
+        {locales.map(loc => (
           <DropdownMenuItem
             key={loc}
             onSelect={() => changeLanguage(loc)}

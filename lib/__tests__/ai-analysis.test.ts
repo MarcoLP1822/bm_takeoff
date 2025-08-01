@@ -1,4 +1,4 @@
-import { 
+import {
   validateAndNormalizeAnalysisResult,
   BookAnalysisResult,
   isAIServiceConfigured,
@@ -6,10 +6,10 @@ import {
   estimateAnalysisTime,
   prepareTextForAnalysis,
   createAnalysisSummary
-} from '../ai-analysis'
+} from "../ai-analysis"
 
 // Mock OpenAI completely
-jest.mock('openai', () => ({
+jest.mock("openai", () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(() => ({
     chat: {
@@ -20,52 +20,52 @@ jest.mock('openai', () => ({
   }))
 }))
 
-describe('AI Analysis Service', () => {
-  describe('validateAndNormalizeAnalysisResult', () => {
-    it('should normalize valid analysis result', () => {
+describe("AI Analysis Service", () => {
+  describe("validateAndNormalizeAnalysisResult", () => {
+    it("should normalize valid analysis result", () => {
       const input: Partial<BookAnalysisResult> = {
-        themes: ['Theme 1', 'Theme 2'],
-        quotes: ['Quote 1'],
-        keyInsights: ['Insight 1'],
-        overallSummary: 'Test summary',
-        genre: 'Fiction',
-        targetAudience: 'Young adults'
+        themes: ["Theme 1", "Theme 2"],
+        quotes: ["Quote 1"],
+        keyInsights: ["Insight 1"],
+        overallSummary: "Test summary",
+        genre: "Fiction",
+        targetAudience: "Young adults"
       }
 
       const result = validateAndNormalizeAnalysisResult(input)
 
       expect(result).toEqual({
-        themes: ['Theme 1', 'Theme 2'],
-        quotes: ['Quote 1'],
-        keyInsights: ['Insight 1'],
+        themes: ["Theme 1", "Theme 2"],
+        quotes: ["Quote 1"],
+        keyInsights: ["Insight 1"],
         chapterSummaries: [],
-        overallSummary: 'Test summary',
-        genre: 'Fiction',
-        targetAudience: 'Young adults',
+        overallSummary: "Test summary",
+        genre: "Fiction",
+        targetAudience: "Young adults",
         discussionPoints: []
       })
     })
 
-    it('should provide fallbacks for missing data', () => {
+    it("should provide fallbacks for missing data", () => {
       const input: Partial<BookAnalysisResult> = {}
 
       const result = validateAndNormalizeAnalysisResult(input)
 
       expect(result).toEqual({
-        themes: ['General Interest'],
+        themes: ["General Interest"],
         quotes: [],
         keyInsights: [],
         chapterSummaries: [],
-        overallSummary: 'Analysis summary not available.',
-        genre: 'Unknown',
-        targetAudience: 'General readers',
+        overallSummary: "Analysis summary not available.",
+        genre: "Unknown",
+        targetAudience: "General readers",
         discussionPoints: []
       })
     })
 
-    it('should handle invalid data types', () => {
+    it("should handle invalid data types", () => {
       const input: Record<string, unknown> = {
-        themes: 'not an array',
+        themes: "not an array",
         quotes: null,
         keyInsights: undefined,
         overallSummary: 123,
@@ -76,43 +76,43 @@ describe('AI Analysis Service', () => {
       const result = validateAndNormalizeAnalysisResult(input)
 
       expect(result).toEqual({
-        themes: ['General Interest'],
+        themes: ["General Interest"],
         quotes: [],
         keyInsights: [],
         chapterSummaries: [],
-        overallSummary: 'Analysis summary not available.',
-        genre: 'Unknown',
-        targetAudience: 'General readers',
+        overallSummary: "Analysis summary not available.",
+        genre: "Unknown",
+        targetAudience: "General readers",
         discussionPoints: []
       })
     })
 
-    it('should handle partial data with some valid fields', () => {
+    it("should handle partial data with some valid fields", () => {
       const input: Record<string, unknown> = {
-        themes: ['Valid Theme'],
+        themes: ["Valid Theme"],
         quotes: null,
-        keyInsights: ['Valid Insight'],
+        keyInsights: ["Valid Insight"],
         overallSummary: undefined,
-        genre: 'Mystery',
+        genre: "Mystery",
         targetAudience: undefined,
-        discussionPoints: ['Valid Discussion Point']
+        discussionPoints: ["Valid Discussion Point"]
       }
 
       const result = validateAndNormalizeAnalysisResult(input)
 
       expect(result).toEqual({
-        themes: ['Valid Theme'],
+        themes: ["Valid Theme"],
         quotes: [],
-        keyInsights: ['Valid Insight'],
+        keyInsights: ["Valid Insight"],
         chapterSummaries: [],
-        overallSummary: 'Analysis summary not available.',
-        genre: 'Mystery',
-        targetAudience: 'General readers',
-        discussionPoints: ['Valid Discussion Point']
+        overallSummary: "Analysis summary not available.",
+        genre: "Mystery",
+        targetAudience: "General readers",
+        discussionPoints: ["Valid Discussion Point"]
       })
     })
 
-    it('should handle empty arrays correctly', () => {
+    it("should handle empty arrays correctly", () => {
       const input: Partial<BookAnalysisResult> = {
         themes: [],
         quotes: [],
@@ -123,7 +123,7 @@ describe('AI Analysis Service', () => {
 
       const result = validateAndNormalizeAnalysisResult(input)
 
-      expect(result.themes).toEqual(['General Interest']) // Should provide fallback for empty themes
+      expect(result.themes).toEqual(["General Interest"]) // Should provide fallback for empty themes
       expect(result.quotes).toEqual([])
       expect(result.keyInsights).toEqual([])
       expect(result.chapterSummaries).toEqual([])
@@ -131,20 +131,20 @@ describe('AI Analysis Service', () => {
     })
   })
 
-  describe('AI Analysis Integration', () => {
-    it('should have proper error handling structure', () => {
+  describe("AI Analysis Integration", () => {
+    it("should have proper error handling structure", () => {
       // Test that the module exports the expected functions
-      expect(typeof validateAndNormalizeAnalysisResult).toBe('function')
+      expect(typeof validateAndNormalizeAnalysisResult).toBe("function")
     })
 
-    it('should handle chapter summaries validation', () => {
+    it("should handle chapter summaries validation", () => {
       const input: Partial<BookAnalysisResult> = {
         chapterSummaries: [
           {
             chapterNumber: 1,
-            title: 'Chapter 1',
-            summary: 'Test summary',
-            keyPoints: ['Point 1', 'Point 2']
+            title: "Chapter 1",
+            summary: "Test summary",
+            keyPoints: ["Point 1", "Point 2"]
           }
         ]
       }
@@ -154,103 +154,104 @@ describe('AI Analysis Service', () => {
       expect(result.chapterSummaries).toEqual([
         {
           chapterNumber: 1,
-          title: 'Chapter 1',
-          summary: 'Test summary',
-          keyPoints: ['Point 1', 'Point 2']
+          title: "Chapter 1",
+          summary: "Test summary",
+          keyPoints: ["Point 1", "Point 2"]
         }
       ])
     })
   })
 
-  describe('AI Service Configuration', () => {
-    it('should check if AI service is configured', () => {
+  describe("AI Service Configuration", () => {
+    it("should check if AI service is configured", () => {
       const result = isAIServiceConfigured()
-      expect(typeof result).toBe('boolean')
+      expect(typeof result).toBe("boolean")
     })
   })
 
-  describe('Analysis Progress Tracking', () => {
-    it('should calculate progress correctly', () => {
-      const result = getAnalysisProgress('Identifying themes')
-      expect(result.step).toBe('Identifying themes')
+  describe("Analysis Progress Tracking", () => {
+    it("should calculate progress correctly", () => {
+      const result = getAnalysisProgress("Identifying themes")
+      expect(result.step).toBe("Identifying themes")
       expect(result.progress).toBe(14) // 1/7 * 100 rounded
     })
 
-    it('should handle unknown steps', () => {
-      const result = getAnalysisProgress('Unknown step')
-      expect(result.step).toBe('Unknown step')
+    it("should handle unknown steps", () => {
+      const result = getAnalysisProgress("Unknown step")
+      expect(result.step).toBe("Unknown step")
       expect(result.progress).toBe(0)
     })
 
-    it('should calculate final step progress', () => {
-      const result = getAnalysisProgress('Creating chapter summaries')
-      expect(result.step).toBe('Creating chapter summaries')
+    it("should calculate final step progress", () => {
+      const result = getAnalysisProgress("Creating chapter summaries")
+      expect(result.step).toBe("Creating chapter summaries")
       expect(result.progress).toBe(100)
     })
   })
 
-  describe('Analysis Time Estimation', () => {
-    it('should estimate time for short text', () => {
+  describe("Analysis Time Estimation", () => {
+    it("should estimate time for short text", () => {
       const result = estimateAnalysisTime(1000)
       expect(result).toBe(31) // 30 base + 1 for 1000 chars
     })
 
-    it('should estimate time for long text', () => {
+    it("should estimate time for long text", () => {
       const result = estimateAnalysisTime(50000)
       expect(result).toBe(80) // 30 base + 50 for 50000 chars
     })
 
-    it('should cap estimation at maximum time', () => {
+    it("should cap estimation at maximum time", () => {
       const result = estimateAnalysisTime(1000000)
       expect(result).toBe(300) // Capped at 5 minutes
     })
   })
 
-  describe('Text Preparation', () => {
-    it('should normalize line endings', () => {
-      const input = 'Line 1\r\nLine 2\r\nLine 3'
+  describe("Text Preparation", () => {
+    it("should normalize line endings", () => {
+      const input = "Line 1\r\nLine 2\r\nLine 3"
       const result = prepareTextForAnalysis(input)
-      expect(result).toBe('Line 1\nLine 2\nLine 3')
+      expect(result).toBe("Line 1\nLine 2\nLine 3")
     })
 
-    it('should reduce excessive line breaks', () => {
-      const input = 'Line 1\n\n\n\nLine 2'
+    it("should reduce excessive line breaks", () => {
+      const input = "Line 1\n\n\n\nLine 2"
       const result = prepareTextForAnalysis(input)
-      expect(result).toBe('Line 1\n\nLine 2')
+      expect(result).toBe("Line 1\n\nLine 2")
     })
 
-    it('should reduce excessive spaces', () => {
-      const input = 'Word1    Word2     Word3'
+    it("should reduce excessive spaces", () => {
+      const input = "Word1    Word2     Word3"
       const result = prepareTextForAnalysis(input)
-      expect(result).toBe('Word1 Word2 Word3')
+      expect(result).toBe("Word1 Word2 Word3")
     })
 
-    it('should trim whitespace', () => {
-      const input = '   Text content   '
+    it("should trim whitespace", () => {
+      const input = "   Text content   "
       const result = prepareTextForAnalysis(input)
-      expect(result).toBe('Text content')
+      expect(result).toBe("Text content")
     })
 
-    it('should handle complex text formatting', () => {
-      const input = '  \r\n\r\n  Chapter 1\r\n\r\n\r\n\r\nThis is    the content.  \r\n\r\n  '
+    it("should handle complex text formatting", () => {
+      const input =
+        "  \r\n\r\n  Chapter 1\r\n\r\n\r\n\r\nThis is    the content.  \r\n\r\n  "
       const result = prepareTextForAnalysis(input)
-      expect(result).toBe('Chapter 1\n\nThis is the content.')
+      expect(result).toBe("Chapter 1\n\nThis is the content.")
     })
   })
 
-  describe('Analysis Summary', () => {
-    it('should create summary of analysis results', () => {
+  describe("Analysis Summary", () => {
+    it("should create summary of analysis results", () => {
       const analysisResult: BookAnalysisResult = {
-        themes: ['Theme 1', 'Theme 2'],
-        quotes: ['Quote 1', 'Quote 2', 'Quote 3'],
-        keyInsights: ['Insight 1'],
+        themes: ["Theme 1", "Theme 2"],
+        quotes: ["Quote 1", "Quote 2", "Quote 3"],
+        keyInsights: ["Insight 1"],
         chapterSummaries: [
-          { chapterNumber: 1, summary: 'Summary 1', keyPoints: ['Point 1'] }
+          { chapterNumber: 1, summary: "Summary 1", keyPoints: ["Point 1"] }
         ],
-        overallSummary: 'This is a test summary',
-        genre: 'Fiction',
-        targetAudience: 'General readers',
-        discussionPoints: ['Point 1', 'Point 2']
+        overallSummary: "This is a test summary",
+        genre: "Fiction",
+        targetAudience: "General readers",
+        discussionPoints: ["Point 1", "Point 2"]
       }
 
       const summary = createAnalysisSummary(analysisResult)
@@ -265,15 +266,15 @@ describe('AI Analysis Service', () => {
       })
     })
 
-    it('should handle empty analysis results', () => {
+    it("should handle empty analysis results", () => {
       const analysisResult: BookAnalysisResult = {
         themes: [],
         quotes: [],
         keyInsights: [],
         chapterSummaries: [],
-        overallSummary: 'Analysis summary not available.',
-        genre: 'Unknown',
-        targetAudience: 'General readers',
+        overallSummary: "Analysis summary not available.",
+        genre: "Unknown",
+        targetAudience: "General readers",
         discussionPoints: []
       }
 

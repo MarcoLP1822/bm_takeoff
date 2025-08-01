@@ -23,7 +23,9 @@ jest.mock("@/db", () => ({
 jest.mock("../social-media")
 
 const mockDb = db as jest.Mocked<typeof db>
-const mockSocialMediaService = SocialMediaService as jest.Mocked<typeof SocialMediaService>
+const mockSocialMediaService = SocialMediaService as jest.Mocked<
+  typeof SocialMediaService
+>
 
 describe("PublishingService", () => {
   let mockDbSelect: jest.Mock
@@ -31,7 +33,7 @@ describe("PublishingService", () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     // Setup fresh mocks for each test
     mockDbSelect = jest.fn(() => ({
       from: jest.fn(() => ({
@@ -86,7 +88,9 @@ describe("PublishingService", () => {
       })
 
       // Mock social media service
-      mockSocialMediaService.getValidAccessToken.mockResolvedValue("valid-token")
+      mockSocialMediaService.getValidAccessToken.mockResolvedValue(
+        "valid-token"
+      )
     })
 
     it("should publish content successfully", async () => {
@@ -137,7 +141,7 @@ describe("PublishingService", () => {
       expect(fetch).toHaveBeenCalledWith("https://api.twitter.com/2/tweets", {
         method: "POST",
         headers: {
-          "Authorization": "Bearer valid-token",
+          Authorization: "Bearer valid-token",
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
@@ -260,7 +264,9 @@ describe("PublishingService", () => {
         json: () => Promise.resolve({ data: { id: "tweet-retry-123" } })
       })
 
-      mockSocialMediaService.getValidAccessToken.mockResolvedValue("valid-token")
+      mockSocialMediaService.getValidAccessToken.mockResolvedValue(
+        "valid-token"
+      )
 
       const mockAccount = {
         id: mockAccountId,
@@ -316,7 +322,9 @@ describe("PublishingService", () => {
         text: () => Promise.resolve("Retry failed")
       })
 
-      mockSocialMediaService.getValidAccessToken.mockResolvedValue("valid-token")
+      mockSocialMediaService.getValidAccessToken.mockResolvedValue(
+        "valid-token"
+      )
 
       const mockAccount = {
         id: mockAccountId,
@@ -348,7 +356,11 @@ describe("PublishingService", () => {
       })
 
       await expect(
-        PublishingService.retryPublication(mockUserId, mockContentId, mockAccountId)
+        PublishingService.retryPublication(
+          mockUserId,
+          mockContentId,
+          mockAccountId
+        )
       ).rejects.toThrow("Twitter publish failed: Retry failed")
 
       // Verify content status was updated to failed

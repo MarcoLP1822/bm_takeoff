@@ -14,13 +14,15 @@ const geistMono = Geist_Mono({
 // Root layout minimo per permettere il funzionamento di Next.js
 // Il vero layout è in [locale]/layout.tsx
 export default function RootLayout({
-  children,
+  children
 }: {
   children: React.ReactNode
 }) {
   return (
     <html lang="it" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         {children}
       </body>
     </html>

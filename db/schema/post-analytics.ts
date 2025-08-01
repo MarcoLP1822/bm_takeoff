@@ -3,7 +3,9 @@ import { generatedContent } from "./generated-content"
 
 export const postAnalytics = pgTable("post_analytics", {
   id: uuid("id").defaultRandom().primaryKey(),
-  contentId: uuid("content_id").references(() => generatedContent.id, { onDelete: "cascade" }).notNull(),
+  contentId: uuid("content_id")
+    .references(() => generatedContent.id, { onDelete: "cascade" })
+    .notNull(),
   platform: text("platform").notNull(),
   postId: text("post_id").notNull(), // Social media platform's post ID
   impressions: integer("impressions").default(0).notNull(),

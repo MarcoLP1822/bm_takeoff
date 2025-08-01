@@ -1,6 +1,6 @@
-import { gzip, gunzip } from 'zlib'
-import { promisify } from 'util'
-import { getCachedCompressedText, cacheCompressedText } from './cache-service'
+import { gzip, gunzip } from "zlib"
+import { promisify } from "util"
+import { getCachedCompressedText, cacheCompressedText } from "./cache-service"
 
 const gzipAsync = promisify(gzip)
 const gunzipAsync = promisify(gunzip)
@@ -20,7 +20,7 @@ export async function compressText(text: string): Promise<{
   stats: CompressionStats
 }> {
   const startTime = Date.now()
-  const originalBuffer = Buffer.from(text, 'utf8')
+  const originalBuffer = Buffer.from(text, "utf8")
   const originalSize = originalBuffer.length
 
   try {
@@ -38,8 +38,8 @@ export async function compressText(text: string): Promise<{
       }
     }
   } catch (error) {
-    console.error('Text compression failed:', error)
-    throw new Error('Failed to compress text')
+    console.error("Text compression failed:", error)
+    throw new Error("Failed to compress text")
   }
 }
 
@@ -49,10 +49,10 @@ export async function compressText(text: string): Promise<{
 export async function decompressText(compressed: Buffer): Promise<string> {
   try {
     const decompressed = await gunzipAsync(compressed)
-    return decompressed.toString('utf8')
+    return decompressed.toString("utf8")
   } catch (error) {
-    console.error('Text decompression failed:', error)
-    throw new Error('Failed to decompress text')
+    console.error("Text decompression failed:", error)
+    throw new Error("Failed to decompress text")
   }
 }
 
@@ -90,11 +90,11 @@ export async function compressBookContent(
   const cached = await getCachedCompressedText(bookId)
   if (cached) {
     return {
-      compressed: Buffer.from(cached, 'base64'),
+      compressed: Buffer.from(cached, "base64"),
       stats: {
         originalSize: content.length,
-        compressedSize: Buffer.from(cached, 'base64').length,
-        compressionRatio: Buffer.from(cached, 'base64').length / content.length,
+        compressedSize: Buffer.from(cached, "base64").length,
+        compressionRatio: Buffer.from(cached, "base64").length / content.length,
         compressionTime: 0
       },
       cached: true
@@ -103,8 +103,8 @@ export async function compressBookContent(
 
   // Compress and cache
   const result = await compressText(content)
-  const base64Compressed = result.compressed.toString('base64')
-  
+  const base64Compressed = result.compressed.toString("base64")
+
   // Cache the compressed content
   await cacheCompressedText(bookId, base64Compressed)
 
@@ -117,17 +117,19 @@ export async function compressBookContent(
 /**
  * Decompress book content with caching
  */
-export async function decompressBookContent(bookId: string): Promise<string | null> {
+export async function decompressBookContent(
+  bookId: string
+): Promise<string | null> {
   try {
     const cached = await getCachedCompressedText(bookId)
     if (!cached) {
       return null
     }
 
-    const compressed = Buffer.from(cached, 'base64')
+    const compressed = Buffer.from(cached, "base64")
     return await decompressText(compressed)
   } catch (error) {
-    console.error('Failed to decompress book content:', error)
+    console.error("Failed to decompress book content:", error)
     return null
   }
 }
@@ -140,9 +142,9 @@ export async function compressAnalysisData(analysisData: unknown): Promise<{
   stats: CompressionStats
 }> {
   const result = await compressJSON(analysisData)
-  
+
   return {
-    compressed: result.compressed.toString('base64'),
+    compressed: result.compressed.toString("base64"),
     stats: result.stats
   }
 }
@@ -150,8 +152,10 @@ export async function compressAnalysisData(analysisData: unknown): Promise<{
 /**
  * Decompress analysis data
  */
-export async function decompressAnalysisData(compressedData: string): Promise<unknown> {
-  const compressed = Buffer.from(compressedData, 'base64')
+export async function decompressAnalysisData(
+  compressedData: string
+): Promise<unknown> {
+  const compressed = Buffer.from(compressedData, "base64")
   return await decompressJSON(compressed)
 }
 
@@ -160,11 +164,13 @@ export async function decompressAnalysisData(compressedData: string): Promise<un
  */
 export async function batchCompressTexts(
   texts: Array<{ id: string; content: string }>
-): Promise<Array<{
-  id: string
-  compressed: Buffer
-  stats: CompressionStats
-}>> {
+): Promise<
+  Array<{
+    id: string
+    compressed: Buffer
+    stats: CompressionStats
+  }>
+> {
   const results = []
 
   for (const { id, content } of texts) {
@@ -185,9 +191,7 @@ export async function batchCompressTexts(
 /**
  * Calculate compression statistics for a dataset
  */
-export async function calculateCompressionStats(
-  texts: string[]
-): Promise<{
+export async function calculateCompressionStats(texts: string[]): Promise<{
   totalOriginalSize: number
   totalCompressedSize: number
   averageCompressionRatio: number
@@ -204,22 +208,23 @@ export async function calculateCompressionStats(
   for (const text of texts) {
     try {
       const result = await compressText(text)
-      
+
       totalOriginalSize += result.stats.originalSize
       totalCompressedSize += result.stats.compressedSize
       totalCompressionTime += result.stats.compressionTime
-      
+
       bestRatio = Math.min(bestRatio, result.stats.compressionRatio)
       worstRatio = Math.max(worstRatio, result.stats.compressionRatio)
     } catch (error) {
-      console.error('Failed to compress text in stats calculation:', error)
+      console.error("Failed to compress text in stats calculation:", error)
     }
   }
 
   return {
     totalOriginalSize,
     totalCompressedSize,
-    averageCompressionRatio: totalOriginalSize > 0 ? totalCompressedSize / totalOriginalSize : 0,
+    averageCompressionRatio:
+      totalOriginalSize > 0 ? totalCompressedSize / totalOriginalSize : 0,
     totalCompressionTime,
     bestCompressionRatio: bestRatio === Infinity ? 0 : bestRatio,
     worstCompressionRatio: worstRatio
@@ -237,7 +242,7 @@ export async function smartCompress(
   isCompressed: boolean
   stats?: CompressionStats
 }> {
-  const contentSize = Buffer.byteLength(content, 'utf8')
+  const contentSize = Buffer.byteLength(content, "utf8")
 
   // Don't compress small content
   if (contentSize < minSizeForCompression) {
@@ -249,7 +254,7 @@ export async function smartCompress(
 
   try {
     const result = await compressText(content)
-    
+
     // Only use compression if it provides significant savings
     if (result.stats.compressionRatio < 0.8) {
       return {
@@ -266,7 +271,7 @@ export async function smartCompress(
       }
     }
   } catch (error) {
-    console.error('Smart compression failed:', error)
+    console.error("Smart compression failed:", error)
     return {
       data: content,
       isCompressed: false
@@ -282,16 +287,16 @@ export async function smartDecompress(
   isCompressed: boolean
 ): Promise<string> {
   if (!isCompressed) {
-    return typeof data === 'string' ? data : data.toString('utf8')
+    return typeof data === "string" ? data : data.toString("utf8")
   }
 
   try {
-    const buffer = typeof data === 'string' ? Buffer.from(data, 'base64') : data
+    const buffer = typeof data === "string" ? Buffer.from(data, "base64") : data
     return await decompressText(buffer)
   } catch (error) {
-    console.error('Smart decompression failed:', error)
+    console.error("Smart decompression failed:", error)
     // Fallback to treating as uncompressed
-    return typeof data === 'string' ? data : data.toString('utf8')
+    return typeof data === "string" ? data : data.toString("utf8")
   }
 }
 
@@ -314,11 +319,13 @@ export class CompressionMiddleware {
       compressionRatio?: number
     }
   }> {
-    if (typeof data === 'string') {
+    if (typeof data === "string") {
       const result = await smartCompress(data, this.minSizeForCompression)
-      
+
       return {
-        data: result.isCompressed ? result.data.toString('base64') : result.data,
+        data: result.isCompressed
+          ? result.data.toString("base64")
+          : result.data,
         compressionMeta: {
           isCompressed: result.isCompressed,
           originalSize: result.stats?.originalSize,
@@ -326,12 +333,14 @@ export class CompressionMiddleware {
           compressionRatio: result.stats?.compressionRatio
         }
       }
-    } else if (typeof data === 'object') {
+    } else if (typeof data === "object") {
       const jsonString = JSON.stringify(data)
       const result = await smartCompress(jsonString, this.minSizeForCompression)
-      
+
       return {
-        data: result.isCompressed ? result.data.toString('base64') : JSON.parse(jsonString),
+        data: result.isCompressed
+          ? result.data.toString("base64")
+          : JSON.parse(jsonString),
         compressionMeta: {
           isCompressed: result.isCompressed,
           originalSize: result.stats?.originalSize,
@@ -356,13 +365,13 @@ export class CompressionMiddleware {
     }
 
     try {
-      if (typeof data === 'string') {
+      if (typeof data === "string") {
         return await smartDecompress(data, true)
       }
-      
+
       return data
     } catch (error) {
-      console.error('Decompression from storage failed:', error)
+      console.error("Decompression from storage failed:", error)
       return data
     }
   }
@@ -374,9 +383,7 @@ export const compressionMiddleware = new CompressionMiddleware()
 /**
  * Utility to estimate compression benefits
  */
-export async function estimateCompressionBenefit(
-  content: string
-): Promise<{
+export async function estimateCompressionBenefit(content: string): Promise<{
   worthCompressing: boolean
   estimatedSavings: number
   estimatedRatio: number
@@ -384,7 +391,8 @@ export async function estimateCompressionBenefit(
   try {
     const result = await compressText(content)
     const savings = result.stats.originalSize - result.stats.compressedSize
-    const worthCompressing = result.stats.compressionRatio < 0.8 && savings > 512 // At least 512 bytes saved
+    const worthCompressing =
+      result.stats.compressionRatio < 0.8 && savings > 512 // At least 512 bytes saved
 
     return {
       worthCompressing,

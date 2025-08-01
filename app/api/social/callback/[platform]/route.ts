@@ -11,36 +11,47 @@ export async function GET(
     const code = searchParams.get("code")
     const state = searchParams.get("state")
     const error = searchParams.get("error")
-    
+
     // Handle OAuth errors
     if (error) {
       const errorDescription = searchParams.get("error_description") || error
       return NextResponse.redirect(
-        new URL(`/dashboard/settings?error=${encodeURIComponent(errorDescription)}`, request.url)
+        new URL(
+          `/dashboard/settings?error=${encodeURIComponent(errorDescription)}`,
+          request.url
+        )
       )
     }
-    
+
     if (!code || !state) {
       return NextResponse.redirect(
-        new URL("/dashboard/settings?error=Missing authorization code", request.url)
+        new URL(
+          "/dashboard/settings?error=Missing authorization code",
+          request.url
+        )
       )
     }
 
     // Validate state parameter
     const [stateUserId] = state.split(":")
     const { userId } = await auth()
-    
+
     if (!userId || userId !== stateUserId) {
       return NextResponse.redirect(
-        new URL("/dashboard/settings?error=Invalid state parameter", request.url)
+        new URL(
+          "/dashboard/settings?error=Invalid state parameter",
+          request.url
+        )
       )
     }
 
     const { platform } = await params
     const platformType = platform as SocialPlatform
-    
+
     // Validate platform
-    if (!["twitter", "instagram", "linkedin", "facebook"].includes(platformType)) {
+    if (
+      !["twitter", "instagram", "linkedin", "facebook"].includes(platformType)
+    ) {
       return NextResponse.redirect(
         new URL("/dashboard/settings?error=Invalid platform", request.url)
       )
@@ -48,8 +59,12 @@ export async function GET(
 
     try {
       // Exchange code for access token
-      const tokenData = await SocialMediaService.exchangeCodeForToken(platformType, code, state)
-      
+      const tokenData = await SocialMediaService.exchangeCodeForToken(
+        platformType,
+        code,
+        state
+      )
+
       // Save account to database
       await SocialMediaService.saveAccount(userId, platformType, {
         accountId: tokenData.accountInfo.id,
@@ -59,7 +74,7 @@ export async function GET(
         refreshToken: tokenData.refreshToken,
         expiresAt: tokenData.expiresAt
       })
-      
+
       // Redirect to settings page with success message
       return NextResponse.redirect(
         new URL(`/dashboard/settings?connected=${platformType}`, request.url)
@@ -67,7 +82,10 @@ export async function GET(
     } catch (tokenError) {
       console.error("Token exchange error:", tokenError)
       return NextResponse.redirect(
-        new URL(`/dashboard/settings?error=Failed to connect ${platformType} account`, request.url)
+        new URL(
+          `/dashboard/settings?error=Failed to connect ${platformType} account`,
+          request.url
+        )
       )
     }
   } catch (error) {

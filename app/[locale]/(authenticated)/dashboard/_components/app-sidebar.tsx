@@ -1,9 +1,17 @@
 "use client"
 
-import { Link, Settings2, User, Users, BookOpen, Edit3, BarChart3 } from "lucide-react"
+import {
+  Link,
+  Settings2,
+  User,
+  Users,
+  BookOpen,
+  Edit3,
+  BarChart3
+} from "lucide-react"
 import * as React from "react"
-import { useLocale } from 'next-intl'
-import { useNavigationTranslations } from '@/hooks/use-translations'
+import { useLocale } from "next-intl"
+import { useNavigationTranslations } from "@/hooks/use-translations"
 
 import {
   Sidebar,
@@ -56,59 +64,59 @@ export function AppSidebar({
     ],
     navMain: [
       {
-        title: t('dashboard'),
+        title: t("dashboard"),
         url: `/${locale}/dashboard`,
         icon: BarChart3,
         items: []
       },
       {
-        title: t('books'),
+        title: t("books"),
         url: "#",
         icon: BookOpen,
         items: [
           {
-            title: t('library'),
+            title: t("library"),
             url: `/${locale}/dashboard/books`
           }
         ]
       },
       {
-        title: t('content'),
+        title: t("content"),
         url: "#",
         icon: Edit3,
         items: [
           {
-            title: t('contentManager'),
+            title: t("contentManager"),
             url: `/${locale}/dashboard/content`
           },
           {
-            title: t('generateContent'),
+            title: t("generateContent"),
             url: `/${locale}/dashboard/content/generate`
           }
         ]
       },
       {
-        title: t('analytics'),
+        title: t("analytics"),
         url: "#",
         icon: BarChart3,
         items: [
           {
-            title: t('performance'),
+            title: t("performance"),
             url: `/${locale}/dashboard/analytics`
           }
         ]
       },
       {
-        title: t('settings'),
+        title: t("settings"),
         url: "#",
         icon: Settings2,
         items: [
           {
-            title: t('general'),
+            title: t("general"),
             url: `/${locale}/dashboard/settings`
           },
           {
-            title: t('socialAccounts'),
+            title: t("socialAccounts"),
             url: `/${locale}/dashboard/settings/social`
           }
         ]

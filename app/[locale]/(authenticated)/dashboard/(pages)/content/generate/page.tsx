@@ -1,10 +1,16 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Zap, BookOpen } from 'lucide-react'
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card"
+import { ArrowLeft, Zap, BookOpen } from "lucide-react"
 
 interface Book {
   id: string
@@ -13,7 +19,7 @@ interface Book {
   genre?: string
   fileName: string
   fileSize?: string
-  analysisStatus: 'pending' | 'processing' | 'completed' | 'failed'
+  analysisStatus: "pending" | "processing" | "completed" | "failed"
   createdAt: string
   updatedAt: string
 }
@@ -31,25 +37,27 @@ export default function ContentGeneratePage() {
   const fetchBooks = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/books')
-      
+      const response = await fetch("/api/books")
+
       if (!response.ok) {
-        throw new Error('Failed to fetch books')
+        throw new Error("Failed to fetch books")
       }
-      
+
       const data = await response.json()
       const booksData = data.books || data || []
-      setBooks(booksData.filter((book: Book) => book.analysisStatus === 'completed'))
+      setBooks(
+        booksData.filter((book: Book) => book.analysisStatus === "completed")
+      )
     } catch (err) {
-      console.error('Error fetching books:', err)
-      setError('Failed to load books')
+      console.error("Error fetching books:", err)
+      setError("Failed to load books")
     } finally {
       setLoading(false)
     }
   }
 
   const handleBack = () => {
-    router.push('/dashboard/content')
+    router.push("/dashboard/content")
   }
 
   const handleGenerateContent = (bookId: string) => {
@@ -63,8 +71,8 @@ export default function ContentGeneratePage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">Loading books...</p>
+            <div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
+            <p className="text-muted-foreground mt-2">Loading books...</p>
           </div>
         </div>
       </div>
@@ -74,22 +82,18 @@ export default function ContentGeneratePage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <Button 
-          variant="ghost" 
-          onClick={handleBack}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
+        <Button variant="ghost" onClick={handleBack} className="mb-4">
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Content
         </Button>
-        
+
         <div className="flex items-center">
-          <Zap className="h-8 w-8 mr-3" />
+          <Zap className="mr-3 h-8 w-8" />
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
               Generate Content
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="mt-2 text-gray-600">
               Create social media content from your analyzed books
             </p>
           </div>
@@ -97,7 +101,7 @@ export default function ContentGeneratePage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
           <p className="text-red-800">{error}</p>
         </div>
       )}
@@ -105,23 +109,30 @@ export default function ContentGeneratePage() {
       {books.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No books ready for content generation</h3>
-            <p className="text-muted-foreground text-center mb-4">
-              Upload and analyze books first to generate social media content from them.
+            <BookOpen className="text-muted-foreground mb-4 h-12 w-12" />
+            <h3 className="mb-2 text-lg font-semibold">
+              No books ready for content generation
+            </h3>
+            <p className="text-muted-foreground mb-4 text-center">
+              Upload and analyze books first to generate social media content
+              from them.
             </p>
-            <Button onClick={() => router.push('/dashboard/books?action=upload')}>
-              <BookOpen className="h-4 w-4 mr-2" />
+            <Button
+              onClick={() => router.push("/dashboard/books?action=upload")}
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
               Upload Your First Book
             </Button>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {books.map((book) => (
+          {books.map(book => (
             <Card key={book.id} className="relative">
               <CardHeader>
-                <CardTitle className="text-lg line-clamp-2">{book.title}</CardTitle>
+                <CardTitle className="line-clamp-2 text-lg">
+                  {book.title}
+                </CardTitle>
                 <CardDescription>
                   {book.author && `by ${book.author}`}
                   {book.genre && ` • ${book.genre}`}
@@ -129,17 +140,19 @@ export default function ContentGeneratePage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-muted-foreground text-sm">
                     <p>File: {book.fileName}</p>
                     {book.fileSize && <p>Size: {book.fileSize}</p>}
-                    <p>Uploaded: {new Date(book.createdAt).toLocaleDateString()}</p>
+                    <p>
+                      Uploaded: {new Date(book.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
-                  
-                  <Button 
+
+                  <Button
                     onClick={() => handleGenerateContent(book.id)}
                     className="w-full"
                   >
-                    <Zap className="h-4 w-4 mr-2" />
+                    <Zap className="mr-2 h-4 w-4" />
                     Generate Content
                   </Button>
                 </div>

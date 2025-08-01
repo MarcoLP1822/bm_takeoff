@@ -1,4 +1,9 @@
-import { books, generatedContent, socialAccounts, postAnalytics } from "./schema"
+import {
+  books,
+  generatedContent,
+  socialAccounts,
+  postAnalytics
+} from "./schema"
 
 // This script validates that all schemas are properly defined and can be imported
 console.log("Validating database schemas...")
@@ -13,9 +18,18 @@ console.log("✅ All schemas validated successfully!")
 
 // Check that types can be inferred
 import type { InsertBook, SelectBook } from "./schema/books"
-import type { InsertGeneratedContent, SelectGeneratedContent } from "./schema/generated-content"
-import type { InsertSocialAccount, SelectSocialAccount } from "./schema/social-accounts"
-import type { InsertPostAnalytics, SelectPostAnalytics } from "./schema/post-analytics"
+import type {
+  InsertGeneratedContent,
+  SelectGeneratedContent
+} from "./schema/generated-content"
+import type {
+  InsertSocialAccount,
+  SelectSocialAccount
+} from "./schema/social-accounts"
+import type {
+  InsertPostAnalytics,
+  SelectPostAnalytics
+} from "./schema/post-analytics"
 
 console.log("✅ All TypeScript types are properly inferred!")
 

@@ -18,7 +18,11 @@ export const booksData: InsertBook[] = [
         "The supreme excellence is to subdue the enemy without fighting."
       ],
       summary: "A classic treatise on military strategy and tactics.",
-      insights: ["Strategic thinking", "Leadership principles", "Competitive advantage"]
+      insights: [
+        "Strategic thinking",
+        "Leadership principles",
+        "Competitive advantage"
+      ]
     }
   },
   {
@@ -37,7 +41,8 @@ export const booksData: InsertBook[] = [
         "You do not rise to the level of your goals. You fall to the level of your systems.",
         "Every action you take is a vote for the type of person you wish to become."
       ],
-      summary: "A comprehensive guide to building good habits and breaking bad ones.",
+      summary:
+        "A comprehensive guide to building good habits and breaking bad ones.",
       insights: ["Habit formation", "Identity-based habits", "Systems thinking"]
     }
   },

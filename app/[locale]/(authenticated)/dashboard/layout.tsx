@@ -2,20 +2,17 @@ import { getCustomerByUserId, createCustomer } from "@/actions/customers"
 import { auth, clerkClient } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import DashboardClientLayout from "./_components/layout-client"
-import { type Locale } from '@/i18n'
+import { type Locale } from "@/i18n"
 
 type Props = {
   children: React.ReactNode
   params: Promise<{ locale: Locale }>
 }
 
-export default async function DashboardLayout({
-  children,
-  params
-}: Props) {
+export default async function DashboardLayout({ children, params }: Props) {
   // Await the params object
   const { locale } = await params
-  
+
   try {
     const { userId } = await auth()
 
@@ -61,7 +58,7 @@ export default async function DashboardLayout({
       </DashboardClientLayout>
     )
   } catch (error) {
-    console.error('Dashboard layout error:', error)
+    console.error("Dashboard layout error:", error)
     redirect(`/${locale}/login`)
   }
 }

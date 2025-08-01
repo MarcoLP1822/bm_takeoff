@@ -6,17 +6,70 @@ import { getCachedAnalyticsData, cacheAnalyticsData } from "@/lib/cache-service"
 import { z } from "zod"
 
 const querySchema = z.object({
-  limit: z.string().nullable().optional().transform(val => val ? parseInt(val) : 50),
-  offset: z.string().nullable().optional().transform(val => val ? parseInt(val) : 0),
-  platform: z.enum(["twitter", "instagram", "linkedin", "facebook"]).nullable().optional().transform(val => val || undefined),
-  bookId: z.string().uuid().nullable().optional().transform(val => val || undefined),
-  search: z.string().nullable().optional().transform(val => val || undefined),
-  sortBy: z.enum(["createdAt", "publishedAt", "engagementRate", "impressions", "likes", "shares", "comments"]).nullable().optional().transform(val => val || "publishedAt"),
-  sortOrder: z.enum(["asc", "desc"]).nullable().optional().transform(val => val || "desc"),
-  minEngagementRate: z.string().nullable().optional().transform(val => val ? parseFloat(val) : undefined),
-  maxEngagementRate: z.string().nullable().optional().transform(val => val ? parseFloat(val) : undefined),
-  startDate: z.string().nullable().optional().transform(val => val ? new Date(val) : undefined),
-  endDate: z.string().nullable().optional().transform(val => val ? new Date(val) : undefined)
+  limit: z
+    .string()
+    .nullable()
+    .optional()
+    .transform(val => (val ? parseInt(val) : 50)),
+  offset: z
+    .string()
+    .nullable()
+    .optional()
+    .transform(val => (val ? parseInt(val) : 0)),
+  platform: z
+    .enum(["twitter", "instagram", "linkedin", "facebook"])
+    .nullable()
+    .optional()
+    .transform(val => val || undefined),
+  bookId: z
+    .string()
+    .uuid()
+    .nullable()
+    .optional()
+    .transform(val => val || undefined),
+  search: z
+    .string()
+    .nullable()
+    .optional()
+    .transform(val => val || undefined),
+  sortBy: z
+    .enum([
+      "createdAt",
+      "publishedAt",
+      "engagementRate",
+      "impressions",
+      "likes",
+      "shares",
+      "comments"
+    ])
+    .nullable()
+    .optional()
+    .transform(val => val || "publishedAt"),
+  sortOrder: z
+    .enum(["asc", "desc"])
+    .nullable()
+    .optional()
+    .transform(val => val || "desc"),
+  minEngagementRate: z
+    .string()
+    .nullable()
+    .optional()
+    .transform(val => (val ? parseFloat(val) : undefined)),
+  maxEngagementRate: z
+    .string()
+    .nullable()
+    .optional()
+    .transform(val => (val ? parseFloat(val) : undefined)),
+  startDate: z
+    .string()
+    .nullable()
+    .optional()
+    .transform(val => (val ? new Date(val) : undefined)),
+  endDate: z
+    .string()
+    .nullable()
+    .optional()
+    .transform(val => (val ? new Date(val) : undefined))
 })
 
 export async function GET(request: NextRequest) {
@@ -44,7 +97,7 @@ export async function GET(request: NextRequest) {
     // Check cache first for analytics data
     const cacheKey = `posts:${JSON.stringify(query)}`
     const cached = await getCachedAnalyticsData(userId, cacheKey)
-    
+
     let result: {
       posts: PostPerformance[]
       pagination: {
@@ -58,7 +111,7 @@ export async function GET(request: NextRequest) {
         books: { id: string; title: string; author?: string }[]
       }
     }
-    
+
     if (cached) {
       result = cached as typeof result
     } else {
@@ -75,7 +128,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("Analytics posts API error:", error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid query parameters", details: error.errors },

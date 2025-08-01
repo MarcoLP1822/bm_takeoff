@@ -290,7 +290,7 @@ describe('Content API Endpoints', () => {
       })
 
       const request = new NextRequest(`http://localhost:3000/api/content/${mockBookId}`)
-      const response = await getBookContent(request, { params: { bookId: mockBookId } })
+      const response = await getBookContent(request, { params: Promise.resolve({ bookId: mockBookId }) })
       const result = await response.json()
 
       expect(response.status).toBe(200)
@@ -307,7 +307,7 @@ describe('Content API Endpoints', () => {
       })
 
       const request = new NextRequest(`http://localhost:3000/api/content/${mockBookId}`)
-      const response = await getBookContent(request, { params: { bookId: mockBookId } })
+      const response = await getBookContent(request, { params: Promise.resolve({ bookId: mockBookId }) })
       const result = await response.json()
 
       expect(response.status).toBe(200)
@@ -354,7 +354,7 @@ describe('Content API Endpoints', () => {
         }
       })
 
-      const response = await updateContent(request, { params: { contentId: mockContentId } })
+      const response = await updateContent(request, { params: Promise.resolve({ contentId: mockContentId }) })
       const result = await response.json()
 
       expect(response.status).toBe(200)
@@ -384,7 +384,7 @@ describe('Content API Endpoints', () => {
         }
       })
 
-      const response = await updateContent(request, { params: { contentId: mockContentId } })
+      const response = await updateContent(request, { params: Promise.resolve({ contentId: mockContentId }) })
 
       expect(response.status).toBe(403)
     })
@@ -413,7 +413,7 @@ describe('Content API Endpoints', () => {
         method: 'DELETE'
       })
 
-      const response = await deleteContent(request, { params: { contentId: mockContentId } })
+      const response = await deleteContent(request, { params: Promise.resolve({ contentId: mockContentId }) })
 
       expect(response.status).toBe(200)
     })
@@ -430,7 +430,7 @@ describe('Content API Endpoints', () => {
         method: 'DELETE'
       })
 
-      const response = await deleteContent(request, { params: { contentId: mockContentId } })
+      const response = await deleteContent(request, { params: Promise.resolve({ contentId: mockContentId }) })
 
       expect(response.status).toBe(404)
     })

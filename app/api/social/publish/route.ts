@@ -10,23 +10,23 @@ const publishSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const { auth } = await import('@clerk/nextjs/server')
+    const { auth } = await import("@clerk/nextjs/server")
     const { userId } = await auth()
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     // Parse and validate request body
     const body = await request.json()
     const validationResult = publishSchema.safeParse(body)
-    
+
     if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Invalid request data', details: validationResult.error.errors },
+        {
+          error: "Invalid request data",
+          details: validationResult.error.errors
+        },
         { status: 400 }
       )
     }
@@ -43,8 +43,8 @@ export async function POST(request: NextRequest) {
     // If all failed, return error
     if (failures.length === results.length) {
       return NextResponse.json(
-        { 
-          error: 'All publications failed',
+        {
+          error: "All publications failed",
           results,
           contentId: validatedData.contentId
         },
@@ -61,19 +61,23 @@ export async function POST(request: NextRequest) {
         failed: failures.length
       },
       ...(failures.length > 0 && {
-        warnings: [{
-          type: 'PARTIAL_FAILURE',
-          message: `${failures.length} of ${results.length} publications failed`,
-          retryable: true,
-          details: failures.map(f => ({ platform: f.platform, error: f.error }))
-        }]
+        warnings: [
+          {
+            type: "PARTIAL_FAILURE",
+            message: `${failures.length} of ${results.length} publications failed`,
+            retryable: true,
+            details: failures.map(f => ({
+              platform: f.platform,
+              error: f.error
+            }))
+          }
+        ]
       })
     })
-
   } catch (error) {
-    console.error('Publishing error:', error)
+    console.error("Publishing error:", error)
     return NextResponse.json(
-      { error: 'Failed to publish content' },
+      { error: "Failed to publish content" },
       { status: 500 }
     )
   }

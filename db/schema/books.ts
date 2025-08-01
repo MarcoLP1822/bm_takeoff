@@ -1,6 +1,19 @@
-import { boolean, json, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import {
+  boolean,
+  json,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid
+} from "drizzle-orm/pg-core"
 
-export const analysisStatus = pgEnum("analysis_status", ["pending", "processing", "completed", "failed"])
+export const analysisStatus = pgEnum("analysis_status", [
+  "pending",
+  "processing",
+  "completed",
+  "failed"
+])
 
 export const books = pgTable("books", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -12,7 +25,9 @@ export const books = pgTable("books", {
   fileName: text("file_name").notNull(),
   fileSize: text("file_size"),
   textContent: text("text_content"),
-  analysisStatus: analysisStatus("analysis_status").default("pending").notNull(),
+  analysisStatus: analysisStatus("analysis_status")
+    .default("pending")
+    .notNull(),
   analysisData: json("analysis_data"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()

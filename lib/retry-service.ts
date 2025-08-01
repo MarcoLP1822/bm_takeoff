@@ -1,5 +1,5 @@
-import { AppError, ErrorType, ErrorLogger } from './error-handling'
-import { ToastService } from './toast-service'
+import { AppError, ErrorType, ErrorLogger } from "./error-handling"
+import { ToastService } from "./toast-service"
 
 // Retry configuration interface
 export interface RetryConfig {
@@ -22,10 +22,11 @@ export const RetryConfigs = {
     backoffMultiplier: 2,
     retryCondition: (error: Error) => {
       if (error instanceof AppError) {
-        return error.retryable && (
-          error.type === ErrorType.NETWORK ||
-          error.type === ErrorType.EXTERNAL_SERVICE ||
-          (error.type === ErrorType.RATE_LIMIT && error.statusCode === 429)
+        return (
+          error.retryable &&
+          (error.type === ErrorType.NETWORK ||
+            error.type === ErrorType.EXTERNAL_SERVICE ||
+            (error.type === ErrorType.RATE_LIMIT && error.statusCode === 429))
         )
       }
       return true // Retry generic errors
@@ -68,10 +69,11 @@ export const RetryConfigs = {
     backoffMultiplier: 2,
     retryCondition: (error: Error) => {
       if (error instanceof AppError) {
-        return error.retryable && (
-          error.type === ErrorType.EXTERNAL_SERVICE ||
-          error.type === ErrorType.NETWORK ||
-          (error.type === ErrorType.RATE_LIMIT && error.statusCode === 429)
+        return (
+          error.retryable &&
+          (error.type === ErrorType.EXTERNAL_SERVICE ||
+            error.type === ErrorType.NETWORK ||
+            (error.type === ErrorType.RATE_LIMIT && error.statusCode === 429))
         )
       }
       return true
@@ -86,10 +88,11 @@ export const RetryConfigs = {
     backoffMultiplier: 2,
     retryCondition: (error: Error) => {
       if (error instanceof AppError) {
-        return error.retryable && (
-          error.type === ErrorType.EXTERNAL_SERVICE ||
-          error.type === ErrorType.NETWORK ||
-          (error.type === ErrorType.RATE_LIMIT && error.statusCode === 429)
+        return (
+          error.retryable &&
+          (error.type === ErrorType.EXTERNAL_SERVICE ||
+            error.type === ErrorType.NETWORK ||
+            (error.type === ErrorType.RATE_LIMIT && error.statusCode === 429))
         )
       }
       return false
@@ -99,11 +102,14 @@ export const RetryConfigs = {
 
 // Enhanced retry service with monitoring and user feedback
 export class RetryService {
-  private static activeRetries = new Map<string, {
-    attempts: number
-    startTime: number
-    operation: string
-  }>()
+  private static activeRetries = new Map<
+    string,
+    {
+      attempts: number
+      startTime: number
+      operation: string
+    }
+  >()
 
   // Main retry method with comprehensive error handling
   static async withRetry<T>(
@@ -124,7 +130,7 @@ export class RetryService {
       ...config
     }
 
-    const operationId = context?.operationName 
+    const operationId = context?.operationName
       ? `${context.operationName}_${Date.now()}`
       : `operation_${Date.now()}`
 
@@ -132,7 +138,7 @@ export class RetryService {
     this.activeRetries.set(operationId, {
       attempts: 0,
       startTime: Date.now(),
-      operation: context?.operationName || 'Unknown Operation'
+      operation: context?.operationName || "Unknown Operation"
     })
 
     let lastError: Error | null = null
@@ -146,20 +152,21 @@ export class RetryService {
           // Show loading toast for first attempt or retry with better messaging
           if (context?.showToast && attempt === 1) {
             ToastService.loading(
-              `${context.operationName || 'Processing'}...`,
+              `${context.operationName || "Processing"}...`,
               Promise.resolve(), // We'll handle the promise manually
               {
-                success: `${context.operationName || 'Operation'} completed successfully`,
-                error: `${context.operationName || 'Operation'} failed`
+                success: `${context.operationName || "Operation"} completed successfully`,
+                error: `${context.operationName || "Operation"} failed`
               }
             )
           } else if (context?.showToast && attempt > 1) {
-            const retryReason = lastError instanceof AppError 
-              ? this.getRetryReason(lastError)
-              : 'due to an error'
-            
+            const retryReason =
+              lastError instanceof AppError
+                ? this.getRetryReason(lastError)
+                : "due to an error"
+
             ToastService.info(
-              `Retrying ${context.operationName || 'operation'}...`, 
+              `Retrying ${context.operationName || "operation"}...`,
               {
                 description: `Attempt ${attempt}/${finalConfig.maxAttempts} ${retryReason}`,
                 duration: 3000
@@ -172,16 +179,17 @@ export class RetryService {
 
           // Success - clean up and return
           this.activeRetries.delete(operationId)
-          
+
           if (context?.showToast && attempt > 1) {
-            ToastService.success(`${context.operationName || 'Operation'} succeeded after ${attempt} attempts`)
+            ToastService.success(
+              `${context.operationName || "Operation"} succeeded after ${attempt} attempts`
+            )
           }
 
           return result
-
         } catch (error) {
           lastError = error as Error
-          
+
           // Log each attempt
           ErrorLogger.log(lastError, {
             operationId,
@@ -193,8 +201,9 @@ export class RetryService {
           })
 
           // Check if we should retry
-          const shouldRetry = attempt < finalConfig.maxAttempts && 
-                            (finalConfig.retryCondition?.(lastError) ?? true)
+          const shouldRetry =
+            attempt < finalConfig.maxAttempts &&
+            (finalConfig.retryCondition?.(lastError) ?? true)
 
           if (!shouldRetry) {
             break
@@ -205,7 +214,8 @@ export class RetryService {
 
           // Calculate delay with jitter to prevent thundering herd
           const baseDelay = Math.min(
-            finalConfig.baseDelay * Math.pow(finalConfig.backoffMultiplier, attempt - 1),
+            finalConfig.baseDelay *
+              Math.pow(finalConfig.backoffMultiplier, attempt - 1),
             finalConfig.maxDelay
           )
           const jitter = Math.random() * 0.1 * baseDelay // 10% jitter
@@ -218,12 +228,12 @@ export class RetryService {
 
       // All attempts failed
       this.activeRetries.delete(operationId)
-      
+
       // Ensure we have an error to work with
       if (!lastError) {
-        lastError = new Error('Operation failed without specific error')
+        lastError = new Error("Operation failed without specific error")
       }
-      
+
       // Call max attempts callback
       finalConfig.onMaxAttemptsReached?.(lastError)
 
@@ -234,7 +244,7 @@ export class RetryService {
             context: `${context.operationName} failed after ${finalConfig.maxAttempts} attempts`
           })
         } else {
-          ToastService.error(`${context.operationName || 'Operation'} failed`, {
+          ToastService.error(`${context.operationName || "Operation"} failed`, {
             description: `Failed after ${finalConfig.maxAttempts} attempts: ${lastError.message}`,
             duration: 8000
           })
@@ -242,7 +252,6 @@ export class RetryService {
       }
 
       throw lastError
-
     } catch (error) {
       this.activeRetries.delete(operationId)
       throw error
@@ -314,15 +323,11 @@ export class RetryService {
     const results = await Promise.allSettled(
       items.map(async (item, index) => {
         try {
-          const result = await this.withRetry(
-            () => operation(item),
-            config,
-            {
-              operationName: `${context?.operationName || 'Item'} ${index + 1}`,
-              userId: context?.userId,
-              showToast: false // Don't show individual toasts in batch
-            }
-          )
+          const result = await this.withRetry(() => operation(item), config, {
+            operationName: `${context?.operationName || "Item"} ${index + 1}`,
+            userId: context?.userId,
+            showToast: false // Don't show individual toasts in batch
+          })
           return { item, result, success: true }
         } catch (error) {
           return { item, error: error as Error, success: false }
@@ -332,16 +337,20 @@ export class RetryService {
 
     // Categorize results
     results.forEach(result => {
-      if (result.status === 'fulfilled') {
+      if (result.status === "fulfilled") {
         if (result.value.success) {
           successful.push(result.value.result)
         } else {
-          const error = result.value.error || new Error('Unknown error occurred')
+          const error =
+            result.value.error || new Error("Unknown error occurred")
           failed.push({ item: result.value.item, error })
         }
       } else {
         // This shouldn't happen with our error handling, but just in case
-        failed.push({ item: items[results.indexOf(result)], error: new Error(result.reason) })
+        failed.push({
+          item: items[results.indexOf(result)],
+          error: new Error(result.reason)
+        })
       }
     })
 
@@ -358,10 +367,13 @@ export class RetryService {
       } else if (successful.length === 0) {
         ToastService.error(`All ${items.length} items failed to process`)
       } else {
-        ToastService.warning(`Partial success: ${successful.length}/${items.length} items processed`, {
-          description: `${failed.length} items failed`,
-          duration: 6000
-        })
+        ToastService.warning(
+          `Partial success: ${successful.length}/${items.length} items processed`,
+          {
+            description: `${failed.length} items failed`,
+            duration: 6000
+          }
+        )
       }
     }
 
@@ -370,12 +382,14 @@ export class RetryService {
 
   // Get current retry statistics
   static getRetryStats() {
-    const stats = Array.from(this.activeRetries.entries()).map(([id, info]) => ({
-      operationId: id,
-      operation: info.operation,
-      attempts: info.attempts,
-      duration: Date.now() - info.startTime
-    }))
+    const stats = Array.from(this.activeRetries.entries()).map(
+      ([id, info]) => ({
+        operationId: id,
+        operation: info.operation,
+        attempts: info.attempts,
+        duration: Date.now() - info.startTime
+      })
+    )
 
     return {
       activeRetries: stats,
@@ -392,17 +406,17 @@ export class RetryService {
   private static getRetryReason(error: AppError): string {
     switch (error.type) {
       case ErrorType.NETWORK:
-        return 'due to network issues'
+        return "due to network issues"
       case ErrorType.EXTERNAL_SERVICE:
-        return 'due to service unavailability'
+        return "due to service unavailability"
       case ErrorType.RATE_LIMIT:
-        return 'due to rate limiting'
+        return "due to rate limiting"
       case ErrorType.DATABASE:
-        return 'due to database issues'
+        return "due to database issues"
       case ErrorType.FILE_PROCESSING:
-        return 'due to file processing issues'
+        return "due to file processing issues"
       default:
-        return 'due to a temporary issue'
+        return "due to a temporary issue"
     }
   }
 }

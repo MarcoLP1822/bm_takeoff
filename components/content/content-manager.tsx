@@ -1,49 +1,52 @@
-'use client'
+"use client"
 
-import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { 
-  Search, 
-  Filter, 
-  BookOpen, 
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import {
+  Search,
+  Filter,
+  BookOpen,
   Calendar,
-  Twitter, 
-  Instagram, 
-  Linkedin, 
+  Twitter,
+  Instagram,
+  Linkedin,
   Facebook,
   Edit3,
   Trash2,
   Eye,
   EyeOff
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { ContentEditor, GeneratedPost, Platform } from './content-editor'
-import { LazyLoadingList, ContentSkeleton } from '@/components/utility/lazy-loading'
+} from "lucide-react"
+import { cn } from "@/lib/utils"
+import { ContentEditor, GeneratedPost, Platform } from "./content-editor"
+import {
+  LazyLoadingList,
+  ContentSkeleton
+} from "@/components/utility/lazy-loading"
 
 // Platform configurations
 const PLATFORM_CONFIGS = {
   twitter: {
-    name: 'Twitter/X',
+    name: "Twitter/X",
     icon: Twitter,
-    color: 'bg-blue-500'
+    color: "bg-blue-500"
   },
   instagram: {
-    name: 'Instagram',
+    name: "Instagram",
     icon: Instagram,
-    color: 'bg-pink-500'
+    color: "bg-pink-500"
   },
   linkedin: {
-    name: 'LinkedIn',
+    name: "LinkedIn",
     icon: Linkedin,
-    color: 'bg-blue-600'
+    color: "bg-blue-600"
   },
   facebook: {
-    name: 'Facebook',
+    name: "Facebook",
     icon: Facebook,
-    color: 'bg-blue-700'
+    color: "bg-blue-700"
   }
 } as const
 
@@ -51,7 +54,7 @@ export interface ContentVariation {
   id: string
   posts: GeneratedPost[]
   theme: string
-  sourceType: 'quote' | 'insight' | 'theme' | 'summary' | 'discussion'
+  sourceType: "quote" | "insight" | "theme" | "summary" | "discussion"
   sourceContent: string
   bookId: string
   bookTitle: string
@@ -62,34 +65,42 @@ export interface ContentVariation {
 
 interface ContentManagerProps {
   contentVariations: ContentVariation[]
-  onSaveContentAction: (variationId: string, post: GeneratedPost) => Promise<void>
+  onSaveContentAction: (
+    variationId: string,
+    post: GeneratedPost
+  ) => Promise<void>
   onDeleteVariationAction: (variationId: string) => Promise<void>
   onAutoSaveAction?: (variationId: string, post: GeneratedPost) => Promise<void>
   className?: string
 }
 
-type FilterBy = 'all' | 'book' | 'platform' | 'theme' | 'status'
-type SortBy = 'newest' | 'oldest' | 'book' | 'theme'
+type FilterBy = "all" | "book" | "platform" | "theme" | "status"
+type SortBy = "newest" | "oldest" | "book" | "theme"
 
-export function ContentManager({ 
-  contentVariations, 
-  onSaveContentAction, 
+export function ContentManager({
+  contentVariations,
+  onSaveContentAction,
   onDeleteVariationAction,
   onAutoSaveAction,
-  className 
+  className
 }: ContentManagerProps) {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [filterBy, setFilterBy] = useState<FilterBy>('all')
-  const [sortBy, setSortBy] = useState<SortBy>('newest')
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filterBy, setFilterBy] = useState<FilterBy>("all")
+  const [sortBy, setSortBy] = useState<SortBy>("newest")
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([])
   const [selectedBooks, setSelectedBooks] = useState<string[]>([])
-  const [expandedVariations, setExpandedVariations] = useState<Set<string>>(new Set())
+  const [expandedVariations, setExpandedVariations] = useState<Set<string>>(
+    new Set()
+  )
   const [editingPosts, setEditingPosts] = useState<Set<string>>(new Set())
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   // Extract unique books and platforms for filtering
   const uniqueBooks = useMemo(() => {
-    const books = new Map<string, { id: string; title: string; author?: string }>()
+    const books = new Map<
+      string,
+      { id: string; title: string; author?: string }
+    >()
     contentVariations.forEach(variation => {
       if (!books.has(variation.bookId)) {
         books.set(variation.bookId, {
@@ -102,19 +113,24 @@ export function ContentManager({
     return Array.from(books.values())
   }, [contentVariations])
 
-  const allPlatforms: Platform[] = ['twitter', 'instagram', 'linkedin', 'facebook']
+  const allPlatforms: Platform[] = [
+    "twitter",
+    "instagram",
+    "linkedin",
+    "facebook"
+  ]
 
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
         e.preventDefault()
         searchInputRef.current?.focus()
       }
     }
 
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
   }, [])
 
   // Filter and sort content variations
@@ -124,12 +140,15 @@ export function ContentManager({
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(variation => 
-        variation.bookTitle.toLowerCase().includes(query) ||
-        variation.author?.toLowerCase().includes(query) ||
-        variation.theme.toLowerCase().includes(query) ||
-        variation.sourceContent.toLowerCase().includes(query) ||
-        variation.posts.some(post => post.content.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        variation =>
+          variation.bookTitle.toLowerCase().includes(query) ||
+          variation.author?.toLowerCase().includes(query) ||
+          variation.theme.toLowerCase().includes(query) ||
+          variation.sourceContent.toLowerCase().includes(query) ||
+          variation.posts.some(post =>
+            post.content.toLowerCase().includes(query)
+          )
       )
     }
 
@@ -150,13 +169,17 @@ export function ContentManager({
     // Apply sorting
     filtered.sort((a, b) => {
       switch (sortBy) {
-        case 'newest':
-          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        case 'oldest':
-          return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
-        case 'book':
+        case "newest":
+          return (
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          )
+        case "oldest":
+          return (
+            new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
+          )
+        case "book":
           return a.bookTitle.localeCompare(b.bookTitle)
-        case 'theme':
+        case "theme":
           return a.theme.localeCompare(b.theme)
         default:
           return 0
@@ -186,7 +209,10 @@ export function ContentManager({
     setEditingPosts(newEditing)
   }
 
-  const handleSaveContent = async (variationId: string, post: GeneratedPost) => {
+  const handleSaveContent = async (
+    variationId: string,
+    post: GeneratedPost
+  ) => {
     await onSaveContentAction(variationId, post)
     setEditingPosts(prev => {
       const newSet = new Set(prev)
@@ -196,16 +222,16 @@ export function ContentManager({
   }
 
   const togglePlatformFilter = (platform: Platform) => {
-    setSelectedPlatforms(prev => 
-      prev.includes(platform) 
+    setSelectedPlatforms(prev =>
+      prev.includes(platform)
         ? prev.filter(p => p !== platform)
         : [...prev, platform]
     )
   }
 
   const toggleBookFilter = (bookId: string) => {
-    setSelectedBooks(prev => 
-      prev.includes(bookId) 
+    setSelectedBooks(prev =>
+      prev.includes(bookId)
         ? prev.filter(id => id !== bookId)
         : [...prev, bookId]
     )
@@ -221,8 +247,9 @@ export function ContentManager({
             Review and edit your generated social media content
           </p>
         </div>
-        <div className="text-sm text-muted-foreground">
-          {filteredAndSortedVariations.length} of {contentVariations.length} variations
+        <div className="text-muted-foreground text-sm">
+          {filteredAndSortedVariations.length} of {contentVariations.length}{" "}
+          variations
         </div>
       </div>
 
@@ -230,26 +257,26 @@ export function ContentManager({
       <div className="space-y-4">
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
           <Input
             placeholder="Search content, books, themes..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
 
         {/* Filter Controls */}
-        <div className="flex flex-wrap gap-4 items-center">
+        <div className="flex flex-wrap items-center gap-4">
           {/* Platform Filters */}
           <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Filter className="text-muted-foreground h-4 w-4" />
             <span className="text-sm font-medium">Platforms:</span>
             {allPlatforms.map(platform => {
               const config = PLATFORM_CONFIGS[platform]
               const PlatformIcon = config.icon
               const isSelected = selectedPlatforms.includes(platform)
-              
+
               return (
                 <Button
                   key={platform}
@@ -258,7 +285,7 @@ export function ContentManager({
                   onClick={() => togglePlatformFilter(platform)}
                   className="h-8"
                 >
-                  <PlatformIcon className="h-3 w-3 mr-1" />
+                  <PlatformIcon className="mr-1 h-3 w-3" />
                   {config.name}
                 </Button>
               )
@@ -269,11 +296,11 @@ export function ContentManager({
 
           {/* Book Filters */}
           <div className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
+            <BookOpen className="text-muted-foreground h-4 w-4" />
             <span className="text-sm font-medium">Books:</span>
             {uniqueBooks.slice(0, 3).map(book => {
               const isSelected = selectedBooks.includes(book.id)
-              
+
               return (
                 <Button
                   key={book.id}
@@ -287,7 +314,7 @@ export function ContentManager({
               )
             })}
             {uniqueBooks.length > 3 && (
-              <span className="text-sm text-muted-foreground">
+              <span className="text-muted-foreground text-sm">
                 +{uniqueBooks.length - 3} more
               </span>
             )}
@@ -297,12 +324,12 @@ export function ContentManager({
 
           {/* Sort */}
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Calendar className="text-muted-foreground h-4 w-4" />
             <span className="text-sm font-medium">Sort:</span>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortBy)}
-              className="text-sm border rounded px-2 py-1"
+              onChange={e => setSortBy(e.target.value as SortBy)}
+              className="rounded border px-2 py-1 text-sm"
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
@@ -313,45 +340,58 @@ export function ContentManager({
         </div>
 
         {/* Active Filters */}
-        {(selectedPlatforms.length > 0 || selectedBooks.length > 0 || searchQuery.trim()) && (
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-sm text-muted-foreground">Active filters:</span>
-            
+        {(selectedPlatforms.length > 0 ||
+          selectedBooks.length > 0 ||
+          searchQuery.trim()) && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-muted-foreground text-sm">
+              Active filters:
+            </span>
+
             {searchQuery.trim() && (
               <Badge variant="secondary" className="gap-1">
                 Search: "{searchQuery}"
-                <button onClick={() => setSearchQuery('')} className="ml-1 hover:bg-muted-foreground/20 rounded">
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="hover:bg-muted-foreground/20 ml-1 rounded"
+                >
                   ×
                 </button>
               </Badge>
             )}
-            
+
             {selectedPlatforms.map(platform => (
               <Badge key={platform} variant="secondary" className="gap-1">
                 {PLATFORM_CONFIGS[platform].name}
-                <button onClick={() => togglePlatformFilter(platform)} className="ml-1 hover:bg-muted-foreground/20 rounded">
+                <button
+                  onClick={() => togglePlatformFilter(platform)}
+                  className="hover:bg-muted-foreground/20 ml-1 rounded"
+                >
                   ×
                 </button>
               </Badge>
             ))}
-            
+
             {selectedBooks.map(bookId => {
               const book = uniqueBooks.find(b => b.id === bookId)
               return book ? (
                 <Badge key={bookId} variant="secondary" className="gap-1">
                   {book.title}
-                  <button onClick={() => toggleBookFilter(bookId)} className="ml-1 hover:bg-muted-foreground/20 rounded">
+                  <button
+                    onClick={() => toggleBookFilter(bookId)}
+                    className="hover:bg-muted-foreground/20 ml-1 rounded"
+                  >
                     ×
                   </button>
                 </Badge>
               ) : null
             })}
-            
+
             <Button
               variant="ghost"
               size="sm"
               onClick={() => {
-                setSearchQuery('')
+                setSearchQuery("")
                 setSelectedPlatforms([])
                 setSelectedBooks([])
               }}
@@ -366,19 +406,24 @@ export function ContentManager({
       {/* Content Variations */}
       <div className="space-y-4">
         {filteredAndSortedVariations.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <div className="text-muted-foreground py-12 text-center">
+            <BookOpen className="mx-auto mb-4 h-12 w-12 opacity-50" />
             <p>No content variations found matching your filters.</p>
-            <p className="text-sm">Try adjusting your search or filter criteria.</p>
+            <p className="text-sm">
+              Try adjusting your search or filter criteria.
+            </p>
           </div>
         ) : (
           filteredAndSortedVariations.map(variation => {
             const isExpanded = expandedVariations.has(variation.id)
-            
+
             return (
-              <div key={variation.id} className="border rounded-lg overflow-hidden">
+              <div
+                key={variation.id}
+                className="overflow-hidden rounded-lg border"
+              >
                 {/* Variation Header */}
-                <div className="p-4 bg-muted/30">
+                <div className="bg-muted/30 p-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -387,7 +432,7 @@ export function ContentManager({
                           {variation.sourceType}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="text-muted-foreground flex items-center gap-2 text-sm">
                         <BookOpen className="h-4 w-4" />
                         <span>{variation.bookTitle}</span>
                         {variation.author && (
@@ -397,11 +442,11 @@ export function ContentManager({
                           </>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <p className="text-muted-foreground line-clamp-2 text-sm">
                         {variation.sourceContent}
                       </p>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       {/* Platform indicators */}
                       <div className="flex gap-1">
@@ -411,7 +456,10 @@ export function ContentManager({
                           return (
                             <div
                               key={post.id}
-                              className={cn("p-1 rounded text-white", config.color)}
+                              className={cn(
+                                "rounded p-1 text-white",
+                                config.color
+                              )}
                               title={config.name}
                             >
                               <PlatformIcon className="h-3 w-3" />
@@ -419,16 +467,20 @@ export function ContentManager({
                           )
                         })}
                       </div>
-                      
+
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => toggleVariationExpansion(variation.id)}
                       >
-                        {isExpanded ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        {isExpanded ? 'Collapse' : 'Expand'}
+                        {isExpanded ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                        {isExpanded ? "Collapse" : "Expand"}
                       </Button>
-                      
+
                       <Button
                         variant="ghost"
                         size="sm"
@@ -443,58 +495,83 @@ export function ContentManager({
 
                 {/* Posts */}
                 {isExpanded && (
-                  <div className="p-4 space-y-4">
+                  <div className="space-y-4 p-4">
                     {variation.posts.map(post => {
                       const isEditing = editingPosts.has(post.id)
-                      
+
                       return (
                         <div key={post.id} className="space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <div className={cn("p-1 rounded text-white", PLATFORM_CONFIGS[post.platform].color)}>
-                                {React.createElement(PLATFORM_CONFIGS[post.platform].icon, { className: "h-3 w-3" })}
+                              <div
+                                className={cn(
+                                  "rounded p-1 text-white",
+                                  PLATFORM_CONFIGS[post.platform].color
+                                )}
+                              >
+                                {React.createElement(
+                                  PLATFORM_CONFIGS[post.platform].icon,
+                                  { className: "h-3 w-3" }
+                                )}
                               </div>
                               <span className="text-sm font-medium">
                                 {PLATFORM_CONFIGS[post.platform].name}
                               </span>
                               {!post.isValid && (
-                                <Badge variant="destructive" className="text-xs">
+                                <Badge
+                                  variant="destructive"
+                                  className="text-xs"
+                                >
                                   Invalid
                                 </Badge>
                               )}
                             </div>
-                            
+
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => togglePostEditing(post.id)}
                             >
                               <Edit3 className="h-4 w-4" />
-                              {isEditing ? 'Cancel' : 'Edit'}
+                              {isEditing ? "Cancel" : "Edit"}
                             </Button>
                           </div>
-                          
+
                           {isEditing ? (
                             <ContentEditor
                               post={post}
-                              onSaveAction={(updatedPost: GeneratedPost) => handleSaveContent(variation.id, updatedPost)}
-                              onAutoSaveAction={onAutoSaveAction ? (updatedPost: GeneratedPost) => onAutoSaveAction(variation.id, updatedPost) : undefined}
+                              onSaveAction={(updatedPost: GeneratedPost) =>
+                                handleSaveContent(variation.id, updatedPost)
+                              }
+                              onAutoSaveAction={
+                                onAutoSaveAction
+                                  ? (updatedPost: GeneratedPost) =>
+                                      onAutoSaveAction(
+                                        variation.id,
+                                        updatedPost
+                                      )
+                                  : undefined
+                              }
                             />
                           ) : (
-                            <div className="border rounded p-3 bg-background">
-                              <div className="text-sm whitespace-pre-wrap mb-2">
+                            <div className="bg-background rounded border p-3">
+                              <div className="mb-2 text-sm whitespace-pre-wrap">
                                 {post.content}
                               </div>
                               {post.hashtags.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mb-2">
+                                <div className="mb-2 flex flex-wrap gap-1">
                                   {post.hashtags.map((tag, index) => (
-                                    <Badge key={index} variant="secondary" className="text-xs">
-                                      {tag.startsWith('#') ? tag : `#${tag}`}
+                                    <Badge
+                                      key={index}
+                                      variant="secondary"
+                                      className="text-xs"
+                                    >
+                                      {tag.startsWith("#") ? tag : `#${tag}`}
                                     </Badge>
                                   ))}
                                 </div>
                               )}
-                              <div className="text-xs text-muted-foreground">
+                              <div className="text-muted-foreground text-xs">
                                 {post.characterCount} characters
                               </div>
                             </div>

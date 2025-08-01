@@ -1,18 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
-import { db } from '@/db'
-import { generatedContent } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
+import { db } from "@/db"
+import { generatedContent } from "@/db/schema"
+import { eq, and } from "drizzle-orm"
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const body = await request.json()
@@ -20,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     if (!variationId || !post || !post.id) {
       return NextResponse.json(
-        { error: 'Variation ID and post data are required' },
+        { error: "Variation ID and post data are required" },
         { status: 400 }
       )
     }
@@ -28,7 +25,7 @@ export async function POST(request: NextRequest) {
     // Validate post data
     if (!post.platform || !post.content) {
       return NextResponse.json(
-        { error: 'Platform and content are required' },
+        { error: "Platform and content are required" },
         { status: 400 }
       )
     }
@@ -51,16 +48,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Content auto-saved',
+      message: "Content auto-saved",
       timestamp: new Date().toISOString()
     })
-
   } catch (error) {
-    console.error('Auto-save error:', error)
+    console.error("Auto-save error:", error)
     // Don't return error for auto-save to avoid disrupting user experience
     return NextResponse.json({
       success: false,
-      message: 'Auto-save failed',
+      message: "Auto-save failed",
       timestamp: new Date().toISOString()
     })
   }

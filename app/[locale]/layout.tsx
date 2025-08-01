@@ -3,13 +3,13 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { TailwindIndicator } from "@/components/utility/tailwind-indicator"
 import { ClerkProvider } from "@clerk/nextjs"
 import type { Metadata } from "next"
-import { NextIntlClientProvider } from 'next-intl'
-import { getMessages } from 'next-intl/server'
+import { NextIntlClientProvider } from "next-intl"
+import { getMessages } from "next-intl/server"
 import { ThemeProvider } from "next-themes"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Toaster } from "sonner"
-import { locales, type Locale } from '@/i18n'
-import { notFound } from 'next/navigation'
+import { locales, type Locale } from "@/i18n"
+import { notFound } from "next/navigation"
 import "../globals.css"
 
 const geistSans = Geist({
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 }
 
 export function generateStaticParams() {
-  return locales.map((locale) => ({ locale }))
+  return locales.map(locale => ({ locale }))
 }
 
 type Props = {
@@ -39,12 +39,12 @@ type Props = {
 export default async function LocaleLayout({ children, params }: Props) {
   // Await the params object
   const { locale } = await params
-  
+
   // Validate the locale
   if (!locales.includes(locale as Locale)) {
     notFound()
   }
-  
+
   // Get messages for the locale
   const messages = await getMessages({ locale })
 

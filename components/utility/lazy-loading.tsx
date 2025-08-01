@@ -1,10 +1,13 @@
-'use client'
+"use client"
 
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { Loader2 } from 'lucide-react'
+import React, { useState, useEffect, useCallback, useRef } from "react"
+import { Loader2 } from "lucide-react"
 
 interface LazyLoadingProps<T> {
-  loadDataAction: (offset: number, limit: number) => Promise<{
+  loadDataAction: (
+    offset: number,
+    limit: number
+  ) => Promise<{
     items: T[]
     hasMore: boolean
     total?: number
@@ -28,8 +31,8 @@ export function LazyLoadingList<T>({
   renderError,
   itemsPerPage = 20,
   threshold = 200,
-  className = '',
-  containerClassName = '',
+  className = "",
+  containerClassName = "",
   dependencies = []
 }: LazyLoadingProps<T>) {
   const [items, setItems] = useState<T[]>([])
@@ -38,41 +41,44 @@ export function LazyLoadingList<T>({
   const [hasMore, setHasMore] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   const [total, setTotal] = useState<number | undefined>()
-  
+
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadingRef = useRef<HTMLDivElement>(null)
   const offsetRef = useRef(0)
   const isLoadingRef = useRef(false)
 
-  const loadItems = useCallback(async (reset = false) => {
-    if (isLoadingRef.current) return
-    
-    isLoadingRef.current = true
-    setLoading(true)
-    setError(null)
-    
-    try {
-      const offset = reset ? 0 : offsetRef.current
-      const result = await loadDataAction(offset, itemsPerPage)
-      
-      if (reset) {
-        setItems(result.items)
-        offsetRef.current = result.items.length
-      } else {
-        setItems(prev => [...prev, ...result.items])
-        offsetRef.current += result.items.length
+  const loadItems = useCallback(
+    async (reset = false) => {
+      if (isLoadingRef.current) return
+
+      isLoadingRef.current = true
+      setLoading(true)
+      setError(null)
+
+      try {
+        const offset = reset ? 0 : offsetRef.current
+        const result = await loadDataAction(offset, itemsPerPage)
+
+        if (reset) {
+          setItems(result.items)
+          offsetRef.current = result.items.length
+        } else {
+          setItems(prev => [...prev, ...result.items])
+          offsetRef.current += result.items.length
+        }
+
+        setHasMore(result.hasMore)
+        setTotal(result.total)
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error("Failed to load data"))
+      } finally {
+        isLoadingRef.current = false
+        setLoading(false)
+        setInitialLoading(false)
       }
-      
-      setHasMore(result.hasMore)
-      setTotal(result.total)
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to load data'))
-    } finally {
-      isLoadingRef.current = false
-      setLoading(false)
-      setInitialLoading(false)
-    }
-  }, [loadDataAction, itemsPerPage])
+    },
+    [loadDataAction, itemsPerPage]
+  )
 
   const resetAndReload = useCallback(() => {
     setItems([])
@@ -93,7 +99,7 @@ export function LazyLoadingList<T>({
     if (!hasMore || loading) return
 
     observerRef.current = new IntersectionObserver(
-      (entries) => {
+      entries => {
         if (entries[0].isIntersecting) {
           loadItems()
         }
@@ -146,10 +152,12 @@ export function LazyLoadingList<T>({
           renderError(error, resetAndReload)
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <p className="text-red-600 mb-4">Failed to load data: {error.message}</p>
+            <p className="mb-4 text-red-600">
+              Failed to load data: {error.message}
+            </p>
             <button
               onClick={resetAndReload}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
               Try Again
             </button>
@@ -177,25 +185,25 @@ export function LazyLoadingList<T>({
     <div className={containerClassName}>
       <div className={className}>
         {items.map((item, index) => (
-          <div key={index}>
-            {renderItemAction(item, index)}
-          </div>
+          <div key={index}>{renderItemAction(item, index)}</div>
         ))}
       </div>
-      
+
       {hasMore && (
         <div ref={loadingRef} className="flex items-center justify-center py-4">
           {loading && (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="ml-2 text-sm text-gray-600">Loading more...</span>
+              <span className="ml-2 text-sm text-gray-600">
+                Loading more...
+              </span>
             </>
           )}
         </div>
       )}
-      
+
       {total !== undefined && (
-        <div className="text-center py-2 text-sm text-gray-500">
+        <div className="py-2 text-center text-sm text-gray-500">
           Showing {items.length} of {total} items
         </div>
       )}
@@ -207,10 +215,10 @@ export function LazyLoadingList<T>({
 export function BookSkeleton() {
   return (
     <div className="animate-pulse">
-      <div className="bg-gray-200 rounded-lg p-4">
-        <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
-        <div className="h-3 bg-gray-300 rounded w-1/2 mb-2"></div>
-        <div className="h-3 bg-gray-300 rounded w-1/4"></div>
+      <div className="rounded-lg bg-gray-200 p-4">
+        <div className="mb-2 h-4 w-3/4 rounded bg-gray-300"></div>
+        <div className="mb-2 h-3 w-1/2 rounded bg-gray-300"></div>
+        <div className="h-3 w-1/4 rounded bg-gray-300"></div>
       </div>
     </div>
   )
@@ -219,13 +227,13 @@ export function BookSkeleton() {
 export function ContentSkeleton() {
   return (
     <div className="animate-pulse">
-      <div className="bg-gray-200 rounded-lg p-4">
-        <div className="flex items-center mb-2">
-          <div className="h-3 bg-gray-300 rounded w-16 mr-2"></div>
-          <div className="h-3 bg-gray-300 rounded w-20"></div>
+      <div className="rounded-lg bg-gray-200 p-4">
+        <div className="mb-2 flex items-center">
+          <div className="mr-2 h-3 w-16 rounded bg-gray-300"></div>
+          <div className="h-3 w-20 rounded bg-gray-300"></div>
         </div>
-        <div className="h-4 bg-gray-300 rounded w-full mb-2"></div>
-        <div className="h-4 bg-gray-300 rounded w-2/3"></div>
+        <div className="mb-2 h-4 w-full rounded bg-gray-300"></div>
+        <div className="h-4 w-2/3 rounded bg-gray-300"></div>
       </div>
     </div>
   )
@@ -248,23 +256,23 @@ export function VirtualScrollList<T>({
   overscan = 5
 }: VirtualScrollProps<T>) {
   const [scrollTop, setScrollTop] = useState(0)
-  
+
   const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan)
   const endIndex = Math.min(
     items.length - 1,
     Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan
   )
-  
+
   const visibleItems = items.slice(startIndex, endIndex + 1)
   const totalHeight = items.length * itemHeight
   const offsetY = startIndex * itemHeight
 
   return (
     <div
-      style={{ height: containerHeight, overflow: 'auto' }}
-      onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
+      style={{ height: containerHeight, overflow: "auto" }}
+      onScroll={e => setScrollTop(e.currentTarget.scrollTop)}
     >
-      <div style={{ height: totalHeight, position: 'relative' }}>
+      <div style={{ height: totalHeight, position: "relative" }}>
         <div style={{ transform: `translateY(${offsetY}px)` }}>
           {visibleItems.map((item, index) => (
             <div key={startIndex + index} style={{ height: itemHeight }}>
@@ -279,7 +287,10 @@ export function VirtualScrollList<T>({
 
 // Hook for managing lazy loading state
 export function useLazyLoading<T>(
-  loadData: (offset: number, limit: number) => Promise<{
+  loadData: (
+    offset: number,
+    limit: number
+  ) => Promise<{
     items: T[]
     hasMore: boolean
     total?: number
@@ -293,39 +304,42 @@ export function useLazyLoading<T>(
   const [hasMore, setHasMore] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   const [total, setTotal] = useState<number | undefined>()
-  
+
   const offsetRef = useRef(0)
   const isLoadingRef = useRef(false)
 
-  const loadItems = useCallback(async (reset = false) => {
-    if (isLoadingRef.current) return
-    
-    isLoadingRef.current = true
-    setLoading(true)
-    setError(null)
-    
-    try {
-      const offset = reset ? 0 : offsetRef.current
-      const result = await loadData(offset, itemsPerPage)
-      
-      if (reset) {
-        setItems(result.items)
-        offsetRef.current = result.items.length
-      } else {
-        setItems(prev => [...prev, ...result.items])
-        offsetRef.current += result.items.length
+  const loadItems = useCallback(
+    async (reset = false) => {
+      if (isLoadingRef.current) return
+
+      isLoadingRef.current = true
+      setLoading(true)
+      setError(null)
+
+      try {
+        const offset = reset ? 0 : offsetRef.current
+        const result = await loadData(offset, itemsPerPage)
+
+        if (reset) {
+          setItems(result.items)
+          offsetRef.current = result.items.length
+        } else {
+          setItems(prev => [...prev, ...result.items])
+          offsetRef.current += result.items.length
+        }
+
+        setHasMore(result.hasMore)
+        setTotal(result.total)
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error("Failed to load data"))
+      } finally {
+        isLoadingRef.current = false
+        setLoading(false)
+        setInitialLoading(false)
       }
-      
-      setHasMore(result.hasMore)
-      setTotal(result.total)
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to load data'))
-    } finally {
-      isLoadingRef.current = false
-      setLoading(false)
-      setInitialLoading(false)
-    }
-  }, [loadData, itemsPerPage])
+    },
+    [loadData, itemsPerPage]
+  )
 
   const resetAndReload = useCallback(() => {
     setItems([])

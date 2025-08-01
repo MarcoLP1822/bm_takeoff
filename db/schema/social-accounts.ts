@@ -1,6 +1,18 @@
-import { boolean, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import {
+  boolean,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid
+} from "drizzle-orm/pg-core"
 
-export const socialPlatform = pgEnum("social_platform", ["twitter", "instagram", "linkedin", "facebook"])
+export const socialPlatform = pgEnum("social_platform", [
+  "twitter",
+  "instagram",
+  "linkedin",
+  "facebook"
+])
 
 export const socialAccounts = pgTable("social_accounts", {
   id: uuid("id").defaultRandom().primaryKey(),

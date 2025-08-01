@@ -1,15 +1,21 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { 
-  BookOpen, 
-  Upload, 
-  Zap, 
-  Users, 
-  BarChart3, 
+import { useState } from "react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import {
+  BookOpen,
+  Upload,
+  Zap,
+  Users,
+  BarChart3,
   X,
   ChevronRight,
   FileText,
@@ -18,8 +24,8 @@ import {
   Lightbulb,
   Target,
   Rocket
-} from 'lucide-react'
-import Link from 'next/link'
+} from "lucide-react"
+import Link from "next/link"
 
 interface HelpSection {
   id: string
@@ -41,151 +47,172 @@ interface HelpDocumentationProps {
   className?: string
 }
 
-export default function HelpDocumentation({ onCloseAction, className }: HelpDocumentationProps) {
+export default function HelpDocumentation({
+  onCloseAction,
+  className
+}: HelpDocumentationProps) {
   const [activeSection, setActiveSection] = useState<string | null>(null)
 
   const helpSections: HelpSection[] = [
     {
-      id: 'getting-started',
-      title: 'Getting Started',
-      description: 'Learn the basics of using the Book Social Content Analyzer',
+      id: "getting-started",
+      title: "Getting Started",
+      description: "Learn the basics of using the Book Social Content Analyzer",
       icon: Rocket,
       items: [
         {
-          title: 'Upload Your First Book',
-          description: 'Start by uploading a book file (PDF, EPUB, TXT, or DOCX) to begin the analysis process.',
+          title: "Upload Your First Book",
+          description:
+            "Start by uploading a book file (PDF, EPUB, TXT, or DOCX) to begin the analysis process.",
           action: {
-            label: 'Upload Book',
-            href: '/dashboard/books?action=upload'
+            label: "Upload Book",
+            href: "/dashboard/books?action=upload"
           }
         },
         {
-          title: 'Understanding Analysis',
-          description: 'Our AI analyzes your book to extract themes, quotes, and key insights that work well for social media.',
+          title: "Understanding Analysis",
+          description:
+            "Our AI analyzes your book to extract themes, quotes, and key insights that work well for social media."
         },
         {
-          title: 'Generate Content',
-          description: 'Create platform-specific social media posts based on your book analysis.',
+          title: "Generate Content",
+          description:
+            "Create platform-specific social media posts based on your book analysis.",
           action: {
-            label: 'Generate Content',
-            href: '/dashboard/content/generate'
+            label: "Generate Content",
+            href: "/dashboard/content/generate"
           }
         }
       ]
     },
     {
-      id: 'book-management',
-      title: 'Book Management',
-      description: 'How to manage your book library and analysis',
+      id: "book-management",
+      title: "Book Management",
+      description: "How to manage your book library and analysis",
       icon: BookOpen,
       items: [
         {
-          title: 'Supported File Formats',
-          description: 'Upload books in PDF, EPUB, TXT, or DOCX format. Maximum file size is 50MB.',
+          title: "Supported File Formats",
+          description:
+            "Upload books in PDF, EPUB, TXT, or DOCX format. Maximum file size is 50MB."
         },
         {
-          title: 'Analysis Status',
-          description: 'Track the progress of your book analysis. Books can be pending, analyzing, completed, or have errors.',
+          title: "Analysis Status",
+          description:
+            "Track the progress of your book analysis. Books can be pending, analyzing, completed, or have errors."
         },
         {
-          title: 'Managing Your Library',
-          description: 'View all your uploaded books, check analysis status, and delete books you no longer need.',
+          title: "Managing Your Library",
+          description:
+            "View all your uploaded books, check analysis status, and delete books you no longer need.",
           action: {
-            label: 'View Library',
-            href: '/dashboard/books'
+            label: "View Library",
+            href: "/dashboard/books"
           }
         }
       ]
     },
     {
-      id: 'content-creation',
-      title: 'Content Creation',
-      description: 'Generate and manage social media content',
+      id: "content-creation",
+      title: "Content Creation",
+      description: "Generate and manage social media content",
       icon: Zap,
       items: [
         {
-          title: 'Platform-Specific Content',
-          description: 'Generate content optimized for Twitter/X, Instagram, LinkedIn, and Facebook with appropriate character limits.',
+          title: "Platform-Specific Content",
+          description:
+            "Generate content optimized for Twitter/X, Instagram, LinkedIn, and Facebook with appropriate character limits."
         },
         {
-          title: 'Content Variations',
-          description: 'Get multiple variations of each post to choose the one that best fits your style and audience.',
+          title: "Content Variations",
+          description:
+            "Get multiple variations of each post to choose the one that best fits your style and audience."
         },
         {
-          title: 'Editing and Customization',
-          description: 'Edit generated content, add your own touch, and preview how posts will appear on each platform.',
+          title: "Editing and Customization",
+          description:
+            "Edit generated content, add your own touch, and preview how posts will appear on each platform.",
           action: {
-            label: 'Manage Content',
-            href: '/dashboard/content'
+            label: "Manage Content",
+            href: "/dashboard/content"
           }
         }
       ]
     },
     {
-      id: 'social-media',
-      title: 'Social Media Integration',
-      description: 'Connect accounts and publish content',
+      id: "social-media",
+      title: "Social Media Integration",
+      description: "Connect accounts and publish content",
       icon: Users,
       items: [
         {
-          title: 'Connecting Accounts',
-          description: 'Securely connect your Twitter/X, Instagram, LinkedIn, and Facebook accounts using OAuth.',
+          title: "Connecting Accounts",
+          description:
+            "Securely connect your Twitter/X, Instagram, LinkedIn, and Facebook accounts using OAuth.",
           action: {
-            label: 'Connect Accounts',
-            href: '/dashboard/settings/social'
+            label: "Connect Accounts",
+            href: "/dashboard/settings/social"
           }
         },
         {
-          title: 'Publishing Content',
-          description: 'Publish content immediately or schedule it for later. Track publishing status and handle failures.',
+          title: "Publishing Content",
+          description:
+            "Publish content immediately or schedule it for later. Track publishing status and handle failures."
         },
         {
-          title: 'Account Management',
-          description: 'View connected accounts, check connection status, and reconnect if needed.',
+          title: "Account Management",
+          description:
+            "View connected accounts, check connection status, and reconnect if needed."
         }
       ]
     },
     {
-      id: 'analytics',
-      title: 'Analytics & Performance',
-      description: 'Track and analyze your content performance',
+      id: "analytics",
+      title: "Analytics & Performance",
+      description: "Track and analyze your content performance",
       icon: BarChart3,
       items: [
         {
-          title: 'Engagement Metrics',
-          description: 'Track likes, shares, comments, and impressions across all your published content.',
+          title: "Engagement Metrics",
+          description:
+            "Track likes, shares, comments, and impressions across all your published content."
         },
         {
-          title: 'Platform Comparison',
-          description: 'Compare performance across different social media platforms to optimize your strategy.',
+          title: "Platform Comparison",
+          description:
+            "Compare performance across different social media platforms to optimize your strategy."
         },
         {
-          title: 'Content Insights',
-          description: 'Discover which book themes and content types perform best with your audience.',
+          title: "Content Insights",
+          description:
+            "Discover which book themes and content types perform best with your audience.",
           action: {
-            label: 'View Analytics',
-            href: '/dashboard/analytics'
+            label: "View Analytics",
+            href: "/dashboard/analytics"
           }
         }
       ]
     },
     {
-      id: 'tips-tricks',
-      title: 'Tips & Best Practices',
-      description: 'Get the most out of the platform',
+      id: "tips-tricks",
+      title: "Tips & Best Practices",
+      description: "Get the most out of the platform",
       icon: Lightbulb,
       items: [
         {
-          title: 'Optimal Book Selection',
-          description: 'Books with clear themes, memorable quotes, and engaging content work best for social media generation.',
+          title: "Optimal Book Selection",
+          description:
+            "Books with clear themes, memorable quotes, and engaging content work best for social media generation."
         },
         {
-          title: 'Content Scheduling',
-          description: 'Use analytics to determine the best times to post on each platform for maximum engagement.',
+          title: "Content Scheduling",
+          description:
+            "Use analytics to determine the best times to post on each platform for maximum engagement."
         },
         {
-          title: 'Engagement Strategy',
-          description: 'Mix different types of content: quotes, insights, questions, and discussion starters for better engagement.',
+          title: "Engagement Strategy",
+          description:
+            "Mix different types of content: quotes, insights, questions, and discussion starters for better engagement."
         }
       ]
     }
@@ -195,7 +222,7 @@ export default function HelpDocumentation({ onCloseAction, className }: HelpDocu
     <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <div>
-          <CardTitle className="text-lg flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <HelpCircle className="h-5 w-5" />
             Help & Documentation
           </CardTitle>
@@ -209,13 +236,17 @@ export default function HelpDocumentation({ onCloseAction, className }: HelpDocu
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Quick Tips */}
-        <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/20">
           <div className="flex items-start space-x-3">
-            <Target className="h-5 w-5 text-blue-600 mt-0.5" />
+            <Target className="mt-0.5 h-5 w-5 text-blue-600" />
             <div>
-              <h4 className="font-medium text-blue-900 dark:text-blue-100">Quick Start Tip</h4>
-              <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                Start by uploading a book with clear themes and memorable quotes. Non-fiction books often work particularly well for generating engaging social media content.
+              <h4 className="font-medium text-blue-900 dark:text-blue-100">
+                Quick Start Tip
+              </h4>
+              <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                Start by uploading a book with clear themes and memorable
+                quotes. Non-fiction books often work particularly well for
+                generating engaging social media content.
               </p>
             </div>
           </div>
@@ -223,33 +254,39 @@ export default function HelpDocumentation({ onCloseAction, className }: HelpDocu
 
         {/* Help Sections */}
         <div className="space-y-4">
-          {helpSections.map((section) => (
-            <div key={section.id} className="border rounded-lg">
+          {helpSections.map(section => (
+            <div key={section.id} className="rounded-lg border">
               <button
-                onClick={() => setActiveSection(activeSection === section.id ? null : section.id)}
-                className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/50 transition-colors"
+                onClick={() =>
+                  setActiveSection(
+                    activeSection === section.id ? null : section.id
+                  )
+                }
+                className="hover:bg-muted/50 flex w-full items-center justify-between p-4 text-left transition-colors"
               >
                 <div className="flex items-center space-x-3">
-                  <section.icon className="h-5 w-5 text-muted-foreground" />
+                  <section.icon className="text-muted-foreground h-5 w-5" />
                   <div>
                     <h3 className="font-medium">{section.title}</h3>
-                    <p className="text-sm text-muted-foreground">{section.description}</p>
+                    <p className="text-muted-foreground text-sm">
+                      {section.description}
+                    </p>
                   </div>
                 </div>
-                <ChevronRight 
+                <ChevronRight
                   className={`h-4 w-4 transition-transform ${
-                    activeSection === section.id ? 'rotate-90' : ''
-                  }`} 
+                    activeSection === section.id ? "rotate-90" : ""
+                  }`}
                 />
               </button>
-              
+
               {activeSection === section.id && (
-                <div className="border-t bg-muted/20">
-                  <div className="p-4 space-y-4">
+                <div className="bg-muted/20 border-t">
+                  <div className="space-y-4 p-4">
                     {section.items.map((item, index) => (
                       <div key={index} className="space-y-2">
-                        <h4 className="font-medium text-sm">{item.title}</h4>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
+                        <h4 className="text-sm font-medium">{item.title}</h4>
+                        <p className="text-muted-foreground text-sm leading-relaxed">
                           {item.description}
                         </p>
                         {item.action && (
@@ -270,13 +307,14 @@ export default function HelpDocumentation({ onCloseAction, className }: HelpDocu
         </div>
 
         {/* Contact Support */}
-        <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border">
+        <div className="rounded-lg border bg-gray-50 p-4 dark:bg-gray-900/50">
           <div className="flex items-start space-x-3">
-            <HelpCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <HelpCircle className="text-muted-foreground mt-0.5 h-5 w-5" />
             <div>
               <h4 className="font-medium">Need More Help?</h4>
-              <p className="text-sm text-muted-foreground mt-1">
-                If you can't find what you're looking for, our support team is here to help.
+              <p className="text-muted-foreground mt-1 text-sm">
+                If you can't find what you're looking for, our support team is
+                here to help.
               </p>
               <Button asChild size="sm" variant="outline" className="mt-3">
                 <Link href="/dashboard/support">

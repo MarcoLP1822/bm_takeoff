@@ -8,25 +8,27 @@ export async function GET(
 ) {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { platform } = await params
     const platformType = platform as SocialPlatform
-    
+
     // Validate platform
-    if (!["twitter", "instagram", "linkedin", "facebook"].includes(platformType)) {
+    if (
+      !["twitter", "instagram", "linkedin", "facebook"].includes(platformType)
+    ) {
       return NextResponse.json({ error: "Invalid platform" }, { status: 400 })
     }
 
     // Generate state parameter for CSRF protection
     const state = `${userId}:${crypto.randomUUID()}`
-    
+
     // Generate OAuth authorization URL
     const authUrl = SocialMediaService.generateAuthUrl(platformType, state)
-    
+
     return NextResponse.json({ authUrl, state })
   } catch (error) {
     console.error("Error generating OAuth URL:", error)

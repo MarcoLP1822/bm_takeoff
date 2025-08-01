@@ -1,7 +1,33 @@
-import { db } from '../db'
-import { books, generatedContent, socialAccounts, postAnalytics, SelectBook, SelectGeneratedContent, analysisStatus, platform, contentStatus } from '../db/schema'
-import { and, eq, desc, asc, sql, inArray, gte, lte, like, or } from 'drizzle-orm'
-import { getCachedBookLibrary, cacheBookLibrary, getCachedContentList, cacheContentList } from './cache-service'
+import { db } from "../db"
+import {
+  books,
+  generatedContent,
+  socialAccounts,
+  postAnalytics,
+  SelectBook,
+  SelectGeneratedContent,
+  analysisStatus,
+  platform,
+  contentStatus
+} from "../db/schema"
+import {
+  and,
+  eq,
+  desc,
+  asc,
+  sql,
+  inArray,
+  gte,
+  lte,
+  like,
+  or
+} from "drizzle-orm"
+import {
+  getCachedBookLibrary,
+  cacheBookLibrary,
+  getCachedContentList,
+  cacheContentList
+} from "./cache-service"
 
 /**
  * Optimized book library queries with caching and pagination
@@ -9,9 +35,9 @@ import { getCachedBookLibrary, cacheBookLibrary, getCachedContentList, cacheCont
 export interface BookLibraryFilters {
   search?: string
   genre?: string
-  analysisStatus?: typeof analysisStatus.enumValues[number]
-  sortBy?: 'created_at' | 'title' | 'author' | 'updated_at'
-  sortOrder?: 'asc' | 'desc'
+  analysisStatus?: (typeof analysisStatus.enumValues)[number]
+  sortBy?: "created_at" | "title" | "author" | "updated_at"
+  sortOrder?: "asc" | "desc"
   limit?: number
   offset?: number
 }
@@ -23,7 +49,7 @@ export interface OptimizedBook {
   genre: string | null
   fileName: string
   fileSize: string | null
-  analysisStatus: typeof analysisStatus.enumValues[number]
+  analysisStatus: (typeof analysisStatus.enumValues)[number]
   createdAt: Date
   updatedAt: Date
   analysisData: unknown
@@ -41,8 +67,8 @@ export async function getOptimizedBookLibrary(
     search,
     genre,
     analysisStatus,
-    sortBy = 'created_at',
-    sortOrder = 'desc',
+    sortBy = "created_at",
+    sortOrder = "desc",
     limit = 20,
     offset = 0
   } = filters
@@ -51,7 +77,11 @@ export async function getOptimizedBookLibrary(
   const cacheKey = { userId, ...filters }
   const cached = await getCachedBookLibrary(userId, cacheKey)
   if (cached) {
-    return cached as unknown as { books: OptimizedBook[]; total: number; hasMore: boolean }
+    return cached as unknown as {
+      books: OptimizedBook[]
+      total: number
+      hasMore: boolean
+    }
   }
 
   // Build optimized query
@@ -79,18 +109,19 @@ export async function getOptimizedBookLibrary(
 
   // Build sort condition with proper type checking
   const validSortColumns = {
-    'created_at': books.createdAt,
-    'title': books.title,
-    'author': books.author,
-    'updated_at': books.updatedAt
+    created_at: books.createdAt,
+    title: books.title,
+    author: books.author,
+    updated_at: books.updatedAt
   } as const
-  
+
   const sortColumn = validSortColumns[sortBy]
   if (!sortColumn) {
     throw new Error(`Invalid sort column: ${sortBy}`)
   }
-  
-  const sortCondition = sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn)
+
+  const sortCondition =
+    sortOrder === "desc" ? desc(sortColumn) : asc(sortColumn)
 
   // Execute optimized query with limit and offset
   const [booksResult, countResult] = await Promise.all([
@@ -114,14 +145,14 @@ export async function getOptimizedBookLibrary(
             'totalInsights', json_array_length((${books.analysisData}->>'keyInsights')::json)
           )
           ELSE NULL 
-        END`.as('analysisData')
+        END`.as("analysisData")
       })
       .from(books)
       .where(and(...conditions))
       .orderBy(sortCondition)
       .limit(limit)
       .offset(offset),
-    
+
     db
       .select({ count: sql<number>`count(*)` })
       .from(books)
@@ -149,13 +180,13 @@ export async function getOptimizedBookLibrary(
  */
 export interface ContentListFilters {
   bookId?: string
-  platform?: typeof platform.enumValues[number]
-  status?: typeof contentStatus.enumValues[number]
+  platform?: (typeof platform.enumValues)[number]
+  status?: (typeof contentStatus.enumValues)[number]
   search?: string
   dateFrom?: Date
   dateTo?: Date
-  sortBy?: 'created_at' | 'updated_at' | 'published_at' | 'scheduled_at'
-  sortOrder?: 'asc' | 'desc'
+  sortBy?: "created_at" | "updated_at" | "published_at" | "scheduled_at"
+  sortOrder?: "asc" | "desc"
   limit?: number
   offset?: number
 }
@@ -163,12 +194,12 @@ export interface ContentListFilters {
 export interface OptimizedContent {
   id: string
   bookId: string
-  platform: typeof platform.enumValues[number]
-  contentType: 'post' | 'story' | 'article'
+  platform: (typeof platform.enumValues)[number]
+  contentType: "post" | "story" | "article"
   content: string
   hashtags: string[] | null
   imageUrl: string | null
-  status: typeof contentStatus.enumValues[number]
+  status: (typeof contentStatus.enumValues)[number]
   scheduledAt: Date | null
   publishedAt: Date | null
   socialPostId: string | null
@@ -194,8 +225,8 @@ export async function getOptimizedContentList(
     search,
     dateFrom,
     dateTo,
-    sortBy = 'created_at',
-    sortOrder = 'desc',
+    sortBy = "created_at",
+    sortOrder = "desc",
     limit = 20,
     offset = 0
   } = filters
@@ -204,7 +235,11 @@ export async function getOptimizedContentList(
   const cacheKey = { userId, ...filters }
   const cached = await getCachedContentList(userId, cacheKey)
   if (cached) {
-    return cached as unknown as { content: OptimizedContent[]; total: number; hasMore: boolean }
+    return cached as unknown as {
+      content: OptimizedContent[]
+      total: number
+      hasMore: boolean
+    }
   }
 
   // Build optimized query with joins
@@ -238,18 +273,19 @@ export async function getOptimizedContentList(
 
   // Build sort condition with proper type checking
   const validSortColumns = {
-    'created_at': generatedContent.createdAt,
-    'updated_at': generatedContent.updatedAt,
-    'published_at': generatedContent.publishedAt,
-    'scheduled_at': generatedContent.scheduledAt
+    created_at: generatedContent.createdAt,
+    updated_at: generatedContent.updatedAt,
+    published_at: generatedContent.publishedAt,
+    scheduled_at: generatedContent.scheduledAt
   } as const
-  
+
   const sortColumn = validSortColumns[sortBy]
   if (!sortColumn) {
     throw new Error(`Invalid sort column: ${sortBy}`)
   }
-  
-  const sortCondition = sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn)
+
+  const sortCondition =
+    sortOrder === "desc" ? desc(sortColumn) : asc(sortColumn)
 
   // Execute optimized query with joins
   const [contentResult, countResult] = await Promise.all([
@@ -284,7 +320,7 @@ export async function getOptimizedContentList(
           FROM ${postAnalytics}
           WHERE ${postAnalytics.contentId} = ${generatedContent.id}
           LIMIT 1
-        )`.as('analyticsData')
+        )`.as("analyticsData")
       })
       .from(generatedContent)
       .leftJoin(books, eq(generatedContent.bookId, books.id))
@@ -292,7 +328,7 @@ export async function getOptimizedContentList(
       .orderBy(sortCondition)
       .limit(limit)
       .offset(offset),
-    
+
     db
       .select({ count: sql<number>`count(*)` })
       .from(generatedContent)
@@ -320,7 +356,7 @@ export async function getOptimizedContentList(
  */
 export async function getOptimizedAnalytics(
   userId: string,
-  timeRange: 'week' | 'month' | 'quarter' | 'year' = 'month'
+  timeRange: "week" | "month" | "quarter" | "year" = "month"
 ): Promise<{
   overview: {
     totalPosts: number
@@ -381,7 +417,11 @@ export async function getOptimizedAnalytics(
     .leftJoin(postAnalytics, eq(generatedContent.id, postAnalytics.contentId))
     .where(and(eq(generatedContent.userId, userId), timeCondition))
     .groupBy(generatedContent.platform)
-    .orderBy(desc(sql`COALESCE(SUM(${postAnalytics.likes} + ${postAnalytics.shares} + ${postAnalytics.comments}), 0)`))
+    .orderBy(
+      desc(
+        sql`COALESCE(SUM(${postAnalytics.likes} + ${postAnalytics.shares} + ${postAnalytics.comments}), 0)`
+      )
+    )
 
   // Top performing content query
   const topPerformingResult = await db
@@ -395,7 +435,11 @@ export async function getOptimizedAnalytics(
     .from(generatedContent)
     .leftJoin(postAnalytics, eq(generatedContent.id, postAnalytics.contentId))
     .where(and(eq(generatedContent.userId, userId), timeCondition))
-    .orderBy(desc(sql`COALESCE(${postAnalytics.likes} + ${postAnalytics.shares} + ${postAnalytics.comments}, 0)`))
+    .orderBy(
+      desc(
+        sql`COALESCE(${postAnalytics.likes} + ${postAnalytics.shares} + ${postAnalytics.comments}, 0)`
+      )
+    )
     .limit(10)
 
   return {
@@ -416,7 +460,7 @@ export async function getOptimizedAnalytics(
 export async function batchUpdateAnalytics(
   updates: Array<{
     contentId: string
-    platform: typeof platform.enumValues[number]
+    platform: (typeof platform.enumValues)[number]
     postId: string
     metrics: {
       impressions?: number
@@ -430,7 +474,7 @@ export async function batchUpdateAnalytics(
   if (updates.length === 0) return
 
   // Use a transaction for batch updates
-  await db.transaction(async (tx) => {
+  await db.transaction(async tx => {
     for (const update of updates) {
       await tx
         .insert(postAnalytics)
@@ -474,7 +518,7 @@ export interface SearchBookResult {
 export interface SearchContentResult {
   id: string
   content: string
-  platform: typeof platform.enumValues[number]
+  platform: (typeof platform.enumValues)[number]
   bookTitle: string | null
   type: string
 }
@@ -483,21 +527,21 @@ export async function searchAllContent(
   userId: string,
   query: string,
   filters: {
-    contentType?: 'books' | 'content' | 'all'
+    contentType?: "books" | "content" | "all"
     limit?: number
   } = {}
 ): Promise<{
   books: SearchBookResult[]
   content: SearchContentResult[]
 }> {
-  const { contentType = 'all', limit = 10 } = filters
+  const { contentType = "all", limit = 10 } = filters
 
   const results = {
     books: [] as SearchBookResult[],
     content: [] as SearchContentResult[]
   }
 
-  if (contentType === 'books' || contentType === 'all') {
+  if (contentType === "books" || contentType === "all") {
     results.books = await db
       .select({
         id: books.id,
@@ -516,7 +560,7 @@ export async function searchAllContent(
       .limit(limit)
   }
 
-  if (contentType === 'content' || contentType === 'all') {
+  if (contentType === "content" || contentType === "all") {
     results.content = await db
       .select({
         id: generatedContent.id,
@@ -573,15 +617,21 @@ export async function getDatabaseHealth(): Promise<{
 
     // Basic suggestions based on common patterns
     const suggestions = [
-      'Consider partitioning large tables by date',
-      'Monitor query performance regularly',
-      'Update table statistics with ANALYZE',
-      'Consider archiving old analytics data',
-      'Review and optimize slow queries'
+      "Consider partitioning large tables by date",
+      "Monitor query performance regularly",
+      "Update table statistics with ANALYZE",
+      "Consider archiving old analytics data",
+      "Review and optimize slow queries"
     ]
 
     return {
-      tableStats: (tableStats as unknown as Array<{ tablename: string; total_operations: number; size: string }>).map((row) => ({
+      tableStats: (
+        tableStats as unknown as Array<{
+          tablename: string
+          total_operations: number
+          size: string
+        }>
+      ).map(row => ({
         table: row.tablename,
         rowCount: row.total_operations,
         size: row.size
@@ -591,12 +641,12 @@ export async function getDatabaseHealth(): Promise<{
       suggestions
     }
   } catch (error) {
-    console.error('Failed to get database health:', error)
+    console.error("Failed to get database health:", error)
     return {
       tableStats: [],
       indexUsage: [],
       slowQueries: [],
-      suggestions: ['Database health check failed - check connection']
+      suggestions: ["Database health check failed - check connection"]
     }
   }
 }

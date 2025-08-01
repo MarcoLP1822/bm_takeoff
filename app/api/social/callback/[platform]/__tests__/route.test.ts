@@ -9,7 +9,9 @@ jest.mock("@clerk/nextjs/server")
 jest.mock("@/lib/social-media")
 
 const mockAuth = auth as jest.MockedFunction<typeof auth>
-const mockSocialMediaService = SocialMediaService as jest.Mocked<typeof SocialMediaService>
+const mockSocialMediaService = SocialMediaService as jest.Mocked<
+  typeof SocialMediaService
+>
 
 describe("/api/social/callback/[platform]", () => {
   beforeEach(() => {
@@ -30,7 +32,9 @@ describe("/api/social/callback/[platform]", () => {
       }
 
       mockAuth.mockResolvedValue({ userId: "user123" } as any)
-      mockSocialMediaService.exchangeCodeForToken.mockResolvedValue(mockTokenData)
+      mockSocialMediaService.exchangeCodeForToken.mockResolvedValue(
+        mockTokenData
+      )
       mockSocialMediaService.saveAccount.mockResolvedValue()
 
       const request = new NextRequest(
@@ -39,20 +43,26 @@ describe("/api/social/callback/[platform]", () => {
       const response = await GET(request, { params: { platform: "twitter" } })
 
       expect(response.status).toBe(307) // Redirect
-      expect(response.headers.get("location")).toContain("/dashboard/settings?connected=twitter")
+      expect(response.headers.get("location")).toContain(
+        "/dashboard/settings?connected=twitter"
+      )
       expect(mockSocialMediaService.exchangeCodeForToken).toHaveBeenCalledWith(
         "twitter",
         "auth_code_123",
         "user123:uuid-1234"
       )
-      expect(mockSocialMediaService.saveAccount).toHaveBeenCalledWith("user123", "twitter", {
-        accountId: "123456789",
-        accountName: "Test User",
-        accountHandle: "testuser",
-        accessToken: "access_token_123",
-        refreshToken: "refresh_token_123",
-        expiresAt: mockTokenData.expiresAt
-      })
+      expect(mockSocialMediaService.saveAccount).toHaveBeenCalledWith(
+        "user123",
+        "twitter",
+        {
+          accountId: "123456789",
+          accountName: "Test User",
+          accountHandle: "testuser",
+          accessToken: "access_token_123",
+          refreshToken: "refresh_token_123",
+          expiresAt: mockTokenData.expiresAt
+        }
+      )
     })
 
     it("should handle OAuth error response", async () => {
@@ -62,7 +72,9 @@ describe("/api/social/callback/[platform]", () => {
       const response = await GET(request, { params: { platform: "twitter" } })
 
       expect(response.status).toBe(307) // Redirect
-      expect(response.headers.get("location")).toContain("/dashboard/settings?error=User%20denied%20access")
+      expect(response.headers.get("location")).toContain(
+        "/dashboard/settings?error=User%20denied%20access"
+      )
     })
 
     it("should handle missing authorization code", async () => {
@@ -72,7 +84,9 @@ describe("/api/social/callback/[platform]", () => {
       const response = await GET(request, { params: { platform: "twitter" } })
 
       expect(response.status).toBe(307) // Redirect
-      expect(response.headers.get("location")).toContain("/dashboard/settings?error=Missing%20authorization%20code")
+      expect(response.headers.get("location")).toContain(
+        "/dashboard/settings?error=Missing%20authorization%20code"
+      )
     })
 
     it("should handle invalid state parameter", async () => {
@@ -84,7 +98,9 @@ describe("/api/social/callback/[platform]", () => {
       const response = await GET(request, { params: { platform: "twitter" } })
 
       expect(response.status).toBe(307) // Redirect
-      expect(response.headers.get("location")).toContain("/dashboard/settings?error=Invalid%20state%20parameter")
+      expect(response.headers.get("location")).toContain(
+        "/dashboard/settings?error=Invalid%20state%20parameter"
+      )
     })
 
     it("should handle unauthenticated user", async () => {
@@ -96,7 +112,9 @@ describe("/api/social/callback/[platform]", () => {
       const response = await GET(request, { params: { platform: "twitter" } })
 
       expect(response.status).toBe(307) // Redirect
-      expect(response.headers.get("location")).toContain("/dashboard/settings?error=Invalid%20state%20parameter")
+      expect(response.headers.get("location")).toContain(
+        "/dashboard/settings?error=Invalid%20state%20parameter"
+      )
     })
 
     it("should handle invalid platform", async () => {
@@ -108,12 +126,16 @@ describe("/api/social/callback/[platform]", () => {
       const response = await GET(request, { params: { platform: "invalid" } })
 
       expect(response.status).toBe(307) // Redirect
-      expect(response.headers.get("location")).toContain("/dashboard/settings?error=Invalid%20platform")
+      expect(response.headers.get("location")).toContain(
+        "/dashboard/settings?error=Invalid%20platform"
+      )
     })
 
     it("should handle token exchange failure", async () => {
       mockAuth.mockResolvedValue({ userId: "user123" } as any)
-      mockSocialMediaService.exchangeCodeForToken.mockRejectedValue(new Error("Token exchange failed"))
+      mockSocialMediaService.exchangeCodeForToken.mockRejectedValue(
+        new Error("Token exchange failed")
+      )
 
       const request = new NextRequest(
         "http://localhost:3000/api/social/callback/twitter?code=auth_code_123&state=user123:uuid-1234"
@@ -121,7 +143,9 @@ describe("/api/social/callback/[platform]", () => {
       const response = await GET(request, { params: { platform: "twitter" } })
 
       expect(response.status).toBe(307) // Redirect
-      expect(response.headers.get("location")).toContain("/dashboard/settings?error=Failed%20to%20connect%20twitter%20account")
+      expect(response.headers.get("location")).toContain(
+        "/dashboard/settings?error=Failed%20to%20connect%20twitter%20account"
+      )
     })
   })
 })

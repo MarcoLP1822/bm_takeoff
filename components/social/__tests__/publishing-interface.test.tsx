@@ -63,8 +63,12 @@ describe("PublishingInterface", () => {
   it("should show message when no accounts are available", () => {
     render(<PublishingInterface {...mockProps} accounts={[]} />)
 
-    expect(screen.getByText("No twitter accounts connected")).toBeInTheDocument()
-    expect(screen.getByText("Connect your twitter account to publish content")).toBeInTheDocument()
+    expect(
+      screen.getByText("No twitter accounts connected")
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText("Connect your twitter account to publish content")
+    ).toBeInTheDocument()
   })
 
   it("should allow selecting and deselecting accounts", () => {
@@ -185,7 +189,9 @@ describe("PublishingInterface", () => {
     fireEvent.click(publishButton)
 
     await waitFor(() => {
-      expect(mockToast.error).toHaveBeenCalledWith("Failed to publish to 1 account")
+      expect(mockToast.error).toHaveBeenCalledWith(
+        "Failed to publish to 1 account"
+      )
     })
   })
 
@@ -232,7 +238,9 @@ describe("PublishingInterface", () => {
 
     await waitFor(() => {
       expect(mockToast.success).toHaveBeenCalledWith("Published to 1 account")
-      expect(mockToast.error).toHaveBeenCalledWith("Failed to publish to 1 account")
+      expect(mockToast.error).toHaveBeenCalledWith(
+        "Failed to publish to 1 account"
+      )
     })
   })
 
@@ -255,11 +263,13 @@ describe("PublishingInterface", () => {
 
     const dateInput = screen.getByLabelText(/date/i)
     const timeInput = screen.getByLabelText(/time/i)
-    
+
     fireEvent.change(dateInput, { target: { value: "2024-12-25" } })
     fireEvent.change(timeInput, { target: { value: "10:00" } })
 
-    const scheduleButton = screen.getByRole("button", { name: /schedule post/i })
+    const scheduleButton = screen.getByRole("button", {
+      name: /schedule post/i
+    })
     fireEvent.click(scheduleButton)
 
     await waitFor(() => {
@@ -272,7 +282,9 @@ describe("PublishingInterface", () => {
       })
     })
 
-    expect(mockToast.success).toHaveBeenCalledWith("Post scheduled successfully")
+    expect(mockToast.success).toHaveBeenCalledWith(
+      "Post scheduled successfully"
+    )
     expect(mockProps.onScheduleSuccess).toHaveBeenCalled()
   })
 
@@ -282,7 +294,9 @@ describe("PublishingInterface", () => {
     const checkbox = screen.getByRole("checkbox", { name: /test account 1/i })
     fireEvent.click(checkbox)
 
-    const scheduleButton = screen.getByRole("button", { name: /schedule post/i })
+    const scheduleButton = screen.getByRole("button", {
+      name: /schedule post/i
+    })
     fireEvent.click(scheduleButton)
 
     expect(mockToast.error).toHaveBeenCalledWith("Please select date and time")
@@ -392,6 +406,8 @@ describe("PublishingInterface", () => {
       })
     })
 
-    expect(mockToast.success).toHaveBeenCalledWith("Publication retry successful")
+    expect(mockToast.success).toHaveBeenCalledWith(
+      "Publication retry successful"
+    )
   })
 })

@@ -15,7 +15,10 @@ jest.mock("@/lib/analytics-service", () => ({
 
 // Type the mocked functions
 const mockAuth = auth as jest.MockedFunction<typeof auth>
-const mockGetAnalyticsInsights = AnalyticsService.getAnalyticsInsights as jest.MockedFunction<typeof AnalyticsService.getAnalyticsInsights>
+const mockGetAnalyticsInsights =
+  AnalyticsService.getAnalyticsInsights as jest.MockedFunction<
+    typeof AnalyticsService.getAnalyticsInsights
+  >
 
 describe("/api/analytics/insights", () => {
   beforeEach(() => {
@@ -35,8 +38,16 @@ describe("/api/analytics/insights", () => {
           avgEngagementRate: 7.5,
           totalEngagement: 750,
           platforms: [
-            { platform: "twitter" as const, avgEngagementRate: 8.0, postCount: 6 },
-            { platform: "linkedin" as const, avgEngagementRate: 7.0, postCount: 4 }
+            {
+              platform: "twitter" as const,
+              avgEngagementRate: 8.0,
+              postCount: 6
+            },
+            {
+              platform: "linkedin" as const,
+              avgEngagementRate: 7.0,
+              postCount: 4
+            }
           ]
         }
       ],
@@ -55,7 +66,7 @@ describe("/api/analytics/insights", () => {
         impressionsChange: 8.7
       }
     }
-    
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockAuth.mockResolvedValue({ userId: "user-123" } as any)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

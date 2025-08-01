@@ -1,10 +1,13 @@
-import OpenAI from 'openai'
-import { getCachedAIAnalysis, cacheAIAnalysis } from './cache-service'
-import { compressAnalysisData, decompressAnalysisData } from './compression-service'
+import OpenAI from "openai"
+import { getCachedAIAnalysis, cacheAIAnalysis } from "./cache-service"
+import {
+  compressAnalysisData,
+  decompressAnalysisData
+} from "./compression-service"
 
 // Initialize OpenAI client
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'test-key',
+  apiKey: process.env.OPENAI_API_KEY || "test-key"
 })
 
 export interface BookAnalysisResult {
@@ -52,15 +55,15 @@ export async function analyzeBookContent(
     // Check cache first
     const cached = await getCachedAIAnalysis(bookId, userId)
     if (cached) {
-      console.log('Returning cached AI analysis for book:', bookId)
+      console.log("Returning cached AI analysis for book:", bookId)
       return cached
     }
 
-    console.log('Performing new AI analysis for book:', bookId)
-    
+    console.log("Performing new AI analysis for book:", bookId)
+
     // Split content into manageable chunks if it's too long
     const chunks = splitTextIntoChunks(textContent, chunkSize)
-    
+
     // Analyze different aspects of the book
     const [
       themes,
@@ -77,7 +80,9 @@ export async function analyzeBookContent(
       generateOverallSummary(chunks, bookTitle, author, maxRetries),
       identifyGenreAndAudience(chunks, bookTitle, author, maxRetries),
       identifyDiscussionPoints(chunks, bookTitle, author, maxRetries),
-      includeChapterSummaries ? generateChapterSummaries(textContent, maxRetries) : []
+      includeChapterSummaries
+        ? generateChapterSummaries(textContent, maxRetries)
+        : []
     ])
 
     const result = {
@@ -93,11 +98,13 @@ export async function analyzeBookContent(
 
     // Cache the result
     await cacheAIAnalysis(bookId, userId, result)
-    
+
     return result
   } catch (error) {
-    console.error('Book analysis failed:', error)
-    throw new Error(`Failed to analyze book content: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    console.error("Book analysis failed:", error)
+    throw new Error(
+      `Failed to analyze book content: ${error instanceof Error ? error.message : "Unknown error"}`
+    )
   }
 }
 
@@ -112,10 +119,10 @@ async function identifyThemes(
 ): Promise<string[]> {
   const prompt = `Analyze the following book content and identify the main themes and topics.
 
-Book: "${bookTitle}"${author ? ` by ${author}` : ''}
+Book: "${bookTitle}"${author ? ` by ${author}` : ""}
 
 Content:
-${chunks.slice(0, 3).join('\n\n')}
+${chunks.slice(0, 3).join("\n\n")}
 
 Please identify 4-8 main themes or topics covered in this book. Return them as a JSON array of strings.
 Focus on the core concepts, ideas, and subjects that are central to the book's message.
@@ -124,19 +131,19 @@ Example format: ["Theme 1", "Theme 2", "Theme 3"]`
 
   return await retryWithBackoff(async () => {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
       temperature: 0.3,
       max_tokens: 500
     })
 
     const content = response.choices[0]?.message?.content
-    if (!content) throw new Error('No response from AI')
+    if (!content) throw new Error("No response from AI")
 
     const parsed = parseAIResponse(content)
     return parsed as string[]
   }, maxRetries)
-}/**
+} /**
  * 
 Extract memorable quotes and passages from the book
  */
@@ -147,7 +154,7 @@ async function extractQuotes(
   const prompt = `Extract 5-10 of the most memorable, impactful, or quotable passages from the following book content.
 
 Content:
-${chunks.slice(0, 4).join('\n\n')}
+${chunks.slice(0, 4).join("\n\n")}
 
 Please return the quotes as a JSON array of strings. Focus on:
 - Inspirational or thought-provoking statements
@@ -159,14 +166,14 @@ Example format: ["Quote 1", "Quote 2", "Quote 3"]`
 
   return await retryWithBackoff(async () => {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
       temperature: 0.4,
       max_tokens: 800
     })
 
     const content = response.choices[0]?.message?.content
-    if (!content) throw new Error('No response from AI')
+    if (!content) throw new Error("No response from AI")
 
     const parsed = parseAIResponse(content)
     return parsed as string[]
@@ -184,10 +191,10 @@ async function extractKeyInsights(
 ): Promise<string[]> {
   const prompt = `Analyze the following book content and extract the key insights and takeaways.
 
-Book: "${bookTitle}"${author ? ` by ${author}` : ''}
+Book: "${bookTitle}"${author ? ` by ${author}` : ""}
 
 Content:
-${chunks.slice(0, 3).join('\n\n')}
+${chunks.slice(0, 3).join("\n\n")}
 
 Please identify 5-8 key insights, lessons, or takeaways that readers should remember from this book.
 
@@ -203,14 +210,14 @@ Focus on:
 
   return await retryWithBackoff(async () => {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
       temperature: 0.3,
       max_tokens: 600
     })
 
     const content = response.choices[0]?.message?.content
-    if (!content) throw new Error('No response from AI')
+    if (!content) throw new Error("No response from AI")
 
     // Use safer JSON parsing
     const parsed = parseAIResponse(content)
@@ -226,57 +233,67 @@ function parseAIResponse(content: string): unknown {
     // First try direct JSON parsing
     return JSON.parse(content)
   } catch (e) {
-    console.log('Direct JSON parse failed, trying to extract JSON from response:', content.substring(0, 200))
-    
+    console.log(
+      "Direct JSON parse failed, trying to extract JSON from response:",
+      content.substring(0, 200)
+    )
+
     // Remove markdown code blocks if present
     let cleanContent = content
-    if (content.includes('```json')) {
+    if (content.includes("```json")) {
       const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/)
       if (jsonMatch) {
         cleanContent = jsonMatch[1].trim()
         try {
           return JSON.parse(cleanContent)
         } catch (e2) {
-          console.error('Failed to parse JSON from code block:', cleanContent.substring(0, 100))
+          console.error(
+            "Failed to parse JSON from code block:",
+            cleanContent.substring(0, 100)
+          )
         }
       }
     }
-    
+
     // Try to extract JSON array
     const arrayMatch = cleanContent.match(/\[[\s\S]*?\]/)
     if (arrayMatch) {
       try {
         return JSON.parse(arrayMatch[0])
       } catch (e2) {
-        console.error('Failed to parse extracted array:', arrayMatch[0])
+        console.error("Failed to parse extracted array:", arrayMatch[0])
       }
     }
-    
+
     // Try to extract JSON object
     const objectMatch = cleanContent.match(/\{[\s\S]*?\}/)
     if (objectMatch) {
       try {
         return JSON.parse(objectMatch[0])
       } catch (e2) {
-        console.error('Failed to parse extracted object:', objectMatch[0])
+        console.error("Failed to parse extracted object:", objectMatch[0])
       }
     }
-    
+
     // If it's supposed to be an array but AI returned text, try to convert
-    if (content.includes('\n') && !content.startsWith('[')) {
-      const lines = content.split('\n')
+    if (content.includes("\n") && !content.startsWith("[")) {
+      const lines = content
+        .split("\n")
         .filter(line => line.trim())
-        .map(line => line.replace(/^[-*•]\s*/, '').trim())
+        .map(line => line.replace(/^[-*•]\s*/, "").trim())
         .filter(line => line.length > 0)
-      
+
       if (lines.length > 0) {
-        console.log('Converting text lines to array:', lines)
+        console.log("Converting text lines to array:", lines)
         return lines
       }
     }
-    
+
     // Last resort: return the content as a single item array
-    console.warn('Could not parse AI response as JSON, returning as text array:', content.substring(0, 100))
+    console.warn(
+      "Could not parse AI response as JSON, returning as text array:",
+      content.substring(0, 100)
+    )
     return [content.trim()]
   }
 }
@@ -299,10 +316,10 @@ async function generateOverallSummary(
 ): Promise<string> {
   const prompt = `Write a comprehensive summary of the following book.
 
-Book: "${bookTitle}"${author ? ` by ${author}` : ''}
+Book: "${bookTitle}"${author ? ` by ${author}` : ""}
 
 Content:
-${chunks.slice(0, 4).join('\n\n')}
+${chunks.slice(0, 4).join("\n\n")}
 
 Please write a 2-3 paragraph summary that captures:
 - The main purpose and message of the book
@@ -314,14 +331,14 @@ Write in a clear, engaging style suitable for book descriptions or social media 
 
   return await retryWithBackoff(async () => {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
       temperature: 0.4,
       max_tokens: 800
     })
 
     const content = response.choices[0]?.message?.content
-    if (!content) throw new Error('No response from AI')
+    if (!content) throw new Error("No response from AI")
 
     return content.trim()
   }, maxRetries)
@@ -338,10 +355,10 @@ async function identifyGenreAndAudience(
 ): Promise<{ genre: string; targetAudience: string }> {
   const prompt = `Analyze the following book content and identify its genre and target audience.
 
-Book: "${bookTitle}"${author ? ` by ${author}` : ''}
+Book: "${bookTitle}"${author ? ` by ${author}` : ""}
 
 Content:
-${chunks.slice(0, 2).join('\n\n')}
+${chunks.slice(0, 2).join("\n\n")}
 
 **IMPORTANT: Return ONLY a valid JSON object. No other text.**
 
@@ -354,14 +371,14 @@ Fields needed:
 
   return await retryWithBackoff(async () => {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
       temperature: 0.3,
       max_tokens: 300
     })
 
     const content = response.choices[0]?.message?.content
-    if (!content) throw new Error('No response from AI')
+    if (!content) throw new Error("No response from AI")
 
     return JSON.parse(content)
   }, maxRetries)
@@ -378,10 +395,10 @@ async function identifyDiscussionPoints(
 ): Promise<string[]> {
   const prompt = `Analyze the following book content and identify points that would spark discussion or debate.
 
-Book: "${bookTitle}"${author ? ` by ${author}` : ''}
+Book: "${bookTitle}"${author ? ` by ${author}` : ""}
 
 Content:
-${chunks.slice(0, 3).join('\n\n')}
+${chunks.slice(0, 3).join("\n\n")}
 
 Please identify 3-6 controversial, thought-provoking, or discussion-worthy points from this book.
 Return them as a JSON array of strings. Focus on:
@@ -394,18 +411,18 @@ Example format: ["Discussion point 1", "Discussion point 2", "Discussion point 3
 
   return await retryWithBackoff(async () => {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
       temperature: 0.4,
       max_tokens: 600
     })
 
     const content = response.choices[0]?.message?.content
-    if (!content) throw new Error('No response from AI')
+    if (!content) throw new Error("No response from AI")
 
     return parseAIResponse(content) as string[]
   }, maxRetries)
-}/**
+} /**
 
  * Generate chapter summaries for the book
  */
@@ -415,24 +432,24 @@ async function generateChapterSummaries(
 ): Promise<ChapterSummary[]> {
   // Try to detect chapter breaks in the text
   const chapters = detectChapters(textContent)
-  
+
   if (chapters.length === 0) {
     return []
   }
 
   const summaries: ChapterSummary[] = []
-  
+
   // Process chapters in batches to avoid overwhelming the API
   const batchSize = 3
   for (let i = 0; i < chapters.length; i += batchSize) {
     const batch = chapters.slice(i, i + batchSize)
-    
+
     const batchPromises = batch.map(async (chapter, index) => {
       const chapterNumber = i + index + 1
-      
+
       const prompt = `Summarize the following chapter from a book:
 
-Chapter ${chapterNumber}${chapter.title ? `: ${chapter.title}` : ''}
+Chapter ${chapterNumber}${chapter.title ? `: ${chapter.title}` : ""}
 
 Content:
 ${chapter.content.substring(0, 4000)}
@@ -445,14 +462,14 @@ Example format: {"summary": "Chapter summary here", "keyPoints": ["Point 1", "Po
 
       return await retryWithBackoff(async () => {
         const response = await openai.chat.completions.create({
-          model: 'gpt-4o-mini',
-          messages: [{ role: 'user', content: prompt }],
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: prompt }],
           temperature: 0.3,
           max_tokens: 400
         })
 
         const content = response.choices[0]?.message?.content
-        if (!content) throw new Error('No response from AI')
+        if (!content) throw new Error("No response from AI")
 
         const parsed = JSON.parse(content)
         return {
@@ -466,7 +483,7 @@ Example format: {"summary": "Chapter summary here", "keyPoints": ["Point 1", "Po
 
     const batchResults = await Promise.all(batchPromises)
     summaries.push(...batchResults)
-    
+
     // Add a small delay between batches to respect rate limits
     if (i + batchSize < chapters.length) {
       await new Promise(resolve => setTimeout(resolve, 1000))
@@ -479,7 +496,9 @@ Example format: {"summary": "Chapter summary here", "keyPoints": ["Point 1", "Po
 /**
  * Detect chapter breaks in the text content
  */
-function detectChapters(textContent: string): Array<{ title?: string; content: string }> {
+function detectChapters(
+  textContent: string
+): Array<{ title?: string; content: string }> {
   // Common chapter patterns
   const chapterPatterns = [
     /^Chapter\s+\d+[:\s]/gim,
@@ -490,22 +509,27 @@ function detectChapters(textContent: string): Array<{ title?: string; content: s
   ]
 
   let chapters: Array<{ title?: string; content: string }> = []
-  
+
   for (const pattern of chapterPatterns) {
     const matches = Array.from(textContent.matchAll(pattern))
-    
-    if (matches.length > 1) { // Need at least 2 chapters to be meaningful
+
+    if (matches.length > 1) {
+      // Need at least 2 chapters to be meaningful
       for (let i = 0; i < matches.length; i++) {
         const match = matches[i]
         const startIndex = match.index!
-        const endIndex = i < matches.length - 1 ? matches[i + 1].index! : textContent.length
-        
-        const chapterContent = textContent.substring(startIndex, endIndex).trim()
-        const lines = chapterContent.split('\n')
+        const endIndex =
+          i < matches.length - 1 ? matches[i + 1].index! : textContent.length
+
+        const chapterContent = textContent
+          .substring(startIndex, endIndex)
+          .trim()
+        const lines = chapterContent.split("\n")
         const title = lines[0]?.trim()
-        const content = lines.slice(1).join('\n').trim()
-        
-        if (content.length > 100) { // Only include substantial chapters
+        const content = lines.slice(1).join("\n").trim()
+
+        if (content.length > 100) {
+          // Only include substantial chapters
           chapters.push({
             title: title.length < 100 ? title : undefined,
             content
@@ -520,7 +544,7 @@ function detectChapters(textContent: string): Array<{ title?: string; content: s
   if (chapters.length === 0 && textContent.length > 10000) {
     const sectionSize = Math.max(5000, Math.floor(textContent.length / 8))
     const sections = []
-    
+
     for (let i = 0; i < textContent.length; i += sectionSize) {
       const section = textContent.substring(i, i + sectionSize)
       if (section.trim().length > 100) {
@@ -529,7 +553,7 @@ function detectChapters(textContent: string): Array<{ title?: string; content: s
         })
       }
     }
-    
+
     chapters = sections.slice(0, 10) // Limit to 10 sections max
   }
 
@@ -546,24 +570,24 @@ function splitTextIntoChunks(text: string, chunkSize: number = 8000): string[] {
 
   const chunks: string[] = []
   const sentences = text.split(/[.!?]+/)
-  let currentChunk = ''
+  let currentChunk = ""
 
   for (const sentence of sentences) {
     const trimmedSentence = sentence.trim()
     if (!trimmedSentence) continue
 
     if (currentChunk.length + trimmedSentence.length + 1 <= chunkSize) {
-      currentChunk += (currentChunk ? '. ' : '') + trimmedSentence
+      currentChunk += (currentChunk ? ". " : "") + trimmedSentence
     } else {
       if (currentChunk) {
-        chunks.push(currentChunk + '.')
+        chunks.push(currentChunk + ".")
       }
       currentChunk = trimmedSentence
     }
   }
 
   if (currentChunk) {
-    chunks.push(currentChunk + '.')
+    chunks.push(currentChunk + ".")
   }
 
   return chunks
@@ -584,14 +608,17 @@ async function retryWithBackoff<T>(
       return await fn()
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error))
-      
+
       if (attempt === maxRetries) {
         break
       }
 
       // Exponential backoff with jitter
       const delay = baseDelay * Math.pow(2, attempt) + Math.random() * 1000
-      console.warn(`Attempt ${attempt + 1} failed, retrying in ${delay}ms:`, lastError.message)
+      console.warn(
+        `Attempt ${attempt + 1} failed, retrying in ${delay}ms:`,
+        lastError.message
+      )
       await new Promise(resolve => setTimeout(resolve, delay))
     }
   }
@@ -602,16 +629,31 @@ async function retryWithBackoff<T>(
 /**
  * Validate analysis result and provide fallbacks for missing data
  */
-export function validateAndNormalizeAnalysisResult(result: Partial<BookAnalysisResult>): BookAnalysisResult {
+export function validateAndNormalizeAnalysisResult(
+  result: Partial<BookAnalysisResult>
+): BookAnalysisResult {
   return {
-    themes: Array.isArray(result.themes) && result.themes.length > 0 ? result.themes : ['General Interest'],
+    themes:
+      Array.isArray(result.themes) && result.themes.length > 0
+        ? result.themes
+        : ["General Interest"],
     quotes: Array.isArray(result.quotes) ? result.quotes : [],
     keyInsights: Array.isArray(result.keyInsights) ? result.keyInsights : [],
-    chapterSummaries: Array.isArray(result.chapterSummaries) ? result.chapterSummaries : [],
-    overallSummary: typeof result.overallSummary === 'string' ? result.overallSummary : 'Analysis summary not available.',
-    genre: typeof result.genre === 'string' ? result.genre : 'Unknown',
-    targetAudience: typeof result.targetAudience === 'string' ? result.targetAudience : 'General readers',
-    discussionPoints: Array.isArray(result.discussionPoints) ? result.discussionPoints : []
+    chapterSummaries: Array.isArray(result.chapterSummaries)
+      ? result.chapterSummaries
+      : [],
+    overallSummary:
+      typeof result.overallSummary === "string"
+        ? result.overallSummary
+        : "Analysis summary not available.",
+    genre: typeof result.genre === "string" ? result.genre : "Unknown",
+    targetAudience:
+      typeof result.targetAudience === "string"
+        ? result.targetAudience
+        : "General readers",
+    discussionPoints: Array.isArray(result.discussionPoints)
+      ? result.discussionPoints
+      : []
   }
 }
 
@@ -619,26 +661,32 @@ export function validateAndNormalizeAnalysisResult(result: Partial<BookAnalysisR
  * Check if the OpenAI API key is configured
  */
 export function isAIServiceConfigured(): boolean {
-  return !!(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'test-key')
+  return !!(
+    process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== "test-key"
+  )
 }
 
 /**
  * Get analysis progress information
  */
-export function getAnalysisProgress(step: string, totalSteps: number = 7): { step: string; progress: number } {
+export function getAnalysisProgress(
+  step: string,
+  totalSteps: number = 7
+): { step: string; progress: number } {
   const steps = [
-    'Identifying themes',
-    'Extracting quotes', 
-    'Finding key insights',
-    'Generating summary',
-    'Determining genre and audience',
-    'Finding discussion points',
-    'Creating chapter summaries'
+    "Identifying themes",
+    "Extracting quotes",
+    "Finding key insights",
+    "Generating summary",
+    "Determining genre and audience",
+    "Finding discussion points",
+    "Creating chapter summaries"
   ]
-  
+
   const currentIndex = steps.indexOf(step)
-  const progress = currentIndex >= 0 ? Math.round(((currentIndex + 1) / totalSteps) * 100) : 0
-  
+  const progress =
+    currentIndex >= 0 ? Math.round(((currentIndex + 1) / totalSteps) * 100) : 0
+
   return { step, progress }
 }
 
@@ -657,9 +705,9 @@ export function estimateAnalysisTime(textLength: number): number {
  */
 export function prepareTextForAnalysis(text: string): string {
   return text
-    .replace(/\r\n/g, '\n') // Normalize line endings
-    .replace(/\n{3,}/g, '\n\n') // Reduce excessive line breaks
-    .replace(/[ \t]{2,}/g, ' ') // Reduce excessive spaces (but not newlines)
+    .replace(/\r\n/g, "\n") // Normalize line endings
+    .replace(/\n{3,}/g, "\n\n") // Reduce excessive line breaks
+    .replace(/[ \t]{2,}/g, " ") // Reduce excessive spaces (but not newlines)
     .trim()
 }
 
@@ -680,6 +728,8 @@ export function createAnalysisSummary(result: BookAnalysisResult): {
     totalInsights: result.keyInsights.length,
     totalChapters: result.chapterSummaries.length,
     totalDiscussionPoints: result.discussionPoints.length,
-    hasOverallSummary: !!result.overallSummary && result.overallSummary !== 'Analysis summary not available.'
+    hasOverallSummary:
+      !!result.overallSummary &&
+      result.overallSummary !== "Analysis summary not available."
   }
 }

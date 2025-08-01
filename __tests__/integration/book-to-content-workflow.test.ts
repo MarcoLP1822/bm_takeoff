@@ -182,7 +182,7 @@ describe('Book to Content Generation Workflow Integration', () => {
       method: 'POST'
     })
 
-    const analyzeResponse = await analyzeBook(analyzeRequest, { params: { bookId: mockBookId } })
+    const analyzeResponse = await analyzeBook(analyzeRequest, { params: Promise.resolve({ bookId: mockBookId }) })
     const analysisResult = await analyzeResponse.json()
 
     expect(analyzeResponse.status).toBe(200)
@@ -296,7 +296,7 @@ describe('Book to Content Generation Workflow Integration', () => {
       method: 'POST'
     })
 
-    const analyzeResponse = await analyzeBook(analyzeRequest, { params: { bookId: mockBookId } })
+    const analyzeResponse = await analyzeBook(analyzeRequest, { params: Promise.resolve({ bookId: mockBookId }) })
     expect(analyzeResponse.status).toBe(500)
 
     // Test content generation failure

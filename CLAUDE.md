@@ -33,7 +33,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-This is a Next.js 15 SaaS template using the App Router with clear separation between authenticated and unauthenticated routes.
+This is a Next.js 15 SaaS web app using the App Router with clear separation between authenticated and unauthenticated routes.
 
 ### Route Structure
 - `/app/(unauthenticated)` - Public routes

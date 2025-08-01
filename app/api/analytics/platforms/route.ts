@@ -9,7 +9,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const platformComparison = await AnalyticsService.getPlatformComparison(userId)
+    const platformComparison =
+      await AnalyticsService.getPlatformComparison(userId)
 
     return NextResponse.json({
       success: true,

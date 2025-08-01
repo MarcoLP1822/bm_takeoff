@@ -1,14 +1,15 @@
-import { Redis } from '@upstash/redis'
-import { BookAnalysisResult } from './ai-analysis'
-import { ContentVariation } from './content-generation'
+import { Redis } from "@upstash/redis"
+import { BookAnalysisResult } from "./ai-analysis"
+import { ContentVariation } from "./content-generation"
 
 // Initialize Redis client
-const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN 
-  ? new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    })
-  : null
+const redis =
+  process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+    ? new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN
+      })
+    : null
 
 // Helper function to safely use Redis
 function isRedisAvailable(): boolean {
@@ -20,7 +21,11 @@ async function safeRedisGet(key: string): Promise<unknown> {
   return redis!.get(key)
 }
 
-async function safeRedisSetex(key: string, ttl: number, value: string): Promise<void> {
+async function safeRedisSetex(
+  key: string,
+  ttl: number,
+  value: string
+): Promise<void> {
   if (!isRedisAvailable()) return
   await redis!.setex(key, ttl, value)
 }
@@ -35,7 +40,7 @@ async function safeRedisKeys(pattern: string): Promise<string[]> {
   try {
     return await redis!.keys(pattern)
   } catch (error) {
-    console.error('Failed to get keys:', error)
+    console.error("Failed to get keys:", error)
     return []
   }
 }
@@ -43,28 +48,28 @@ async function safeRedisKeys(pattern: string): Promise<string[]> {
 // Cache configuration
 const CACHE_CONFIG = {
   AI_ANALYSIS: {
-    prefix: 'ai_analysis:',
-    ttl: 60 * 60 * 24 * 7, // 7 days
+    prefix: "ai_analysis:",
+    ttl: 60 * 60 * 24 * 7 // 7 days
   },
   GENERATED_CONTENT: {
-    prefix: 'generated_content:',
-    ttl: 60 * 60 * 24 * 3, // 3 days
+    prefix: "generated_content:",
+    ttl: 60 * 60 * 24 * 3 // 3 days
   },
   BOOK_LIBRARY: {
-    prefix: 'book_library:',
-    ttl: 60 * 60 * 2, // 2 hours
+    prefix: "book_library:",
+    ttl: 60 * 60 * 2 // 2 hours
   },
   CONTENT_LIST: {
-    prefix: 'content_list:',
-    ttl: 60 * 60, // 1 hour
+    prefix: "content_list:",
+    ttl: 60 * 60 // 1 hour
   },
   ANALYTICS_DATA: {
-    prefix: 'analytics:',
-    ttl: 60 * 30, // 30 minutes
+    prefix: "analytics:",
+    ttl: 60 * 30 // 30 minutes
   },
   COMPRESSED_TEXT: {
-    prefix: 'compressed_text:',
-    ttl: 60 * 60 * 24 * 30, // 30 days
+    prefix: "compressed_text:",
+    ttl: 60 * 60 * 24 * 30 // 30 days
   }
 } as const
 
@@ -87,11 +92,15 @@ export async function cacheAIAnalysis(
 ): Promise<void> {
   try {
     if (!redis) return // Skip caching if Redis is not configured
-    
-    const key = getCacheKey('AI_ANALYSIS', `${userId}:${bookId}`)
-    await redis.setex(key, CACHE_CONFIG.AI_ANALYSIS.ttl, JSON.stringify(analysis))
+
+    const key = getCacheKey("AI_ANALYSIS", `${userId}:${bookId}`)
+    await redis.setex(
+      key,
+      CACHE_CONFIG.AI_ANALYSIS.ttl,
+      JSON.stringify(analysis)
+    )
   } catch (error) {
-    console.error('Failed to cache AI analysis:', error)
+    console.error("Failed to cache AI analysis:", error)
     // Don't throw - caching failures shouldn't break the app
   }
 }
@@ -105,17 +114,17 @@ export async function getCachedAIAnalysis(
 ): Promise<BookAnalysisResult | null> {
   try {
     if (!redis) return null // Skip caching if Redis is not configured
-    
-    const key = getCacheKey('AI_ANALYSIS', `${userId}:${bookId}`)
+
+    const key = getCacheKey("AI_ANALYSIS", `${userId}:${bookId}`)
     const cached = await redis.get(key)
-    
-    if (cached && typeof cached === 'string') {
+
+    if (cached && typeof cached === "string") {
       return JSON.parse(cached) as BookAnalysisResult
     }
-    
+
     return null
   } catch (error) {
-    console.error('Failed to get cached AI analysis:', error)
+    console.error("Failed to get cached AI analysis:", error)
     return null
   }
 }
@@ -129,10 +138,14 @@ export async function cacheGeneratedContent(
   variations: ContentVariation[]
 ): Promise<void> {
   try {
-    const key = getCacheKey('GENERATED_CONTENT', `${userId}:${bookId}`)
-    await safeRedisSetex(key, CACHE_CONFIG.GENERATED_CONTENT.ttl, JSON.stringify(variations))
+    const key = getCacheKey("GENERATED_CONTENT", `${userId}:${bookId}`)
+    await safeRedisSetex(
+      key,
+      CACHE_CONFIG.GENERATED_CONTENT.ttl,
+      JSON.stringify(variations)
+    )
   } catch (error) {
-    console.error('Failed to cache generated content:', error)
+    console.error("Failed to cache generated content:", error)
   }
 }
 
@@ -144,16 +157,16 @@ export async function getCachedGeneratedContent(
   userId: string
 ): Promise<ContentVariation[] | null> {
   try {
-    const key = getCacheKey('GENERATED_CONTENT', `${userId}:${bookId}`)
+    const key = getCacheKey("GENERATED_CONTENT", `${userId}:${bookId}`)
     const cached = await safeRedisGet(key)
-    
-    if (cached && typeof cached === 'string') {
+
+    if (cached && typeof cached === "string") {
       return JSON.parse(cached) as ContentVariation[]
     }
-    
+
     return null
   } catch (error) {
-    console.error('Failed to get cached generated content:', error)
+    console.error("Failed to get cached generated content:", error)
     return null
   }
 }
@@ -167,11 +180,15 @@ export async function cacheBookLibrary(
   filters?: Record<string, unknown>
 ): Promise<void> {
   try {
-    const filterKey = filters ? `:${JSON.stringify(filters)}` : ''
-    const key = getCacheKey('BOOK_LIBRARY', `${userId}${filterKey}`)
-    await safeRedisSetex(key, CACHE_CONFIG.BOOK_LIBRARY.ttl, JSON.stringify(books))
+    const filterKey = filters ? `:${JSON.stringify(filters)}` : ""
+    const key = getCacheKey("BOOK_LIBRARY", `${userId}${filterKey}`)
+    await safeRedisSetex(
+      key,
+      CACHE_CONFIG.BOOK_LIBRARY.ttl,
+      JSON.stringify(books)
+    )
   } catch (error) {
-    console.error('Failed to cache book library:', error)
+    console.error("Failed to cache book library:", error)
   }
 }
 
@@ -184,18 +201,18 @@ export async function getCachedBookLibrary(
 ): Promise<unknown[] | null> {
   try {
     if (!isRedisAvailable()) return null // Skip caching if Redis is not configured
-    
-    const filterKey = filters ? `:${JSON.stringify(filters)}` : ''
-    const key = getCacheKey('BOOK_LIBRARY', `${userId}${filterKey}`)
+
+    const filterKey = filters ? `:${JSON.stringify(filters)}` : ""
+    const key = getCacheKey("BOOK_LIBRARY", `${userId}${filterKey}`)
     const cached = await safeRedisGet(key)
-    
-    if (cached && typeof cached === 'string') {
+
+    if (cached && typeof cached === "string") {
       return JSON.parse(cached)
     }
-    
+
     return null
   } catch (error) {
-    console.error('Failed to get cached book library:', error)
+    console.error("Failed to get cached book library:", error)
     return null
   }
 }
@@ -209,11 +226,15 @@ export async function cacheContentList(
   filters?: Record<string, unknown>
 ): Promise<void> {
   try {
-    const filterKey = filters ? `:${JSON.stringify(filters)}` : ''
-    const key = getCacheKey('CONTENT_LIST', `${userId}${filterKey}`)
-    await safeRedisSetex(key, CACHE_CONFIG.CONTENT_LIST.ttl, JSON.stringify(content))
+    const filterKey = filters ? `:${JSON.stringify(filters)}` : ""
+    const key = getCacheKey("CONTENT_LIST", `${userId}${filterKey}`)
+    await safeRedisSetex(
+      key,
+      CACHE_CONFIG.CONTENT_LIST.ttl,
+      JSON.stringify(content)
+    )
   } catch (error) {
-    console.error('Failed to cache content list:', error)
+    console.error("Failed to cache content list:", error)
   }
 }
 
@@ -226,18 +247,18 @@ export async function getCachedContentList(
 ): Promise<unknown[] | null> {
   try {
     if (!isRedisAvailable()) return null // Skip caching if Redis is not configured
-    
-    const filterKey = filters ? `:${JSON.stringify(filters)}` : ''
-    const key = getCacheKey('CONTENT_LIST', `${userId}${filterKey}`)
+
+    const filterKey = filters ? `:${JSON.stringify(filters)}` : ""
+    const key = getCacheKey("CONTENT_LIST", `${userId}${filterKey}`)
     const cached = await safeRedisGet(key)
-    
-    if (cached && typeof cached === 'string') {
+
+    if (cached && typeof cached === "string") {
       return JSON.parse(cached)
     }
-    
+
     return null
   } catch (error) {
-    console.error('Failed to get cached content list:', error)
+    console.error("Failed to get cached content list:", error)
     return null
   }
 }
@@ -252,11 +273,18 @@ export async function cacheAnalyticsData(
   timeRange?: string
 ): Promise<void> {
   try {
-    const rangeKey = timeRange ? `:${timeRange}` : ''
-    const key = getCacheKey('ANALYTICS_DATA', `${userId}:${dataType}${rangeKey}`)
-    await safeRedisSetex(key, CACHE_CONFIG.ANALYTICS_DATA.ttl, JSON.stringify(data))
+    const rangeKey = timeRange ? `:${timeRange}` : ""
+    const key = getCacheKey(
+      "ANALYTICS_DATA",
+      `${userId}:${dataType}${rangeKey}`
+    )
+    await safeRedisSetex(
+      key,
+      CACHE_CONFIG.ANALYTICS_DATA.ttl,
+      JSON.stringify(data)
+    )
   } catch (error) {
-    console.error('Failed to cache analytics data:', error)
+    console.error("Failed to cache analytics data:", error)
   }
 }
 
@@ -269,17 +297,20 @@ export async function getCachedAnalyticsData(
   timeRange?: string
 ): Promise<unknown | null> {
   try {
-    const rangeKey = timeRange ? `:${timeRange}` : ''
-    const key = getCacheKey('ANALYTICS_DATA', `${userId}:${dataType}${rangeKey}`)
+    const rangeKey = timeRange ? `:${timeRange}` : ""
+    const key = getCacheKey(
+      "ANALYTICS_DATA",
+      `${userId}:${dataType}${rangeKey}`
+    )
     const cached = await safeRedisGet(key)
-    
-    if (cached && typeof cached === 'string') {
+
+    if (cached && typeof cached === "string") {
       return JSON.parse(cached)
     }
-    
+
     return null
   } catch (error) {
-    console.error('Failed to get cached analytics data:', error)
+    console.error("Failed to get cached analytics data:", error)
     return null
   }
 }
@@ -292,28 +323,30 @@ export async function cacheCompressedText(
   compressedText: string
 ): Promise<void> {
   try {
-    const key = getCacheKey('COMPRESSED_TEXT', bookId)
+    const key = getCacheKey("COMPRESSED_TEXT", bookId)
     await safeRedisSetex(key, CACHE_CONFIG.COMPRESSED_TEXT.ttl, compressedText)
   } catch (error) {
-    console.error('Failed to cache compressed text:', error)
+    console.error("Failed to cache compressed text:", error)
   }
 }
 
 /**
  * Get cached compressed text content
  */
-export async function getCachedCompressedText(bookId: string): Promise<string | null> {
+export async function getCachedCompressedText(
+  bookId: string
+): Promise<string | null> {
   try {
-    const key = getCacheKey('COMPRESSED_TEXT', bookId)
+    const key = getCacheKey("COMPRESSED_TEXT", bookId)
     const cached = await safeRedisGet(key)
-    
-    if (cached && typeof cached === 'string') {
+
+    if (cached && typeof cached === "string") {
       return cached
     }
-    
+
     return null
   } catch (error) {
-    console.error('Failed to get cached compressed text:', error)
+    console.error("Failed to get cached compressed text:", error)
     return null
   }
 }
@@ -335,17 +368,19 @@ export async function invalidateCache(
       // Delete all cache entries for this user and type
       const pattern = `${CACHE_CONFIG[type].prefix}${userId}:*`
       const keys = await safeRedisKeys(pattern)
-      
+
       if (keys.length > 0) {
         // Delete all matching keys
         for (const key of keys) {
           await safeRedisDel(key)
         }
-        console.log(`Invalidated ${keys.length} cache entries for pattern: ${pattern}`)
+        console.log(
+          `Invalidated ${keys.length} cache entries for pattern: ${pattern}`
+        )
       }
     }
   } catch (error) {
-    console.error('Failed to invalidate cache:', error)
+    console.error("Failed to invalidate cache:", error)
   }
 }
 
@@ -354,13 +389,15 @@ export async function invalidateCache(
  */
 export async function clearUserCache(userId: string): Promise<void> {
   try {
-    const patterns = Object.values(CACHE_CONFIG).map(config => `${config.prefix}${userId}:*`)
-    
+    const patterns = Object.values(CACHE_CONFIG).map(
+      config => `${config.prefix}${userId}:*`
+    )
+
     // In a real implementation, you'd use SCAN to find and delete all matching keys
     // For now, we'll just log the patterns that would be cleared
-    console.log('Would clear cache patterns:', patterns)
+    console.log("Would clear cache patterns:", patterns)
   } catch (error) {
-    console.error('Failed to clear user cache:', error)
+    console.error("Failed to clear user cache:", error)
   }
 }
 
@@ -377,14 +414,14 @@ export async function getCacheStats(): Promise<{
     // Return basic stats for now
     return {
       totalKeys: 0,
-      memoryUsage: 'Unknown',
+      memoryUsage: "Unknown",
       hitRate: undefined
     }
   } catch (error) {
-    console.error('Failed to get cache stats:', error)
+    console.error("Failed to get cache stats:", error)
     return {
       totalKeys: 0,
-      memoryUsage: 'Error',
+      memoryUsage: "Error",
       hitRate: undefined
     }
   }
@@ -399,6 +436,6 @@ export async function warmUpCache(userId: string): Promise<void> {
     // Implementation depends on usage patterns
     console.log(`Warming up cache for user: ${userId}`)
   } catch (error) {
-    console.error('Failed to warm up cache:', error)
+    console.error("Failed to warm up cache:", error)
   }
 }

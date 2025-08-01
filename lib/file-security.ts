@@ -1,5 +1,5 @@
-import * as crypto from 'crypto'
-import { FileValidationService } from './file-validation'
+import * as crypto from "crypto"
+import { FileValidationService } from "./file-validation"
 
 export interface SecurityScanResult {
   passed: boolean
@@ -26,7 +26,7 @@ export class FileSecurityService {
   }
 
   private static readonly DEVELOPMENT_CONFIG: FileSecurityConfig = {
-    enableVirusScanning: false,  // Disable virus scanning in development
+    enableVirusScanning: false, // Disable virus scanning in development
     enableContentScanning: false, // Disable content scanning in development
     enableHashValidation: false,
     quarantineThreats: false,
@@ -36,14 +36,16 @@ export class FileSecurityService {
   /**
    * Get configuration based on environment
    */
-  private static getConfig(userConfig: Partial<FileSecurityConfig> = {}): FileSecurityConfig {
-    const isDevelopment = process.env.NODE_ENV === 'development'
-    const strictMode = process.env.SECURITY_SCAN_STRICT_MODE === 'true'
-    
+  private static getConfig(
+    userConfig: Partial<FileSecurityConfig> = {}
+  ): FileSecurityConfig {
+    const isDevelopment = process.env.NODE_ENV === "development"
+    const strictMode = process.env.SECURITY_SCAN_STRICT_MODE === "true"
+
     if (isDevelopment && !strictMode) {
       return { ...this.DEVELOPMENT_CONFIG, ...userConfig }
     }
-    
+
     return { ...this.DEFAULT_CONFIG, ...userConfig }
   }
 
@@ -68,7 +70,7 @@ export class FileSecurityService {
     try {
       // Check file size before scanning
       if (file.size > finalConfig.maxScanSize) {
-        threats.push('File too large for security scanning')
+        threats.push("File too large for security scanning")
         return {
           passed: false,
           threats,
@@ -80,7 +82,7 @@ export class FileSecurityService {
       // Basic file validation
       const validationResult = await FileValidationService.validateFile(file)
       if (!validationResult.isValid) {
-        threats.push(validationResult.error || 'File validation failed')
+        threats.push(validationResult.error || "File validation failed")
       }
 
       // Content-based security scanning
@@ -106,7 +108,7 @@ export class FileSecurityService {
       threats.push(...additionalThreats)
 
       const passed = threats.length === 0
-      
+
       // Log security scan results
       await this.logSecurityScan(scanId, file.name, threats, passed)
 
@@ -117,16 +119,18 @@ export class FileSecurityService {
         scanId
       }
     } catch (error) {
-      console.error('Security scan error:', error)
-      console.error('Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
+      console.error("Security scan error:", error)
+      console.error("Error details:", {
+        message: error instanceof Error ? error.message : "Unknown error",
         stack: error instanceof Error ? error.stack : undefined,
         fileName: file.name,
         fileSize: file.size,
         fileType: file.type
       })
-      threats.push(`Security scan failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-      
+      threats.push(
+        `Security scan failed: ${error instanceof Error ? error.message : "Unknown error"}`
+      )
+
       return {
         passed: false,
         threats,
@@ -144,11 +148,24 @@ export class FileSecurityService {
 
     try {
       const buffer = await file.arrayBuffer()
-      const content = new TextDecoder('utf-8', { fatal: false }).decode(buffer)
+      const content = new TextDecoder("utf-8", { fatal: false }).decode(buffer)
 
       // Skip content scanning for binary files like PDFs, images, etc.
       const fileName = file.name.toLowerCase()
-      const binaryExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.doc', '.docx', '.xls', '.xlsx', '.zip', '.rar', '.epub']
+      const binaryExtensions = [
+        ".pdf",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".doc",
+        ".docx",
+        ".xls",
+        ".xlsx",
+        ".zip",
+        ".rar",
+        ".epub"
+      ]
       const isBinaryFile = binaryExtensions.some(ext => fileName.endsWith(ext))
 
       // For binary files, only do basic header checks
@@ -159,19 +176,25 @@ export class FileSecurityService {
 
       // Malicious content patterns (only for text files)
       const maliciousPatterns = [
-        { pattern: /<script[\s\S]*?>[\s\S]*?<\/script>/gi, threat: 'Embedded JavaScript' },
-        { pattern: /javascript:/gi, threat: 'JavaScript protocol' },
-        { pattern: /vbscript:/gi, threat: 'VBScript protocol' },
-        { pattern: /on\w+\s*=/gi, threat: 'Event handlers' },
-        { pattern: /eval\s*\(/gi, threat: 'Code evaluation' },
-        { pattern: /document\.write/gi, threat: 'DOM manipulation' },
-        { pattern: /window\.location/gi, threat: 'Location manipulation' },
-        { pattern: /%3Cscript/gi, threat: 'Encoded script tags' },
-        { pattern: /\.\.\//g, threat: 'Directory traversal' },
+        {
+          pattern: /<script[\s\S]*?>[\s\S]*?<\/script>/gi,
+          threat: "Embedded JavaScript"
+        },
+        { pattern: /javascript:/gi, threat: "JavaScript protocol" },
+        { pattern: /vbscript:/gi, threat: "VBScript protocol" },
+        { pattern: /on\w+\s*=/gi, threat: "Event handlers" },
+        { pattern: /eval\s*\(/gi, threat: "Code evaluation" },
+        { pattern: /document\.write/gi, threat: "DOM manipulation" },
+        { pattern: /window\.location/gi, threat: "Location manipulation" },
+        { pattern: /%3Cscript/gi, threat: "Encoded script tags" },
+        { pattern: /\.\.\//g, threat: "Directory traversal" },
         // Remove overly aggressive patterns that trigger on legitimate files
         // { pattern: /\x00/g, threat: 'Null bytes' }, // Too common in binary files
         // { pattern: /cmd\.exe|powershell|bash|sh/gi, threat: 'System commands' }, // Too common in docs
-        { pattern: /SELECT.*FROM|INSERT.*INTO|UPDATE.*SET|DELETE.*FROM/gi, threat: 'SQL injection patterns' }
+        {
+          pattern: /SELECT.*FROM|INSERT.*INTO|UPDATE.*SET|DELETE.*FROM/gi,
+          threat: "SQL injection patterns"
+        }
       ]
 
       for (const { pattern, threat } of maliciousPatterns) {
@@ -181,16 +204,17 @@ export class FileSecurityService {
       }
 
       // Check for suspicious file headers (only for non-binary files)
-      const headerThreats = this.checkFileHeaders(new Uint8Array(buffer.slice(0, 1024)))
+      const headerThreats = this.checkFileHeaders(
+        new Uint8Array(buffer.slice(0, 1024))
+      )
       threats.push(...headerThreats)
 
       // Check for embedded files (only for non-binary files)
       const embeddedThreats = this.checkEmbeddedFiles(buffer)
       threats.push(...embeddedThreats)
-
     } catch (error) {
-      console.error('Content scanning error:', error)
-      threats.push('Content scan failed')
+      console.error("Content scanning error:", error)
+      threats.push("Content scan failed")
     }
 
     return threats
@@ -201,17 +225,17 @@ export class FileSecurityService {
    */
   private static checkFileHeaders(header: Uint8Array): string[] {
     const threats: string[] = []
-    
+
     const hexHeader = Array.from(header)
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('')
+      .map(b => b.toString(16).padStart(2, "0"))
+      .join("")
 
     // Known malicious file signatures (excluding legitimate formats)
     const maliciousSignatures = [
-      { signature: '4d5a', threat: 'Windows executable', exclude: false },
-      { signature: '7f454c46', threat: 'Linux executable', exclude: false },
-      { signature: 'cafebabe', threat: 'Java class file', exclude: false },
-      { signature: 'feedface', threat: 'Mach-O executable', exclude: false },
+      { signature: "4d5a", threat: "Windows executable", exclude: false },
+      { signature: "7f454c46", threat: "Linux executable", exclude: false },
+      { signature: "cafebabe", threat: "Java class file", exclude: false },
+      { signature: "feedface", threat: "Mach-O executable", exclude: false }
       // Exclude OLE and ZIP as they're common in legitimate documents
       // { signature: 'd0cf11e0', threat: 'OLE compound document' },
       // { signature: '504b0304', threat: 'ZIP archive (potential threat)' }
@@ -219,15 +243,17 @@ export class FileSecurityService {
 
     // Check for legitimate file headers first
     const legitimateHeaders = [
-      '25504446', // PDF
-      'ffd8ff',   // JPEG
-      '89504e47', // PNG
-      '47494638', // GIF
-      '504b0304', // ZIP/DOCX/XLSX
-      'd0cf11e0'  // DOC/XLS (OLE)
+      "25504446", // PDF
+      "ffd8ff", // JPEG
+      "89504e47", // PNG
+      "47494638", // GIF
+      "504b0304", // ZIP/DOCX/XLSX
+      "d0cf11e0" // DOC/XLS (OLE)
     ]
 
-    const isLegitimateFile = legitimateHeaders.some(legit => hexHeader.startsWith(legit))
+    const isLegitimateFile = legitimateHeaders.some(legit =>
+      hexHeader.startsWith(legit)
+    )
     if (isLegitimateFile) {
       return threats // Skip malicious signature check for legitimate files
     }
@@ -250,8 +276,8 @@ export class FileSecurityService {
 
     // Look for embedded file signatures (only dangerous ones)
     const embeddedSignatures = [
-      { signature: [0x4D, 0x5A], threat: 'Embedded executable' },
-      { signature: [0x7F, 0x45, 0x4C, 0x46], threat: 'Embedded ELF file' },
+      { signature: [0x4d, 0x5a], threat: "Embedded executable" },
+      { signature: [0x7f, 0x45, 0x4c, 0x46], threat: "Embedded ELF file" }
       // Remove image checks as they're common in legitimate documents like PDFs
       // { signature: [0x89, 0x50, 0x4E, 0x47], threat: 'Embedded PNG (suspicious in text)' },
       // { signature: [0xFF, 0xD8, 0xFF], threat: 'Embedded JPEG (suspicious in text)' }
@@ -269,7 +295,10 @@ export class FileSecurityService {
   /**
    * Find signature pattern in buffer
    */
-  private static findSignatureInBuffer(buffer: Uint8Array, signature: number[]): boolean {
+  private static findSignatureInBuffer(
+    buffer: Uint8Array,
+    signature: number[]
+  ): boolean {
     for (let i = 0; i <= buffer.length - signature.length; i++) {
       let match = true
       for (let j = 0; j < signature.length; j++) {
@@ -291,9 +320,11 @@ export class FileSecurityService {
 
     try {
       const buffer = await file.arrayBuffer()
-      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
+      const hashBuffer = await crypto.subtle.digest("SHA-256", buffer)
       const hashArray = Array.from(new Uint8Array(hashBuffer))
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+      const hashHex = hashArray
+        .map(b => b.toString(16).padStart(2, "0"))
+        .join("")
 
       // In production, check against known malicious hash database
       const knownMaliciousHashes: string[] = [
@@ -302,17 +333,16 @@ export class FileSecurityService {
       ]
 
       if (knownMaliciousHashes.includes(hashHex)) {
-        threats.push('Known malicious file hash')
+        threats.push("Known malicious file hash")
       }
 
       // Check for suspicious hash patterns (e.g., all zeros, repeated patterns)
       if (hashHex.match(/^0+$/) || hashHex.match(/^(.)\1+$/)) {
-        threats.push('Suspicious file hash pattern')
+        threats.push("Suspicious file hash pattern")
       }
-
     } catch (error) {
-      console.error('Hash validation error:', error)
-      threats.push('Hash validation failed')
+      console.error("Hash validation error:", error)
+      threats.push("Hash validation failed")
     }
 
     return threats
@@ -333,11 +363,17 @@ export class FileSecurityService {
 
       // Simulated virus patterns for demonstration
       const buffer = await file.arrayBuffer()
-      const content = new TextDecoder('utf-8', { fatal: false }).decode(buffer)
+      const content = new TextDecoder("utf-8", { fatal: false }).decode(buffer)
 
       const virusPatterns = [
-        { pattern: /EICAR-STANDARD-ANTIVIRUS-TEST-FILE/gi, threat: 'EICAR test virus' },
-        { pattern: /X5O!P%@AP\[4\\PZX54\(P\^\)7CC\)7\}\$EICAR/gi, threat: 'EICAR signature' }
+        {
+          pattern: /EICAR-STANDARD-ANTIVIRUS-TEST-FILE/gi,
+          threat: "EICAR test virus"
+        },
+        {
+          pattern: /X5O!P%@AP\[4\\PZX54\(P\^\)7CC\)7\}\$EICAR/gi,
+          threat: "EICAR signature"
+        }
       ]
 
       for (const { pattern, threat } of virusPatterns) {
@@ -347,13 +383,12 @@ export class FileSecurityService {
       }
 
       // Simulate random virus detection for testing (remove in production)
-      if (process.env.NODE_ENV === 'development' && Math.random() < 0.01) {
-        threats.push('Simulated virus detection')
+      if (process.env.NODE_ENV === "development" && Math.random() < 0.01) {
+        threats.push("Simulated virus detection")
       }
-
     } catch (error) {
-      console.error('Virus scan error:', error)
-      threats.push('Virus scan failed')
+      console.error("Virus scan error:", error)
+      threats.push("Virus scan failed")
     }
 
     return threats
@@ -362,7 +397,9 @@ export class FileSecurityService {
   /**
    * Additional security checks
    */
-  private static async performAdditionalSecurityChecks(file: File): Promise<string[]> {
+  private static async performAdditionalSecurityChecks(
+    file: File
+  ): Promise<string[]> {
     const threats: string[] = []
 
     try {
@@ -371,36 +408,35 @@ export class FileSecurityService {
         /\.(exe|bat|cmd|scr|pif|com|vbs|js|jar)$/i,
         /\.\w+\.(exe|bat|cmd)$/i, // Double extension
         /[<>:"|?*]/g, // Invalid filename characters
-        /^\./,  // Hidden files
-        /\s+$/, // Trailing spaces
+        /^\./, // Hidden files
+        /\s+$/ // Trailing spaces
       ]
 
       for (const pattern of suspiciousNamePatterns) {
         if (pattern.test(file.name)) {
-          threats.push('Suspicious filename pattern')
+          threats.push("Suspicious filename pattern")
           break
         }
       }
 
       // Check for excessively long filename
       if (file.name.length > 255) {
-        threats.push('Filename too long')
+        threats.push("Filename too long")
       }
 
       // Check for Unicode normalization attacks
-      if (file.name !== file.name.normalize('NFC')) {
-        threats.push('Unicode normalization attack')
+      if (file.name !== file.name.normalize("NFC")) {
+        threats.push("Unicode normalization attack")
       }
 
       // Check MIME type spoofing
       const expectedMimeType = this.getExpectedMimeType(file.name)
       if (expectedMimeType && expectedMimeType !== file.type) {
-        threats.push('MIME type spoofing detected')
+        threats.push("MIME type spoofing detected")
       }
-
     } catch (error) {
-      console.error('Additional security checks error:', error)
-      threats.push('Additional security checks failed')
+      console.error("Additional security checks error:", error)
+      threats.push("Additional security checks failed")
     }
 
     return threats
@@ -410,13 +446,13 @@ export class FileSecurityService {
    * Get expected MIME type from file extension
    */
   private static getExpectedMimeType(filename: string): string | null {
-    const extension = filename.toLowerCase().split('.').pop()
-    
+    const extension = filename.toLowerCase().split(".").pop()
+
     const mimeTypes: Record<string, string> = {
-      'pdf': 'application/pdf',
-      'epub': 'application/epub+zip',
-      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'txt': 'text/plain'
+      pdf: "application/pdf",
+      epub: "application/epub+zip",
+      docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      txt: "text/plain"
     }
 
     return extension ? mimeTypes[extension] || null : null
@@ -438,28 +474,31 @@ export class FileSecurityService {
         threats,
         passed,
         timestamp: new Date().toISOString(),
-        scanType: 'file_upload'
+        scanType: "file_upload"
       }
 
       // In production, store in secure audit log
-      console.log('File security scan log:', logEntry)
-      
+      console.log("File security scan log:", logEntry)
+
       // Store encrypted log for audit purposes
       const encryptedLog = crypto
-        .createHash('sha256')
+        .createHash("sha256")
         .update(JSON.stringify(logEntry))
-        .digest('hex')
-      
-      console.log('Security scan hash:', encryptedLog)
+        .digest("hex")
+
+      console.log("Security scan hash:", encryptedLog)
     } catch (error) {
-      console.error('Failed to log security scan:', error)
+      console.error("Failed to log security scan:", error)
     }
   }
 
   /**
    * Quarantine a file that failed security scan
    */
-  static async quarantineFile(file: File, scanResult: SecurityScanResult): Promise<void> {
+  static async quarantineFile(
+    file: File,
+    scanResult: SecurityScanResult
+  ): Promise<void> {
     try {
       // In production, move file to quarantine storage
       console.log(`File quarantined: ${file.name}`, {
@@ -472,22 +511,25 @@ export class FileSecurityService {
       await this.logSecurityScan(
         scanResult.scanId,
         file.name,
-        [...scanResult.threats, 'File quarantined'],
+        [...scanResult.threats, "File quarantined"],
         false
       )
     } catch (error) {
-      console.error('Failed to quarantine file:', error)
+      console.error("Failed to quarantine file:", error)
     }
   }
 
   /**
    * Generate security report for file upload
    */
-  static generateSecurityReport(scanResult: SecurityScanResult, filename: string): string {
+  static generateSecurityReport(
+    scanResult: SecurityScanResult,
+    filename: string
+  ): string {
     const report = {
       filename,
       scanId: scanResult.scanId,
-      status: scanResult.passed ? 'PASSED' : 'FAILED',
+      status: scanResult.passed ? "PASSED" : "FAILED",
       threats: scanResult.threats,
       quarantined: scanResult.quarantined,
       timestamp: new Date().toISOString()

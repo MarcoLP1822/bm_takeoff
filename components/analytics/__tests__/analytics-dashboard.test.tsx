@@ -7,7 +7,7 @@ global.fetch = jest.fn()
 describe("AnalyticsDashboard", () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     // Mock successful API responses
     const mockResponses = {
       "/api/analytics/insights": {
@@ -101,7 +101,7 @@ describe("AnalyticsDashboard", () => {
 
   it("should render loading state initially", () => {
     render(<AnalyticsDashboard />)
-    
+
     expect(screen.getByText("Analytics Dashboard")).toBeInTheDocument()
     // Should show loading skeleton cards
     expect(document.querySelectorAll(".animate-pulse")).toHaveLength(4)
@@ -138,7 +138,7 @@ describe("AnalyticsDashboard", () => {
 
     // Click on Theme Analysis tab
     fireEvent.click(screen.getByText("Theme Analysis"))
-    
+
     await waitFor(() => {
       expect(screen.getByText("#1 technology")).toBeInTheDocument()
       expect(screen.getByText("10 posts")).toBeInTheDocument()
@@ -146,7 +146,7 @@ describe("AnalyticsDashboard", () => {
 
     // Click on Optimal Times tab
     fireEvent.click(screen.getByText("Optimal Times"))
-    
+
     await waitFor(() => {
       expect(screen.getByText("Best Posting Times")).toBeInTheDocument()
       expect(screen.getByText("Monday at 10:00 AM")).toBeInTheDocument()
@@ -154,7 +154,7 @@ describe("AnalyticsDashboard", () => {
 
     // Click on Recent Posts tab
     fireEvent.click(screen.getByText("Recent Posts"))
-    
+
     await waitFor(() => {
       expect(screen.getByText("Test Book")).toBeInTheDocument()
       expect(screen.getByText("Test tweet content")).toBeInTheDocument()
@@ -162,29 +162,37 @@ describe("AnalyticsDashboard", () => {
   })
 
   it("should handle update analytics button", async () => {
-    ;(fetch as jest.Mock).mockImplementation((url: string, options?: RequestInit) => {
-      if (url === "/api/analytics/update" && options?.method === "POST") {
+    ;(fetch as jest.Mock).mockImplementation(
+      (url: string, options?: RequestInit) => {
+        if (url === "/api/analytics/update" && options?.method === "POST") {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ success: true })
+          })
+        }
+
+        // Return mock data for other requests
+        const mockResponses = {
+          "/api/analytics/insights": {
+            success: true,
+            data: { totalPosts: 26 }
+          },
+          "/api/analytics/posts?limit=20": { success: true, data: [] },
+          "/api/analytics/platforms": { success: true, data: [] },
+          "/api/analytics/themes": { success: true, data: [] },
+          "/api/analytics/optimal-times": { success: true, data: [] }
+        }
+
+        const response = mockResponses[url as keyof typeof mockResponses] || {
+          success: true,
+          data: []
+        }
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ success: true })
+          json: () => Promise.resolve(response)
         })
       }
-      
-      // Return mock data for other requests
-      const mockResponses = {
-        "/api/analytics/insights": { success: true, data: { totalPosts: 26 } },
-        "/api/analytics/posts?limit=20": { success: true, data: [] },
-        "/api/analytics/platforms": { success: true, data: [] },
-        "/api/analytics/themes": { success: true, data: [] },
-        "/api/analytics/optimal-times": { success: true, data: [] }
-      }
-      
-      const response = mockResponses[url as keyof typeof mockResponses] || { success: true, data: [] }
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve(response)
-      })
-    })
+    )
 
     render(<AnalyticsDashboard />)
 
@@ -203,7 +211,9 @@ describe("AnalyticsDashboard", () => {
       expect(screen.getByText("Update Analytics")).toBeInTheDocument()
     })
 
-    expect(fetch).toHaveBeenCalledWith("/api/analytics/update", { method: "POST" })
+    expect(fetch).toHaveBeenCalledWith("/api/analytics/update", {
+      method: "POST"
+    })
   })
 
   it("should format numbers correctly", async () => {
@@ -212,25 +222,26 @@ describe("AnalyticsDashboard", () => {
       if (url === "/api/analytics/insights") {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({
-            success: true,
-            data: {
-              totalPosts: 1500000,
-              totalEngagement: 2500000,
-              avgEngagementRate: 6.8,
-              bestPerformingPlatform: "twitter",
-              topThemes: [],
-              optimalPostingTimes: [],
-              recentTrends: {
-                period: "Last 30 days",
-                engagementChange: 15.2,
-                impressionsChange: 8.7
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: {
+                totalPosts: 1500000,
+                totalEngagement: 2500000,
+                avgEngagementRate: 6.8,
+                bestPerformingPlatform: "twitter",
+                topThemes: [],
+                optimalPostingTimes: [],
+                recentTrends: {
+                  period: "Last 30 days",
+                  engagementChange: 15.2,
+                  impressionsChange: 8.7
+                }
               }
-            }
-          })
+            })
         })
       }
-      
+
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ success: true, data: [] })
@@ -253,7 +264,10 @@ describe("AnalyticsDashboard", () => {
     render(<AnalyticsDashboard />)
 
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith("Failed to load analytics data:", expect.any(Error))
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Failed to load analytics data:",
+        expect.any(Error)
+      )
     })
 
     consoleSpy.mockRestore()

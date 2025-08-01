@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from "@supabase/supabase-js"
+import { auth } from "@clerk/nextjs/server"
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -18,19 +18,21 @@ export const supabaseAdmin = createClient(
  */
 export async function createAuthenticatedSupabaseClient() {
   const { getToken, userId } = await auth()
-  
+
   if (!userId) {
-    throw new Error('User not authenticated')
+    throw new Error("User not authenticated")
   }
 
   try {
     // Try to get Supabase JWT token from Clerk
-    const supabaseToken = await getToken({ template: 'supabase' })
-    
+    const supabaseToken = await getToken({ template: "supabase" })
+
     if (!supabaseToken) {
       // Fallback: if template doesn't exist, create a basic JWT
-      console.warn('Supabase JWT template not found in Clerk. Using fallback authentication.')
-      
+      console.warn(
+        "Supabase JWT template not found in Clerk. Using fallback authentication."
+      )
+
       // For now, use the admin client but add user context
       // This is a temporary solution until JWT template is configured
       return {
@@ -53,10 +55,12 @@ export async function createAuthenticatedSupabaseClient() {
       userId
     }
   } catch (error) {
-    console.error('Error creating authenticated Supabase client:', error)
-    
+    console.error("Error creating authenticated Supabase client:", error)
+
     // Fallback to admin client with user context
-    console.warn('Falling back to admin client. Please configure Clerk JWT template for production.')
+    console.warn(
+      "Falling back to admin client. Please configure Clerk JWT template for production."
+    )
     return {
       client: supabaseAdmin,
       userId

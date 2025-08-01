@@ -8,7 +8,9 @@ jest.mock("@clerk/nextjs/server")
 jest.mock("@/lib/social-media")
 
 const mockAuth = auth as jest.MockedFunction<typeof auth>
-const mockSocialMediaService = SocialMediaService as jest.Mocked<typeof SocialMediaService>
+const mockSocialMediaService = SocialMediaService as jest.Mocked<
+  typeof SocialMediaService
+>
 
 describe("/api/social/accounts", () => {
   beforeEach(() => {
@@ -39,7 +41,9 @@ describe("/api/social/accounts", () => {
 
       expect(response.status).toBe(200)
       expect(data.accounts).toEqual(mockAccounts)
-      expect(mockSocialMediaService.getUserAccounts).toHaveBeenCalledWith("user123")
+      expect(mockSocialMediaService.getUserAccounts).toHaveBeenCalledWith(
+        "user123"
+      )
     })
 
     it("should return 401 for unauthenticated user", async () => {
@@ -54,7 +58,9 @@ describe("/api/social/accounts", () => {
 
     it("should handle service errors", async () => {
       mockAuth.mockResolvedValue({ userId: "user123" } as any)
-      mockSocialMediaService.getUserAccounts.mockRejectedValue(new Error("Database error"))
+      mockSocialMediaService.getUserAccounts.mockRejectedValue(
+        new Error("Database error")
+      )
 
       const response = await GET()
       const data = await response.json()

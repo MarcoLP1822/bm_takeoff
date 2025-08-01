@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
-import { db } from '@/db'
-import { generatedContent, InsertGeneratedContent } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
+import { db } from "@/db"
+import { generatedContent, InsertGeneratedContent } from "@/db/schema"
+import { eq, and } from "drizzle-orm"
 
 export async function GET(
   request: NextRequest,
@@ -10,12 +10,9 @@ export async function GET(
 ) {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { contentId } = await params
@@ -23,28 +20,26 @@ export async function GET(
     const content = await db
       .select()
       .from(generatedContent)
-      .where(and(
-        eq(generatedContent.id, contentId),
-        eq(generatedContent.userId, userId)
-      ))
+      .where(
+        and(
+          eq(generatedContent.id, contentId),
+          eq(generatedContent.userId, userId)
+        )
+      )
       .limit(1)
 
     if (content.length === 0) {
-      return NextResponse.json(
-        { error: 'Content not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Content not found" }, { status: 404 })
     }
 
     return NextResponse.json({
       success: true,
       data: content[0]
     })
-
   } catch (error) {
-    console.error('Content retrieval error:', error)
+    console.error("Content retrieval error:", error)
     return NextResponse.json(
-      { error: 'Failed to retrieve content. Please try again.' },
+      { error: "Failed to retrieve content. Please try again." },
       { status: 500 }
     )
   }
@@ -56,12 +51,9 @@ export async function PUT(
 ) {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { contentId } = await params
@@ -72,17 +64,16 @@ export async function PUT(
     const existingContent = await db
       .select()
       .from(generatedContent)
-      .where(and(
-        eq(generatedContent.id, contentId),
-        eq(generatedContent.userId, userId)
-      ))
+      .where(
+        and(
+          eq(generatedContent.id, contentId),
+          eq(generatedContent.userId, userId)
+        )
+      )
       .limit(1)
 
     if (existingContent.length === 0) {
-      return NextResponse.json(
-        { error: 'Content not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Content not found" }, { status: 404 })
     }
 
     // Update content
@@ -105,11 +96,10 @@ export async function PUT(
       success: true,
       data: updated[0]
     })
-
   } catch (error) {
-    console.error('Content update error:', error)
+    console.error("Content update error:", error)
     return NextResponse.json(
-      { error: 'Failed to update content. Please try again.' },
+      { error: "Failed to update content. Please try again." },
       { status: 500 }
     )
   }
@@ -121,12 +111,9 @@ export async function DELETE(
 ) {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { contentId } = await params
@@ -134,28 +121,26 @@ export async function DELETE(
     // Verify content belongs to user and delete
     const deleted = await db
       .delete(generatedContent)
-      .where(and(
-        eq(generatedContent.id, contentId),
-        eq(generatedContent.userId, userId)
-      ))
+      .where(
+        and(
+          eq(generatedContent.id, contentId),
+          eq(generatedContent.userId, userId)
+        )
+      )
       .returning()
 
     if (deleted.length === 0) {
-      return NextResponse.json(
-        { error: 'Content not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Content not found" }, { status: 404 })
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Content deleted successfully'
+      message: "Content deleted successfully"
     })
-
   } catch (error) {
-    console.error('Content deletion error:', error)
+    console.error("Content deletion error:", error)
     return NextResponse.json(
-      { error: 'Failed to delete content. Please try again.' },
+      { error: "Failed to delete content. Please try again." },
       { status: 500 }
     )
   }

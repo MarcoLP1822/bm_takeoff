@@ -1,13 +1,25 @@
 import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
 import { books } from "./books"
 
-export const platform = pgEnum("platform", ["twitter", "instagram", "linkedin", "facebook"])
+export const platform = pgEnum("platform", [
+  "twitter",
+  "instagram",
+  "linkedin",
+  "facebook"
+])
 export const contentType = pgEnum("content_type", ["post", "story", "article"])
-export const contentStatus = pgEnum("content_status", ["draft", "scheduled", "published", "failed"])
+export const contentStatus = pgEnum("content_status", [
+  "draft",
+  "scheduled",
+  "published",
+  "failed"
+])
 
 export const generatedContent = pgTable("generated_content", {
   id: uuid("id").defaultRandom().primaryKey(),
-  bookId: uuid("book_id").references(() => books.id, { onDelete: "cascade" }).notNull(),
+  bookId: uuid("book_id")
+    .references(() => books.id, { onDelete: "cascade" })
+    .notNull(),
   userId: text("user_id").notNull(),
   platform: platform("platform").notNull(),
   contentType: contentType("content_type").notNull(),

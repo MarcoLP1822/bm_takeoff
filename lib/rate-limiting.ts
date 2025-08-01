@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server'
-import { Redis } from '@upstash/redis'
+import { NextRequest } from "next/server"
+import { Redis } from "@upstash/redis"
 
 // Initialize Redis client for rate limiting
 const redis = new Redis({
@@ -39,19 +39,22 @@ export class RateLimiter {
   /**
    * Check if request is within rate limit
    */
-  async checkLimit(req: NextRequest, userId?: string): Promise<RateLimitResult> {
+  async checkLimit(
+    req: NextRequest,
+    userId?: string
+  ): Promise<RateLimitResult> {
     const key = this.generateKey(req, userId)
     const window = Math.floor(Date.now() / this.config.windowMs)
     const redisKey = `rate_limit:${key}:${window}`
 
     try {
       // Get current count
-      const current = await redis.get(redisKey) as number || 0
-      
+      const current = ((await redis.get(redisKey)) as number) || 0
+
       if (current >= this.config.maxRequests) {
         const resetTime = (window + 1) * this.config.windowMs
         const retryAfter = Math.ceil((resetTime - Date.now()) / 1000)
-        
+
         return {
           success: false,
           limit: this.config.maxRequests,
@@ -63,7 +66,7 @@ export class RateLimiter {
 
       // Increment counter
       const newCount = await redis.incr(redisKey)
-      
+
       // Set expiration if this is the first request in the window
       if (newCount === 1) {
         await redis.expire(redisKey, Math.ceil(this.config.windowMs / 1000))
@@ -76,7 +79,7 @@ export class RateLimiter {
         resetTime: (window + 1) * this.config.windowMs
       }
     } catch (error) {
-      console.error('Rate limiting error:', error)
+      console.error("Rate limiting error:", error)
       // Fail open - allow request if Redis is down
       return {
         success: true,
@@ -100,8 +103,10 @@ export class RateLimiter {
       return `user:${userId}`
     }
 
-    const forwarded = req.headers.get('x-forwarded-for')
-    const ip = forwarded ? forwarded.split(',')[0] : req.headers.get('x-real-ip') || 'unknown'
+    const forwarded = req.headers.get("x-forwarded-for")
+    const ip = forwarded
+      ? forwarded.split(",")[0]
+      : req.headers.get("x-real-ip") || "unknown"
     return `ip:${ip}`
   }
 }
@@ -142,9 +147,11 @@ export const rateLimiters = {
   auth: new RateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 5,
-    keyGenerator: (req) => {
-      const forwarded = req.headers.get('x-forwarded-for')
-      const ip = forwarded ? forwarded.split(',')[0] : req.headers.get('x-real-ip') || 'unknown'
+    keyGenerator: req => {
+      const forwarded = req.headers.get("x-forwarded-for")
+      const ip = forwarded
+        ? forwarded.split(",")[0]
+        : req.headers.get("x-real-ip") || "unknown"
       return `auth:${ip}`
     }
   })
@@ -156,24 +163,24 @@ export const rateLimiters = {
 export function createRateLimitMiddleware(limiter: RateLimiter) {
   return async (req: NextRequest, userId?: string) => {
     const result = await limiter.checkLimit(req, userId)
-    
+
     if (!result.success) {
-      const error = new Error('Rate limit exceeded') as RateLimitError
+      const error = new Error("Rate limit exceeded") as RateLimitError
       error.status = 429
       error.headers = {
-        'X-RateLimit-Limit': result.limit.toString(),
-        'X-RateLimit-Remaining': result.remaining.toString(),
-        'X-RateLimit-Reset': new Date(result.resetTime).toISOString(),
-        'Retry-After': result.retryAfter?.toString() || '60'
+        "X-RateLimit-Limit": result.limit.toString(),
+        "X-RateLimit-Remaining": result.remaining.toString(),
+        "X-RateLimit-Reset": new Date(result.resetTime).toISOString(),
+        "Retry-After": result.retryAfter?.toString() || "60"
       }
       throw error
     }
 
     return {
       headers: {
-        'X-RateLimit-Limit': result.limit.toString(),
-        'X-RateLimit-Remaining': result.remaining.toString(),
-        'X-RateLimit-Reset': new Date(result.resetTime).toISOString()
+        "X-RateLimit-Limit": result.limit.toString(),
+        "X-RateLimit-Remaining": result.remaining.toString(),
+        "X-RateLimit-Reset": new Date(result.resetTime).toISOString()
       }
     }
   }
@@ -190,7 +197,7 @@ export class AIServiceRateLimiter {
     this.limiter = new RateLimiter({
       windowMs: 60 * 1000, // 1 minute
       maxRequests: 60, // Adjust based on your AI service limits
-      keyGenerator: () => 'ai_service'
+      keyGenerator: () => "ai_service"
     })
   }
 
@@ -203,9 +210,11 @@ export class AIServiceRateLimiter {
 
   async checkLimit(): Promise<void> {
     const result = await this.limiter.checkLimit({} as NextRequest)
-    
+
     if (!result.success) {
-      const error = new Error('AI service rate limit exceeded') as RateLimitError
+      const error = new Error(
+        "AI service rate limit exceeded"
+      ) as RateLimitError
       error.retryAfter = result.retryAfter
       throw error
     }

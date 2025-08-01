@@ -17,10 +17,10 @@ jest.mock("@upstash/redis", () => {
     del: jest.fn().mockResolvedValue(1),
     zrem: jest.fn().mockResolvedValue(1)
   }
-  
+
   return {
     Redis: jest.fn().mockImplementation(() => mockMethods),
-    __mockMethods: mockMethods  // Export for access in tests
+    __mockMethods: mockMethods // Export for access in tests
   }
 })
 
@@ -55,7 +55,9 @@ const { __mockMethods: mockRedisInstance } = jest.requireMock("@upstash/redis")
 
 // Type the mocked modules correctly
 const mockDb = db as jest.Mocked<typeof db>
-const mockPublishingService = PublishingService as jest.Mocked<typeof PublishingService>
+const mockPublishingService = PublishingService as jest.Mocked<
+  typeof PublishingService
+>
 
 describe("SchedulingService", () => {
   let mockDbSelect: jest.Mock
@@ -63,7 +65,7 @@ describe("SchedulingService", () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    
+
     // Setup fresh mocks for each test
     mockDbSelect = jest.fn(() => ({
       from: jest.fn(() => ({
@@ -113,7 +115,7 @@ describe("SchedulingService", () => {
             limit: jest.fn().mockResolvedValue([mockContent])
           })
         })
-      });
+      })
 
       mockDbUpdate.mockReturnValue({
         set: jest.fn().mockReturnValue({
@@ -274,8 +276,13 @@ describe("SchedulingService", () => {
 
       await SchedulingService.cancelScheduledPost(mockUserId, mockPostId)
 
-      expect(mockRedisInstance.del).toHaveBeenCalledWith(`scheduled_posts:${mockPostId}`)
-      expect(mockRedisInstance.zrem).toHaveBeenCalledWith("scheduled_posts", mockPostId)
+      expect(mockRedisInstance.del).toHaveBeenCalledWith(
+        `scheduled_posts:${mockPostId}`
+      )
+      expect(mockRedisInstance.zrem).toHaveBeenCalledWith(
+        "scheduled_posts",
+        mockPostId
+      )
     })
 
     it("should handle post not found", async () => {
@@ -310,10 +317,12 @@ describe("SchedulingService", () => {
       mockRedisInstance.zrange.mockResolvedValue(duePostIds)
 
       // Mock processScheduledPost to avoid complex setup
-      const processScheduledPostSpy = jest.spyOn(
-        SchedulingService as unknown as { processScheduledPost: jest.Mock },
-        "processScheduledPost"
-      ).mockResolvedValue(undefined)
+      const processScheduledPostSpy = jest
+        .spyOn(
+          SchedulingService as unknown as { processScheduledPost: jest.Mock },
+          "processScheduledPost"
+        )
+        .mockResolvedValue(undefined)
 
       await SchedulingService.processDuePosts()
 
@@ -387,13 +396,17 @@ describe("SchedulingService", () => {
         })
       })
 
-      await SchedulingService.reschedulePost(mockUserId, mockPostId, newScheduledAt)
+      await SchedulingService.reschedulePost(
+        mockUserId,
+        mockPostId,
+        newScheduledAt
+      )
 
       expect(mockRedisInstance.setex).toHaveBeenCalled()
-      expect(mockRedisInstance.zadd).toHaveBeenCalledWith(
-        "scheduled_posts",
-        { score: newScheduledAt.getTime(), member: mockPostId }
-      )
+      expect(mockRedisInstance.zadd).toHaveBeenCalledWith("scheduled_posts", {
+        score: newScheduledAt.getTime(),
+        member: mockPostId
+      })
     })
 
     it("should reject past reschedule time", async () => {

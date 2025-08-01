@@ -9,7 +9,9 @@ import { type SocialPlatform } from "@/lib/social-media"
 jest.mock("@/lib/scheduling-service")
 jest.mock("@clerk/nextjs/server")
 
-const mockSchedulingService = SchedulingService as jest.Mocked<typeof SchedulingService>
+const mockSchedulingService = SchedulingService as jest.Mocked<
+  typeof SchedulingService
+>
 const mockAuth = auth as jest.MockedFunction<typeof auth>
 
 describe("/api/social/schedule", () => {
@@ -25,9 +27,10 @@ describe("/api/social/schedule", () => {
   })
 
   describe("POST", () => {
-    const mockRequest = (body: Record<string, unknown>) => ({
-      json: () => Promise.resolve(body)
-    }) as NextRequest
+    const mockRequest = (body: Record<string, unknown>) =>
+      ({
+        json: () => Promise.resolve(body)
+      }) as NextRequest
 
     it("should schedule post successfully", async () => {
       const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
@@ -165,7 +168,9 @@ describe("/api/social/schedule", () => {
         }
       ]
 
-      mockSchedulingService.getScheduledPosts.mockResolvedValue(mockScheduledPosts)
+      mockSchedulingService.getScheduledPosts.mockResolvedValue(
+        mockScheduledPosts
+      )
 
       const response = await GET(mockRequest)
       const data = await response.json()
@@ -176,7 +181,9 @@ describe("/api/social/schedule", () => {
         scheduledPosts: mockScheduledPosts
       })
 
-      expect(mockSchedulingService.getScheduledPosts).toHaveBeenCalledWith(mockUserId)
+      expect(mockSchedulingService.getScheduledPosts).toHaveBeenCalledWith(
+        mockUserId
+      )
     })
 
     it("should handle unauthorized requests", async () => {

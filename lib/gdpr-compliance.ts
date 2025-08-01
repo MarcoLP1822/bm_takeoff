@@ -1,7 +1,12 @@
-import { db } from '@/db'
-import { books, generatedContent, socialAccounts, postAnalytics } from '@/db/schema'
-import { eq } from 'drizzle-orm'
-import { EncryptionService } from './encryption'
+import { db } from "@/db"
+import {
+  books,
+  generatedContent,
+  socialAccounts,
+  postAnalytics
+} from "@/db/schema"
+import { eq } from "drizzle-orm"
+import { EncryptionService } from "./encryption"
 
 export interface GDPRDataExport {
   userId: string
@@ -56,23 +61,34 @@ export class GDPRComplianceService {
   static async exportUserData(userId: string): Promise<GDPRDataExport> {
     try {
       // Fetch all user data
-      const [userBooks, userContent, userAccounts, userAnalytics] = await Promise.all([
-        db.select().from(books).where(eq(books.userId, userId)),
-        db.select().from(generatedContent).where(eq(generatedContent.userId, userId)),
-        db.select().from(socialAccounts).where(eq(socialAccounts.userId, userId)),
-        db.select({
-          id: postAnalytics.id,
-          platform: postAnalytics.platform,
-          impressions: postAnalytics.impressions,
-          likes: postAnalytics.likes,
-          shares: postAnalytics.shares,
-          comments: postAnalytics.comments,
-          lastUpdated: postAnalytics.lastUpdated
-        })
-        .from(postAnalytics)
-        .innerJoin(generatedContent, eq(postAnalytics.contentId, generatedContent.id))
-        .where(eq(generatedContent.userId, userId))
-      ])
+      const [userBooks, userContent, userAccounts, userAnalytics] =
+        await Promise.all([
+          db.select().from(books).where(eq(books.userId, userId)),
+          db
+            .select()
+            .from(generatedContent)
+            .where(eq(generatedContent.userId, userId)),
+          db
+            .select()
+            .from(socialAccounts)
+            .where(eq(socialAccounts.userId, userId)),
+          db
+            .select({
+              id: postAnalytics.id,
+              platform: postAnalytics.platform,
+              impressions: postAnalytics.impressions,
+              likes: postAnalytics.likes,
+              shares: postAnalytics.shares,
+              comments: postAnalytics.comments,
+              lastUpdated: postAnalytics.lastUpdated
+            })
+            .from(postAnalytics)
+            .innerJoin(
+              generatedContent,
+              eq(postAnalytics.contentId, generatedContent.id)
+            )
+            .where(eq(generatedContent.userId, userId))
+        ])
 
       // Sanitize and format data for export
       const exportData: GDPRDataExport = {
@@ -81,8 +97,8 @@ export class GDPRComplianceService {
         books: userBooks.map(book => ({
           id: book.id,
           title: book.title,
-          author: book.author || '',
-          genre: book.genre || '',
+          author: book.author || "",
+          genre: book.genre || "",
           createdAt: book.createdAt.toISOString(),
           analysisData: book.analysisData
         })),
@@ -112,8 +128,8 @@ export class GDPRComplianceService {
 
       return exportData
     } catch (error) {
-      console.error('GDPR data export error:', error)
-      throw new Error('Failed to export user data')
+      console.error("GDPR data export error:", error)
+      throw new Error("Failed to export user data")
     }
   }
 
@@ -131,7 +147,7 @@ export class GDPRComplianceService {
 
     try {
       // Start transaction for atomic deletion
-      await db.transaction(async (tx) => {
+      await db.transaction(async tx => {
         // Delete analytics data first (foreign key constraints)
         const contentIds = await tx
           .select({ id: generatedContent.id })
@@ -172,9 +188,9 @@ export class GDPRComplianceService {
         errors: errors.length > 0 ? errors : undefined
       }
     } catch (error) {
-      console.error('GDPR data deletion error:', error)
-      errors.push('Failed to delete user data')
-      
+      console.error("GDPR data deletion error:", error)
+      errors.push("Failed to delete user data")
+
       return {
         success: false,
         deletedRecords,
@@ -196,14 +212,14 @@ export class GDPRComplianceService {
     }
 
     try {
-      await db.transaction(async (tx) => {
+      await db.transaction(async tx => {
         // Anonymize books
         const booksResult = await tx
           .update(books)
           .set({
-            userId: 'anonymized',
-            title: 'Anonymized Book',
-            author: 'Anonymized Author',
+            userId: "anonymized",
+            title: "Anonymized Book",
+            author: "Anonymized Author",
             textContent: null,
             analysisData: null
           })
@@ -214,8 +230,8 @@ export class GDPRComplianceService {
         const contentResult = await tx
           .update(generatedContent)
           .set({
-            userId: 'anonymized',
-            content: 'Anonymized content'
+            userId: "anonymized",
+            content: "Anonymized content"
           })
           .where(eq(generatedContent.userId, userId))
         deletedRecords.generatedContent = contentResult.length || 0
@@ -233,9 +249,9 @@ export class GDPRComplianceService {
         errors: errors.length > 0 ? errors : undefined
       }
     } catch (error) {
-      console.error('GDPR data anonymization error:', error)
-      errors.push('Failed to anonymize user data')
-      
+      console.error("GDPR data anonymization error:", error)
+      errors.push("Failed to anonymize user data")
+
       return {
         success: false,
         deletedRecords,
@@ -249,7 +265,9 @@ export class GDPRComplianceService {
    */
   static async generateEncryptedExport(userId: string): Promise<string> {
     const exportData = await this.exportUserData(userId)
-    return EncryptionService.encryptUserData(exportData as unknown as Record<string, unknown>)
+    return EncryptionService.encryptUserData(
+      exportData as unknown as Record<string, unknown>
+    )
   }
 
   /**
@@ -287,7 +305,7 @@ export class GDPRComplianceService {
    */
   static async logDataProcessing(activity: {
     userId: string
-    action: 'export' | 'delete' | 'anonymize' | 'access'
+    action: "export" | "delete" | "anonymize" | "access"
     dataTypes: string[]
     timestamp: string
     ipAddress?: string
@@ -295,19 +313,22 @@ export class GDPRComplianceService {
   }): Promise<void> {
     try {
       // In a real implementation, this would log to a secure audit system
-      console.log('GDPR Activity Log:', {
+      console.log("GDPR Activity Log:", {
         ...activity,
         timestamp: new Date().toISOString()
       })
-      
+
       // Store in encrypted format for audit purposes
       const encryptedLog = EncryptionService.encrypt(JSON.stringify(activity))
-      
+
       // Here you would typically store this in a dedicated audit log table
       // For now, we'll just log it
-      console.log('Encrypted audit log created:', encryptedLog.substring(0, 50) + '...')
+      console.log(
+        "Encrypted audit log created:",
+        encryptedLog.substring(0, 50) + "..."
+      )
     } catch (error) {
-      console.error('Failed to log GDPR activity:', error)
+      console.error("Failed to log GDPR activity:", error)
     }
   }
 
@@ -316,7 +337,9 @@ export class GDPRComplianceService {
    */
   static shouldRetainData(createdAt: Date, dataType: string): boolean {
     const now = new Date()
-    const ageInDays = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
+    const ageInDays = Math.floor(
+      (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
+    )
 
     // Data retention policies (in days)
     const retentionPolicies = {
@@ -326,7 +349,8 @@ export class GDPRComplianceService {
       analytics: 730 // 2 years
     }
 
-    const retentionPeriod = retentionPolicies[dataType as keyof typeof retentionPolicies]
+    const retentionPeriod =
+      retentionPolicies[dataType as keyof typeof retentionPolicies]
     return retentionPeriod ? ageInDays < retentionPeriod : true
   }
 
@@ -350,12 +374,14 @@ export class GDPRComplianceService {
       const now = new Date()
 
       // Calculate cutoff dates
-      const booksCutoff = new Date(now.getTime() - (2555 * 24 * 60 * 60 * 1000))
-      const contentCutoff = new Date(now.getTime() - (1095 * 24 * 60 * 60 * 1000))
-      const accountsCutoff = new Date(now.getTime() - (365 * 24 * 60 * 60 * 1000))
-      const analyticsCutoff = new Date(now.getTime() - (730 * 24 * 60 * 60 * 1000))
+      const booksCutoff = new Date(now.getTime() - 2555 * 24 * 60 * 60 * 1000)
+      const contentCutoff = new Date(now.getTime() - 1095 * 24 * 60 * 60 * 1000)
+      const accountsCutoff = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
+      const analyticsCutoff = new Date(
+        now.getTime() - 730 * 24 * 60 * 60 * 1000
+      )
 
-      await db.transaction(async (tx) => {
+      await db.transaction(async tx => {
         // Delete expired analytics
         const analyticsResult = await tx
           .delete(postAnalytics)
@@ -383,8 +409,8 @@ export class GDPRComplianceService {
 
       return results
     } catch (error) {
-      console.error('Data cleanup error:', error)
-      throw new Error('Failed to cleanup expired data')
+      console.error("Data cleanup error:", error)
+      throw new Error("Failed to cleanup expired data")
     }
   }
 }

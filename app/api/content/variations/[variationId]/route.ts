@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
-import { db } from '@/db'
-import { generatedContent } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
+import { db } from "@/db"
+import { generatedContent } from "@/db/schema"
+import { eq, and } from "drizzle-orm"
 
 export async function PUT(
   request: NextRequest,
@@ -10,12 +10,9 @@ export async function PUT(
 ) {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { variationId } = await params
@@ -24,7 +21,7 @@ export async function PUT(
 
     if (!post || !post.id) {
       return NextResponse.json(
-        { error: 'Post data is required' },
+        { error: "Post data is required" },
         { status: 400 }
       )
     }
@@ -32,7 +29,7 @@ export async function PUT(
     // Validate post data
     if (!post.platform || !post.content) {
       return NextResponse.json(
-        { error: 'Platform and content are required' },
+        { error: "Platform and content are required" },
         { status: 400 }
       )
     }
@@ -56,7 +53,7 @@ export async function PUT(
 
     if (updatedContent.length === 0) {
       return NextResponse.json(
-        { error: 'Content not found or unauthorized' },
+        { error: "Content not found or unauthorized" },
         { status: 404 }
       )
     }
@@ -65,11 +62,10 @@ export async function PUT(
       success: true,
       data: updatedContent[0]
     })
-
   } catch (error) {
-    console.error('Content update error:', error)
+    console.error("Content update error:", error)
     return NextResponse.json(
-      { error: 'Failed to update content' },
+      { error: "Failed to update content" },
       { status: 500 }
     )
   }
@@ -81,12 +77,9 @@ export async function DELETE(
 ) {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { variationId } = await params
@@ -104,20 +97,19 @@ export async function DELETE(
 
     if (deletedContent.length === 0) {
       return NextResponse.json(
-        { error: 'Content variation not found or unauthorized' },
+        { error: "Content variation not found or unauthorized" },
         { status: 404 }
       )
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Content variation deleted successfully'
+      message: "Content variation deleted successfully"
     })
-
   } catch (error) {
-    console.error('Content deletion error:', error)
+    console.error("Content deletion error:", error)
     return NextResponse.json(
-      { error: 'Failed to delete content variation' },
+      { error: "Failed to delete content variation" },
       { status: 500 }
     )
   }

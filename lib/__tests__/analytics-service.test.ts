@@ -1,5 +1,10 @@
 import { AnalyticsService } from "../analytics-service"
-import type { PostPerformance, PlatformComparison, ThemePerformance, OptimalPostingTime } from "../analytics-service"
+import type {
+  PostPerformance,
+  PlatformComparison,
+  ThemePerformance,
+  OptimalPostingTime
+} from "../analytics-service"
 
 // Mock fetch
 global.fetch = jest.fn()
@@ -89,7 +94,7 @@ describe("AnalyticsService", () => {
         "https://api.twitter.com/2/tweets/tweet-id?tweet.fields=public_metrics",
         {
           headers: {
-            "Authorization": "Bearer access-token"
+            Authorization: "Bearer access-token"
           }
         }
       )
@@ -375,10 +380,17 @@ describe("AnalyticsService", () => {
         {
           contentId: "content-1",
           platform: "twitter",
-          postId: "post-1", 
+          postId: "post-1",
           content: "Test content",
           publishedAt: new Date("2024-01-15T10:00:00Z"), // Monday 10 AM
-          analytics: { impressions: 1000, likes: 85, shares: 10, comments: 15, clicks: 0, engagementRate: 8.5 }
+          analytics: {
+            impressions: 1000,
+            likes: 85,
+            shares: 10,
+            comments: 15,
+            clicks: 0,
+            engagementRate: 8.5
+          }
         },
         {
           contentId: "content-2",
@@ -386,15 +398,29 @@ describe("AnalyticsService", () => {
           postId: "post-2",
           content: "Test content",
           publishedAt: new Date("2024-01-16T10:00:00Z"), // Tuesday 10 AM
-          analytics: { impressions: 1000, likes: 72, shares: 8, comments: 12, clicks: 0, engagementRate: 7.2 }
+          analytics: {
+            impressions: 1000,
+            likes: 72,
+            shares: 8,
+            comments: 12,
+            clicks: 0,
+            engagementRate: 7.2
+          }
         },
         {
           contentId: "content-3",
-          platform: "twitter", 
+          platform: "twitter",
           postId: "post-3",
           content: "Test content",
           publishedAt: new Date("2024-01-17T10:00:00Z"), // Wednesday 10 AM
-          analytics: { impressions: 1000, likes: 91, shares: 12, comments: 18, clicks: 0, engagementRate: 9.1 }
+          analytics: {
+            impressions: 1000,
+            likes: 91,
+            shares: 12,
+            comments: 18,
+            clicks: 0,
+            engagementRate: 9.1
+          }
         }
       ]
 
@@ -434,25 +460,25 @@ describe("AnalyticsService", () => {
           postId: "post-1",
           content: "Test content",
           publishedAt: new Date(),
-          analytics: { 
-            likes: 50, 
-            shares: 10, 
-            comments: 5, 
+          analytics: {
+            likes: 50,
+            shares: 10,
+            comments: 5,
             engagementRate: 6.5,
             impressions: 1000,
             clicks: 0
           }
         },
         {
-          contentId: "content-2", 
+          contentId: "content-2",
           platform: "twitter",
           postId: "post-2",
           content: "Test content",
           publishedAt: new Date(),
-          analytics: { 
-            likes: 30, 
-            shares: 8, 
-            comments: 3, 
+          analytics: {
+            likes: 30,
+            shares: 8,
+            comments: 3,
             engagementRate: 5.1,
             impressions: 800,
             clicks: 0
@@ -461,15 +487,35 @@ describe("AnalyticsService", () => {
       ]
 
       const mockPlatformComparison: PlatformComparison[] = [
-        { platform: "twitter", avgEngagementRate: 6.5, totalPosts: 2, totalImpressions: 1800, totalLikes: 80, totalShares: 18, totalComments: 8 }
+        {
+          platform: "twitter",
+          avgEngagementRate: 6.5,
+          totalPosts: 2,
+          totalImpressions: 1800,
+          totalLikes: 80,
+          totalShares: 18,
+          totalComments: 8
+        }
       ]
 
       const mockThemePerformance: ThemePerformance[] = [
-        { theme: "technology", avgEngagementRate: 7.2, postCount: 1, totalEngagement: 65, platforms: [] }
+        {
+          theme: "technology",
+          avgEngagementRate: 7.2,
+          postCount: 1,
+          totalEngagement: 65,
+          platforms: []
+        }
       ]
 
       const mockOptimalTimes: OptimalPostingTime[] = [
-        { platform: "twitter", dayOfWeek: 1, hour: 10, avgEngagementRate: 8.0, postCount: 3 }
+        {
+          platform: "twitter",
+          dayOfWeek: 1,
+          hour: 10,
+          avgEngagementRate: 8.0,
+          postCount: 3
+        }
       ]
 
       const emptyResponse = {
@@ -478,18 +524,30 @@ describe("AnalyticsService", () => {
         filters: { platforms: [], books: [] }
       }
 
-      jest.spyOn(AnalyticsService, "getPostPerformance")
+      jest
+        .spyOn(AnalyticsService, "getPostPerformance")
         .mockResolvedValueOnce({
           posts: mockPosts,
-          pagination: { total: mockPosts.length, limit: 50, offset: 0, hasMore: false },
+          pagination: {
+            total: mockPosts.length,
+            limit: 50,
+            offset: 0,
+            hasMore: false
+          },
           filters: { platforms: [], books: [] }
         }) // For main insights
         .mockResolvedValueOnce(emptyResponse) // For recent posts (last 30 days)
         .mockResolvedValueOnce(emptyResponse) // For previous posts (30-60 days ago)
 
-      jest.spyOn(AnalyticsService, "getPlatformComparison").mockResolvedValue(mockPlatformComparison)
-      jest.spyOn(AnalyticsService, "getThemePerformance").mockResolvedValue(mockThemePerformance)
-      jest.spyOn(AnalyticsService, "getOptimalPostingTimes").mockResolvedValue(mockOptimalTimes)
+      jest
+        .spyOn(AnalyticsService, "getPlatformComparison")
+        .mockResolvedValue(mockPlatformComparison)
+      jest
+        .spyOn(AnalyticsService, "getThemePerformance")
+        .mockResolvedValue(mockThemePerformance)
+      jest
+        .spyOn(AnalyticsService, "getOptimalPostingTimes")
+        .mockResolvedValue(mockOptimalTimes)
 
       const result = await AnalyticsService.getAnalyticsInsights("user-id")
 

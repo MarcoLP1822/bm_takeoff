@@ -4,12 +4,12 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Calendar, 
-  Clock, 
-  Edit, 
-  Trash2, 
-  AlertCircle, 
+import {
+  Calendar,
+  Clock,
+  Edit,
+  Trash2,
+  AlertCircle,
   Loader2,
   RefreshCw
 } from "lucide-react"
@@ -23,7 +23,7 @@ interface ScheduledPost {
   platform: string
   content: string
   scheduledAt: Date
-  status: 'scheduled' | 'publishing' | 'published' | 'failed'
+  status: "scheduled" | "publishing" | "published" | "failed"
   retryCount: number
   lastError?: string
 }
@@ -35,7 +35,7 @@ interface ScheduledPostResponse {
   platform: string
   content: string
   scheduledAt: string // API returns ISO string, we convert to Date
-  status: 'scheduled' | 'publishing' | 'published' | 'failed'
+  status: "scheduled" | "publishing" | "published" | "failed"
   retryCount: number
   lastError?: string
 }
@@ -44,7 +44,9 @@ interface ScheduledPostsManagerProps {
   onPostUpdated?: () => void
 }
 
-export function ScheduledPostsManager({ onPostUpdated }: ScheduledPostsManagerProps) {
+export function ScheduledPostsManager({
+  onPostUpdated
+}: ScheduledPostsManagerProps) {
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([])
   const [loading, setLoading] = useState(true)
   const [editingPost, setEditingPost] = useState<string | null>(null)
@@ -62,10 +64,12 @@ export function ScheduledPostsManager({ onPostUpdated }: ScheduledPostsManagerPr
 
       if (data.success) {
         // Convert string dates back to Date objects
-        const posts = data.scheduledPosts.map((post: ScheduledPostResponse) => ({
-          ...post,
-          scheduledAt: new Date(post.scheduledAt)
-        }))
+        const posts = data.scheduledPosts.map(
+          (post: ScheduledPostResponse) => ({
+            ...post,
+            scheduledAt: new Date(post.scheduledAt)
+          })
+        )
         setScheduledPosts(posts)
       } else {
         toast.error("Failed to load scheduled posts")
@@ -102,8 +106,8 @@ export function ScheduledPostsManager({ onPostUpdated }: ScheduledPostsManagerPr
   const handleStartEdit = (post: ScheduledPost) => {
     setEditingPost(post.id)
     const scheduledDate = post.scheduledAt
-    setEditDate(format(scheduledDate, 'yyyy-MM-dd'))
-    setEditTime(format(scheduledDate, 'HH:mm'))
+    setEditDate(format(scheduledDate, "yyyy-MM-dd"))
+    setEditTime(format(scheduledDate, "HH:mm"))
   }
 
   const handleSaveEdit = async (postId: string) => {
@@ -113,7 +117,7 @@ export function ScheduledPostsManager({ onPostUpdated }: ScheduledPostsManagerPr
     }
 
     const newScheduledAt = new Date(`${editDate}T${editTime}`)
-    
+
     if (newScheduledAt <= new Date()) {
       toast.error("Scheduled time must be in the future")
       return
@@ -134,16 +138,14 @@ export function ScheduledPostsManager({ onPostUpdated }: ScheduledPostsManagerPr
 
       if (data.success) {
         toast.success("Post rescheduled successfully")
-        
+
         // Update local state
-        setScheduledPosts(prev => 
-          prev.map(post => 
-            post.id === postId 
-              ? { ...post, scheduledAt: newScheduledAt }
-              : post
+        setScheduledPosts(prev =>
+          prev.map(post =>
+            post.id === postId ? { ...post, scheduledAt: newScheduledAt } : post
           )
         )
-        
+
         setEditingPost(null)
         onPostUpdated?.()
       } else {
@@ -163,31 +165,31 @@ export function ScheduledPostsManager({ onPostUpdated }: ScheduledPostsManagerPr
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'scheduled':
-        return 'bg-blue-100 text-blue-800'
-      case 'publishing':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'published':
-        return 'bg-green-100 text-green-800'
-      case 'failed':
-        return 'bg-red-100 text-red-800'
+      case "scheduled":
+        return "bg-blue-100 text-blue-800"
+      case "publishing":
+        return "bg-yellow-100 text-yellow-800"
+      case "published":
+        return "bg-green-100 text-green-800"
+      case "failed":
+        return "bg-red-100 text-red-800"
       default:
-        return 'bg-gray-100 text-gray-800'
+        return "bg-gray-100 text-gray-800"
     }
   }
 
   const getPlatformColor = (platform: string) => {
     switch (platform) {
-      case 'twitter':
-        return 'bg-blue-100 text-blue-800'
-      case 'instagram':
-        return 'bg-pink-100 text-pink-800'
-      case 'linkedin':
-        return 'bg-blue-100 text-blue-800'
-      case 'facebook':
-        return 'bg-blue-100 text-blue-800'
+      case "twitter":
+        return "bg-blue-100 text-blue-800"
+      case "instagram":
+        return "bg-pink-100 text-pink-800"
+      case "linkedin":
+        return "bg-blue-100 text-blue-800"
+      case "facebook":
+        return "bg-blue-100 text-blue-800"
       default:
-        return 'bg-gray-100 text-gray-800'
+        return "bg-gray-100 text-gray-800"
     }
   }
 
@@ -213,8 +215,8 @@ export function ScheduledPostsManager({ onPostUpdated }: ScheduledPostsManagerPr
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-muted-foreground py-8">
-            <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <div className="text-muted-foreground py-8 text-center">
+            <Calendar className="mx-auto mb-4 h-12 w-12 opacity-50" />
             <p>No scheduled posts</p>
             <p className="text-sm">Schedule posts to see them here</p>
           </div>
@@ -231,11 +233,7 @@ export function ScheduledPostsManager({ onPostUpdated }: ScheduledPostsManagerPr
             <Calendar className="h-5 w-5" />
             Scheduled Posts ({scheduledPosts.length})
           </CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchScheduledPosts}
-          >
+          <Button variant="outline" size="sm" onClick={fetchScheduledPosts}>
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
@@ -244,11 +242,8 @@ export function ScheduledPostsManager({ onPostUpdated }: ScheduledPostsManagerPr
         <div className="space-y-4">
           {scheduledPosts
             .sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime())
-            .map((post) => (
-              <div
-                key={post.id}
-                className="border rounded-lg p-4 space-y-3"
-              >
+            .map(post => (
+              <div key={post.id} className="space-y-3 rounded-lg border p-4">
                 {/* Post Header */}
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
@@ -259,13 +254,11 @@ export function ScheduledPostsManager({ onPostUpdated }: ScheduledPostsManagerPr
                       {post.status}
                     </Badge>
                     {post.retryCount > 0 && (
-                      <Badge variant="outline">
-                        Retry {post.retryCount}
-                      </Badge>
+                      <Badge variant="outline">Retry {post.retryCount}</Badge>
                     )}
                   </div>
-                  
-                  {post.status === 'scheduled' && (
+
+                  {post.status === "scheduled" && (
                     <div className="flex items-center gap-2">
                       <Button
                         size="sm"
@@ -286,11 +279,10 @@ export function ScheduledPostsManager({ onPostUpdated }: ScheduledPostsManagerPr
                 </div>
 
                 {/* Post Content */}
-                <div className="text-sm text-muted-foreground">
-                  {post.content.length > 100 
+                <div className="text-muted-foreground text-sm">
+                  {post.content.length > 100
                     ? `${post.content.substring(0, 100)}...`
-                    : post.content
-                  }
+                    : post.content}
                 </div>
 
                 {/* Scheduling Info */}
@@ -298,31 +290,32 @@ export function ScheduledPostsManager({ onPostUpdated }: ScheduledPostsManagerPr
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-sm font-medium mb-1">Date</label>
+                        <label className="mb-1 block text-sm font-medium">
+                          Date
+                        </label>
                         <input
                           type="date"
                           value={editDate}
-                          onChange={(e) => setEditDate(e.target.value)}
-                          min={new Date().toISOString().split('T')[0]}
-                          className="w-full px-3 py-2 border rounded-md text-sm"
+                          onChange={e => setEditDate(e.target.value)}
+                          min={new Date().toISOString().split("T")[0]}
+                          className="w-full rounded-md border px-3 py-2 text-sm"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-1">Time</label>
+                        <label className="mb-1 block text-sm font-medium">
+                          Time
+                        </label>
                         <input
                           type="time"
                           value={editTime}
-                          onChange={(e) => setEditTime(e.target.value)}
-                          className="w-full px-3 py-2 border rounded-md text-sm"
+                          onChange={e => setEditTime(e.target.value)}
+                          className="w-full rounded-md border px-3 py-2 text-sm"
                         />
                       </div>
                     </div>
-                    
+
                     <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => handleSaveEdit(post.id)}
-                      >
+                      <Button size="sm" onClick={() => handleSaveEdit(post.id)}>
                         Save
                       </Button>
                       <Button
@@ -338,19 +331,19 @@ export function ScheduledPostsManager({ onPostUpdated }: ScheduledPostsManagerPr
                   <div className="flex items-center gap-4 text-sm">
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                      {format(post.scheduledAt, 'MMM d, yyyy')}
+                      {format(post.scheduledAt, "MMM d, yyyy")}
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                      {format(post.scheduledAt, 'h:mm a')}
+                      {format(post.scheduledAt, "h:mm a")}
                     </div>
                   </div>
                 )}
 
                 {/* Error Message */}
                 {post.lastError && (
-                  <div className="flex items-start gap-2 p-3 bg-red-50 rounded-md">
-                    <AlertCircle className="h-4 w-4 text-red-500 mt-0.5" />
+                  <div className="flex items-start gap-2 rounded-md bg-red-50 p-3">
+                    <AlertCircle className="mt-0.5 h-4 w-4 text-red-500" />
                     <div className="text-sm text-red-700">
                       <div className="font-medium">Last Error:</div>
                       <div>{post.lastError}</div>

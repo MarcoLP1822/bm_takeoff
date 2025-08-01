@@ -11,11 +11,15 @@ import { NextRequest, NextResponse } from "next/server"
 jest.mock("@/lib/publishing-service")
 jest.mock("@clerk/nextjs/server")
 
-const mockPublishingService = PublishingService as jest.Mocked<typeof PublishingService>
+const mockPublishingService = PublishingService as jest.Mocked<
+  typeof PublishingService
+>
 const mockAuth = auth as jest.MockedFunction<typeof auth>
 
 // Type the POST function correctly - using unknown first to avoid type assertion error
-const postHandler = (POST as unknown) as (request: NextRequest) => Promise<NextResponse>
+const postHandler = POST as unknown as (
+  request: NextRequest
+) => Promise<NextResponse>
 
 describe("/api/social/publish", () => {
   beforeEach(() => {
@@ -24,12 +28,12 @@ describe("/api/social/publish", () => {
 
   describe("POST", () => {
     const mockUserId = "user-123"
-    
-    const mockRequest = (body: Record<string, unknown>) => 
-      new NextRequest('http://localhost/api/social/publish', {
-        method: 'POST',
+
+    const mockRequest = (body: Record<string, unknown>) =>
+      new NextRequest("http://localhost/api/social/publish", {
+        method: "POST",
         headers: new Headers({
-          'content-type': 'application/json',
+          "content-type": "application/json"
         }),
         body: JSON.stringify(body)
       })

@@ -13,12 +13,9 @@ export async function DELETE(
 ) {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { postId } = await params
@@ -30,15 +27,11 @@ export async function DELETE(
       success: true,
       message: "Scheduled post cancelled successfully"
     })
-
   } catch (error) {
     console.error("Cancel scheduled post error:", error)
-    
+
     if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
     return NextResponse.json(
@@ -54,12 +47,9 @@ export async function PUT(
 ) {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { postId } = await params
@@ -77,10 +67,9 @@ export async function PUT(
       message: "Post rescheduled successfully",
       scheduledAt: newScheduledAt.toISOString()
     })
-
   } catch (error) {
     console.error("Reschedule post error:", error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid request data", details: error.errors },
@@ -89,10 +78,7 @@ export async function PUT(
     }
 
     if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
     return NextResponse.json(

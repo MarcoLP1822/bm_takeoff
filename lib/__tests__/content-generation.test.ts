@@ -5,22 +5,24 @@ import {
   generateImageSuggestion,
   PLATFORM_CONFIGS,
   Platform
-} from '../content-generation'
-import { BookAnalysisResult } from '../ai-analysis'
+} from "../content-generation"
+import { BookAnalysisResult } from "../ai-analysis"
 
 // Mock OpenAI
-jest.mock('openai', () => {
+jest.mock("openai", () => {
   return {
     __esModule: true,
     default: jest.fn().mockImplementation(() => ({
       chat: {
         completions: {
           create: jest.fn().mockResolvedValue({
-            choices: [{
-              message: {
-                content: 'This is a test social media post about the book.'
+            choices: [
+              {
+                message: {
+                  content: "This is a test social media post about the book."
+                }
               }
-            }]
+            ]
           })
         }
       }
@@ -28,36 +30,37 @@ jest.mock('openai', () => {
   }
 })
 
-describe('Content Generation', () => {
+describe("Content Generation", () => {
   const mockBookAnalysis: BookAnalysisResult = {
     quotes: [
-      'The only way to do great work is to love what you do.',
-      'Innovation distinguishes between a leader and a follower.'
+      "The only way to do great work is to love what you do.",
+      "Innovation distinguishes between a leader and a follower."
     ],
     keyInsights: [
-      'Passion is the key to excellence',
-      'Leadership requires innovation'
+      "Passion is the key to excellence",
+      "Leadership requires innovation"
     ],
-    themes: ['Leadership', 'Innovation', 'Passion'],
-    overallSummary: 'A book about leadership and innovation in the modern workplace.',
+    themes: ["Leadership", "Innovation", "Passion"],
+    overallSummary:
+      "A book about leadership and innovation in the modern workplace.",
     discussionPoints: [
-      'How does passion drive performance?',
-      'What makes a true leader?'
+      "How does passion drive performance?",
+      "What makes a true leader?"
     ],
-    genre: 'Business',
-    targetAudience: 'Professionals and entrepreneurs',
+    genre: "Business",
+    targetAudience: "Professionals and entrepreneurs",
     chapterSummaries: []
   }
 
-  describe('Platform Configuration', () => {
-    test('should have correct character limits for all platforms', () => {
+  describe("Platform Configuration", () => {
+    test("should have correct character limits for all platforms", () => {
       expect(PLATFORM_CONFIGS.twitter.maxLength).toBe(280)
       expect(PLATFORM_CONFIGS.instagram.maxLength).toBe(2200)
       expect(PLATFORM_CONFIGS.linkedin.maxLength).toBe(3000)
       expect(PLATFORM_CONFIGS.facebook.maxLength).toBe(63206)
     })
 
-    test('should have hashtag limits for all platforms', () => {
+    test("should have hashtag limits for all platforms", () => {
       expect(PLATFORM_CONFIGS.twitter.hashtagLimit).toBe(5)
       expect(PLATFORM_CONFIGS.instagram.hashtagLimit).toBe(30)
       expect(PLATFORM_CONFIGS.linkedin.hashtagLimit).toBe(10)
@@ -65,67 +68,71 @@ describe('Content Generation', () => {
     })
   })
 
-  describe('generateHashtags', () => {
-    test('should generate relevant hashtags for Twitter', () => {
+  describe("generateHashtags", () => {
+    test("should generate relevant hashtags for Twitter", () => {
       const hashtags = generateHashtags(
-        'Great quote about leadership',
-        'twitter',
-        'The Leadership Book',
-        'John Doe',
-        'leadership'
+        "Great quote about leadership",
+        "twitter",
+        "The Leadership Book",
+        "John Doe",
+        "leadership"
       )
 
-      expect(hashtags).toContain('#TheLeadershipBook')
-      expect(hashtags).toContain('#JohnDoe')
-      expect(hashtags).toContain('#Leadership')
-      expect(hashtags.length).toBeLessThanOrEqual(PLATFORM_CONFIGS.twitter.hashtagLimit)
+      expect(hashtags).toContain("#TheLeadershipBook")
+      expect(hashtags).toContain("#JohnDoe")
+      expect(hashtags).toContain("#Leadership")
+      expect(hashtags.length).toBeLessThanOrEqual(
+        PLATFORM_CONFIGS.twitter.hashtagLimit
+      )
     })
 
-    test('should generate more hashtags for Instagram', () => {
+    test("should generate more hashtags for Instagram", () => {
       const hashtags = generateHashtags(
-        'Amazing book quote',
-        'instagram',
-        'Amazing Book',
-        'Jane Smith'
+        "Amazing book quote",
+        "instagram",
+        "Amazing Book",
+        "Jane Smith"
       )
 
       expect(hashtags.length).toBeGreaterThan(5)
-      expect(hashtags.length).toBeLessThanOrEqual(PLATFORM_CONFIGS.instagram.hashtagLimit)
-      expect(hashtags).toContain('#bookstagram')
+      expect(hashtags.length).toBeLessThanOrEqual(
+        PLATFORM_CONFIGS.instagram.hashtagLimit
+      )
+      expect(hashtags).toContain("#bookstagram")
     })
 
-    test('should handle special characters in book titles', () => {
+    test("should handle special characters in book titles", () => {
       const hashtags = generateHashtags(
-        'Test content',
-        'twitter',
-        'The Book: A Story!',
-        'Author Name-Smith'
+        "Test content",
+        "twitter",
+        "The Book: A Story!",
+        "Author Name-Smith"
       )
 
-      expect(hashtags).toContain('#TheBookAStory')
-      expect(hashtags).toContain('#AuthorNameSmith')
+      expect(hashtags).toContain("#TheBookAStory")
+      expect(hashtags).toContain("#AuthorNameSmith")
     })
 
-    test('should include theme-based hashtags', () => {
+    test("should include theme-based hashtags", () => {
       const hashtags = generateHashtags(
-        'Leadership content',
-        'linkedin',
-        'Leadership Book',
-        'Author',
-        'leadership'
+        "Leadership content",
+        "linkedin",
+        "Leadership Book",
+        "Author",
+        "leadership"
       )
 
-      expect(hashtags).toContain('#Leadership')
-      expect(hashtags).toContain('#Management')
+      expect(hashtags).toContain("#Leadership")
+      expect(hashtags).toContain("#Management")
     })
   })
 
-  describe('validatePost', () => {
-    test('should validate Twitter post within character limit', () => {
+  describe("validatePost", () => {
+    test("should validate Twitter post within character limit", () => {
       const result = validatePost(
-        'Short tweet content',
-        ['#book', '#reading'],
-        'twitter'
+        "Short tweet content",
+        ["#book", "#reading"],
+        "twitter"
       )
 
       expect(result.isValid).toBe(true)
@@ -133,104 +140,115 @@ describe('Content Generation', () => {
       expect(result.characterCount).toBeLessThan(280)
     })
 
-    test('should reject Twitter post exceeding character limit', () => {
-      const longContent = 'a'.repeat(300)
-      const result = validatePost(longContent, [], 'twitter')
+    test("should reject Twitter post exceeding character limit", () => {
+      const longContent = "a".repeat(300)
+      const result = validatePost(longContent, [], "twitter")
 
       expect(result.isValid).toBe(false)
-      expect(result.errors[0]).toContain('exceeds')
+      expect(result.errors[0]).toContain("exceeds")
     })
 
-    test('should reject post with too many hashtags', () => {
-      const hashtags = Array(10).fill('#tag')
-      const result = validatePost('Content', hashtags, 'twitter')
+    test("should reject post with too many hashtags", () => {
+      const hashtags = Array(10).fill("#tag")
+      const result = validatePost("Content", hashtags, "twitter")
 
       expect(result.isValid).toBe(false)
-      expect(result.errors[0]).toContain('Too many hashtags')
+      expect(result.errors[0]).toContain("Too many hashtags")
     })
 
-    test('should calculate character count including hashtags', () => {
-      const content = 'Test content'
-      const hashtags = ['#test', '#book']
-      const result = validatePost(content, hashtags, 'twitter')
+    test("should calculate character count including hashtags", () => {
+      const content = "Test content"
+      const hashtags = ["#test", "#book"]
+      const result = validatePost(content, hashtags, "twitter")
 
-      const expectedCount = content.length + ' #test #book'.length
+      const expectedCount = content.length + " #test #book".length
       expect(result.characterCount).toBe(expectedCount)
     })
 
-    test('should validate LinkedIn minimum length', () => {
-      const result = validatePost('Short', [], 'linkedin')
+    test("should validate LinkedIn minimum length", () => {
+      const result = validatePost("Short", [], "linkedin")
 
       expect(result.isValid).toBe(false)
-      expect(result.errors[0]).toContain('at least 10 characters')
+      expect(result.errors[0]).toContain("at least 10 characters")
     })
   })
 
-  describe('generateImageSuggestion', () => {
-    test('should generate quote image suggestion', () => {
+  describe("generateImageSuggestion", () => {
+    test("should generate quote image suggestion", () => {
       const suggestion = generateImageSuggestion(
-        'Amazing quote from the book',
-        'quote',
-        'twitter',
-        'Test Book'
+        "Amazing quote from the book",
+        "quote",
+        "twitter",
+        "Test Book"
       )
 
-      expect(suggestion).toContain('quote-graphic')
-      expect(suggestion).toContain('/api/images/generate')
+      expect(suggestion).toContain("quote-graphic")
+      expect(suggestion).toContain("/api/images/generate")
     })
 
-    test('should generate insight image suggestion', () => {
+    test("should generate insight image suggestion", () => {
       const suggestion = generateImageSuggestion(
-        'Key insight about leadership',
-        'insight',
-        'instagram',
-        'Test Book'
+        "Key insight about leadership",
+        "insight",
+        "instagram",
+        "Test Book"
       )
 
-      expect(suggestion).toContain('lightbulb-concept')
+      expect(suggestion).toContain("lightbulb-concept")
     })
 
-    test('should handle long content by truncating', () => {
-      const longContent = 'a'.repeat(200)
-      const suggestion = generateImageSuggestion(longContent, 'theme', 'twitter', 'Test Book')
+    test("should handle long content by truncating", () => {
+      const longContent = "a".repeat(200)
+      const suggestion = generateImageSuggestion(
+        longContent,
+        "theme",
+        "twitter",
+        "Test Book"
+      )
 
-      expect(suggestion).toContain(encodeURIComponent(longContent.slice(0, 100)))
+      expect(suggestion).toContain(
+        encodeURIComponent(longContent.slice(0, 100))
+      )
     })
   })
 
-  describe('generateSocialContent', () => {
-    test('should generate content for all platforms', async () => {
+  describe("generateSocialContent", () => {
+    test("should generate content for all platforms", async () => {
       const result = await generateSocialContent(
         mockBookAnalysis,
-        'Test Book',
-        'test-book-id',
-        'test-user-id',
-        'Test Author',
+        "Test Book",
+        "test-book-id",
+        "test-user-id",
+        "Test Author",
         {
-          platforms: ['twitter', 'instagram'],
+          platforms: ["twitter", "instagram"],
           variationsPerTheme: 1
         }
       )
 
       expect(result.length).toBeGreaterThan(0)
-      
+
       // Check that content was generated for both platforms
-      const twitterPosts = result.flatMap(v => v.posts).filter(p => p.platform === 'twitter')
-      const instagramPosts = result.flatMap(v => v.posts).filter(p => p.platform === 'instagram')
-      
+      const twitterPosts = result
+        .flatMap(v => v.posts)
+        .filter(p => p.platform === "twitter")
+      const instagramPosts = result
+        .flatMap(v => v.posts)
+        .filter(p => p.platform === "instagram")
+
       expect(twitterPosts.length).toBeGreaterThan(0)
       expect(instagramPosts.length).toBeGreaterThan(0)
     })
 
-    test('should generate multiple variations', async () => {
+    test("should generate multiple variations", async () => {
       const result = await generateSocialContent(
         mockBookAnalysis,
-        'Test Book',
-        'test-book-id',
-        'test-user-id',
-        'Test Author',
+        "Test Book",
+        "test-book-id",
+        "test-user-id",
+        "Test Author",
         {
-          platforms: ['twitter'],
+          platforms: ["twitter"],
           variationsPerTheme: 3
         }
       )
@@ -239,51 +257,55 @@ describe('Content Generation', () => {
       expect(result.length).toBeGreaterThan(5)
     })
 
-    test('should include image suggestions when requested', async () => {
+    test("should include image suggestions when requested", async () => {
       const result = await generateSocialContent(
         mockBookAnalysis,
-        'Test Book',
-        'test-book-id',
-        'test-user-id',
-        'Test Author',
+        "Test Book",
+        "test-book-id",
+        "test-user-id",
+        "Test Author",
         {
-          platforms: ['instagram'],
+          platforms: ["instagram"],
           includeImages: true,
           variationsPerTheme: 1
         }
       )
 
-      const postsWithImages = result.flatMap(v => v.posts).filter(p => p.imageUrl)
+      const postsWithImages = result
+        .flatMap(v => v.posts)
+        .filter(p => p.imageUrl)
       expect(postsWithImages.length).toBeGreaterThan(0)
     })
 
-    test('should not include images when not requested', async () => {
+    test("should not include images when not requested", async () => {
       const result = await generateSocialContent(
         mockBookAnalysis,
-        'Test Book',
-        'test-book-id',
-        'test-user-id',
-        'Test Author',
+        "Test Book",
+        "test-book-id",
+        "test-user-id",
+        "Test Author",
         {
-          platforms: ['twitter'],
+          platforms: ["twitter"],
           includeImages: false,
           variationsPerTheme: 1
         }
       )
 
-      const postsWithImages = result.flatMap(v => v.posts).filter(p => p.imageUrl)
+      const postsWithImages = result
+        .flatMap(v => v.posts)
+        .filter(p => p.imageUrl)
       expect(postsWithImages.length).toBe(0)
     })
 
-    test('should validate generated posts', async () => {
+    test("should validate generated posts", async () => {
       const result = await generateSocialContent(
         mockBookAnalysis,
-        'Test Book',
-        'test-book-id',
-        'test-user-id',
-        'Test Author',
+        "Test Book",
+        "test-book-id",
+        "test-user-id",
+        "Test Author",
         {
-          platforms: ['twitter'],
+          platforms: ["twitter"],
           variationsPerTheme: 1
         }
       )
@@ -299,29 +321,29 @@ describe('Content Generation', () => {
       })
     })
 
-    test('should handle different tones', async () => {
+    test("should handle different tones", async () => {
       const professionalResult = await generateSocialContent(
         mockBookAnalysis,
-        'Business Book',
-        'test-book-id',
-        'test-user-id',
-        'Author',
+        "Business Book",
+        "test-book-id",
+        "test-user-id",
+        "Author",
         {
-          platforms: ['linkedin'],
-          tone: 'professional',
+          platforms: ["linkedin"],
+          tone: "professional",
           variationsPerTheme: 1
         }
       )
 
       const casualResult = await generateSocialContent(
         mockBookAnalysis,
-        'Fun Book',
-        'test-book-id',
-        'test-user-id',
-        'Author',
+        "Fun Book",
+        "test-book-id",
+        "test-user-id",
+        "Author",
         {
-          platforms: ['instagram'],
-          tone: 'casual',
+          platforms: ["instagram"],
+          tone: "casual",
           variationsPerTheme: 1
         }
       )
@@ -330,17 +352,17 @@ describe('Content Generation', () => {
       expect(casualResult.length).toBeGreaterThan(0)
     })
 
-    test('should create fallback content on AI failure', async () => {
+    test("should create fallback content on AI failure", async () => {
       // This test would need proper mocking setup which is complex
       // For now, just test normal execution
       const result = await generateSocialContent(
         mockBookAnalysis,
-        'Test Book',
-        'test-book-id',
-        'test-user-id',
-        'Test Author',
+        "Test Book",
+        "test-book-id",
+        "test-user-id",
+        "Test Author",
         {
-          platforms: ['twitter'],
+          platforms: ["twitter"],
           variationsPerTheme: 1
         }
       )
@@ -355,23 +377,23 @@ describe('Content Generation', () => {
       })
     })
 
-    test('should handle missing analysis data gracefully', async () => {
+    test("should handle missing analysis data gracefully", async () => {
       const incompleteAnalysis: Partial<BookAnalysisResult> = {
-        quotes: ['Single quote'],
+        quotes: ["Single quote"],
         keyInsights: [],
         themes: [],
-        overallSummary: '',
+        overallSummary: "",
         discussionPoints: []
       }
 
       const result = await generateSocialContent(
         incompleteAnalysis as BookAnalysisResult,
-        'Test Book',
-        'test-book-id',
-        'test-user-id',
-        'Test Author',
+        "Test Book",
+        "test-book-id",
+        "test-user-id",
+        "Test Author",
         {
-          platforms: ['twitter'],
+          platforms: ["twitter"],
           variationsPerTheme: 1
         }
       )
@@ -381,35 +403,35 @@ describe('Content Generation', () => {
     })
   })
 
-  describe('Content Variation Types', () => {
-    test('should generate different source types', async () => {
+  describe("Content Variation Types", () => {
+    test("should generate different source types", async () => {
       const result = await generateSocialContent(
         mockBookAnalysis,
-        'Test Book',
-        'test-book-id',
-        'test-user-id',
-        'Test Author',
+        "Test Book",
+        "test-book-id",
+        "test-user-id",
+        "Test Author",
         {
-          platforms: ['twitter'],
+          platforms: ["twitter"],
           variationsPerTheme: 1
         }
       )
 
       const sourceTypes = result.map(v => v.sourceType)
-      expect(sourceTypes).toContain('quote')
-      expect(sourceTypes).toContain('insight')
-      expect(sourceTypes).toContain('theme')
+      expect(sourceTypes).toContain("quote")
+      expect(sourceTypes).toContain("insight")
+      expect(sourceTypes).toContain("theme")
     })
 
-    test('should include source content in variations', async () => {
+    test("should include source content in variations", async () => {
       const result = await generateSocialContent(
         mockBookAnalysis,
-        'Test Book',
-        'test-book-id',
-        'test-user-id',
-        'Test Author',
+        "Test Book",
+        "test-book-id",
+        "test-user-id",
+        "Test Author",
         {
-          platforms: ['twitter'],
+          platforms: ["twitter"],
           variationsPerTheme: 1
         }
       )

@@ -1,12 +1,12 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { BookUpload } from '@/components/books/book-upload'
-import { BookLibrary } from '@/components/books/book-library'
-import { BookDetail } from '@/components/books/book-detail'
-import { Button } from '@/components/ui/button'
-import { Plus, BookOpen } from 'lucide-react'
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
+import { BookUpload } from "@/components/books/book-upload"
+import { BookLibrary } from "@/components/books/book-library"
+import { BookDetail } from "@/components/books/book-detail"
+import { Button } from "@/components/ui/button"
+import { Plus, BookOpen } from "lucide-react"
 
 interface Book {
   id: string
@@ -15,7 +15,7 @@ interface Book {
   genre?: string
   fileName: string
   fileSize?: string
-  analysisStatus: 'pending' | 'processing' | 'completed' | 'failed'
+  analysisStatus: "pending" | "processing" | "completed" | "failed"
   createdAt: string
   updatedAt: string
 }
@@ -28,7 +28,9 @@ export default function BooksPage() {
 
   // Check if we should auto-open upload form
   useEffect(() => {
-    const shouldShowUpload = searchParams?.get('action') === 'upload' || searchParams?.get('upload') === 'true'
+    const shouldShowUpload =
+      searchParams?.get("action") === "upload" ||
+      searchParams?.get("upload") === "true"
     if (shouldShowUpload) {
       setShowUpload(true)
     }
@@ -40,7 +42,7 @@ export default function BooksPage() {
   }
 
   const handleUploadError = (error: string) => {
-    console.error('Upload error:', error)
+    console.error("Upload error:", error)
   }
 
   const handleBookSelect = (book: Book) => {
@@ -50,12 +52,12 @@ export default function BooksPage() {
   const handleBookDelete = async (bookId: string) => {
     try {
       const response = await fetch(`/api/books/${bookId}`, {
-        method: 'DELETE'
+        method: "DELETE"
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to delete book')
+        throw new Error(errorData.error || "Failed to delete book")
       }
 
       // If the deleted book is currently selected, clear selection
@@ -66,9 +68,11 @@ export default function BooksPage() {
       // Trigger refresh to update the book list
       setRefreshTrigger(prev => prev + 1)
     } catch (error) {
-      console.error('Error deleting book:', error)
+      console.error("Error deleting book:", error)
       // You might want to show a toast notification here
-      alert(`Failed to delete book: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      alert(
+        `Failed to delete book: ${error instanceof Error ? error.message : "Unknown error"}`
+      )
     }
   }
 
@@ -79,38 +83,35 @@ export default function BooksPage() {
   if (selectedBook) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <BookDetail 
-          bookId={selectedBook.id} 
-          onBack={handleBackToLibrary}
-        />
+        <BookDetail bookId={selectedBook.id} onBack={handleBackToLibrary} />
       </div>
     )
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-            <BookOpen className="h-8 w-8 mr-3" />
+          <h1 className="flex items-center text-3xl font-bold text-gray-900">
+            <BookOpen className="mr-3 h-8 w-8" />
             Book Library
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="mt-2 text-gray-600">
             Upload and manage your books for social media content generation
           </p>
         </div>
-        
+
         <Button onClick={() => setShowUpload(!showUpload)}>
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="mr-2 h-4 w-4" />
           Upload Book
         </Button>
       </div>
 
       {showUpload && (
         <div className="mb-8">
-          <div className="bg-white border rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Upload New Book</h2>
-            <BookUpload 
+          <div className="rounded-lg border bg-white p-6">
+            <h2 className="mb-4 text-xl font-semibold">Upload New Book</h2>
+            <BookUpload
               onUploadSuccess={handleUploadSuccess}
               onUploadError={handleUploadError}
             />
@@ -118,8 +119,8 @@ export default function BooksPage() {
         </div>
       )}
 
-      <div className="bg-white border rounded-lg p-6">
-        <BookLibrary 
+      <div className="rounded-lg border bg-white p-6">
+        <BookLibrary
           onBookSelect={handleBookSelect}
           onBookDelete={handleBookDelete}
           refreshTrigger={refreshTrigger}

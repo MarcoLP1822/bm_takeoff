@@ -2,7 +2,11 @@ import { Redis } from "@upstash/redis"
 import { db } from "@/db"
 import { generatedContent } from "@/db/schema"
 import { eq, and } from "drizzle-orm"
-import { PublishingService, type PublishResult, type ScheduledPost } from "./publishing-service"
+import {
+  PublishingService,
+  type PublishResult,
+  type ScheduledPost
+} from "./publishing-service"
 import { type SocialPlatform } from "./social-media"
 
 // Initialize Redis client
@@ -61,7 +65,7 @@ export class SchedulingService {
         platform: contentData.platform as SocialPlatform,
         content: contentData.content,
         scheduledAt: request.scheduledAt,
-        status: 'scheduled',
+        status: "scheduled",
         retryCount: 0
       }
 
@@ -74,10 +78,10 @@ export class SchedulingService {
       )
 
       // Add to sorted set for time-based processing
-      await redis.zadd(
-        this.QUEUE_KEY,
-        { score: request.scheduledAt.getTime(), member: scheduledPost.id }
-      )
+      await redis.zadd(this.QUEUE_KEY, {
+        score: request.scheduledAt.getTime(),
+        member: scheduledPost.id
+      })
     }
 
     // Update content status to scheduled
@@ -97,14 +101,11 @@ export class SchedulingService {
   static async getScheduledPosts(userId: string): Promise<ScheduledPost[]> {
     // Get all scheduled post IDs
     const now = Date.now()
-    const futureTime = now + (30 * 24 * 60 * 60 * 1000) // 30 days from now
-    
-    const scheduledIds = await redis.zrange(
-      this.QUEUE_KEY,
-      now,
-      futureTime,
-      { byScore: true }
-    )
+    const futureTime = now + 30 * 24 * 60 * 60 * 1000 // 30 days from now
+
+    const scheduledIds = await redis.zrange(this.QUEUE_KEY, now, futureTime, {
+      byScore: true
+    })
 
     const scheduledPosts: ScheduledPost[] = []
 
@@ -112,10 +113,10 @@ export class SchedulingService {
     for (const id of scheduledIds) {
       const key = `${this.QUEUE_KEY}:${id}`
       const postData = await redis.get(key)
-      
+
       if (postData) {
         const post = JSON.parse(postData as string) as ScheduledPost
-        
+
         // Check if this post belongs to the user
         const content = await db
           .select()
@@ -134,8 +135,8 @@ export class SchedulingService {
       }
     }
 
-    return scheduledPosts.sort((a, b) => 
-      a.scheduledAt.getTime() - b.scheduledAt.getTime()
+    return scheduledPosts.sort(
+      (a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime()
     )
   }
 
@@ -176,8 +177,10 @@ export class SchedulingService {
     await redis.zrem(this.QUEUE_KEY, scheduledPostId)
 
     // Check if this was the last scheduled post for this content
-    const remainingPosts = await this.getScheduledPostsForContent(post.contentId)
-    
+    const remainingPosts = await this.getScheduledPostsForContent(
+      post.contentId
+    )
+
     if (remainingPosts.length === 0) {
       // Update content status back to draft
       await db
@@ -239,15 +242,17 @@ export class SchedulingService {
     )
 
     // Update in sorted set
-    await redis.zadd(
-      this.QUEUE_KEY,
-      { score: newScheduledAt.getTime(), member: scheduledPostId }
-    )
+    await redis.zadd(this.QUEUE_KEY, {
+      score: newScheduledAt.getTime(),
+      member: scheduledPostId
+    })
 
     // Update content scheduled time if this is the earliest post
-    const allPostsForContent = await this.getScheduledPostsForContent(post.contentId)
-    const earliestPost = allPostsForContent.sort((a, b) => 
-      a.scheduledAt.getTime() - b.scheduledAt.getTime()
+    const allPostsForContent = await this.getScheduledPostsForContent(
+      post.contentId
+    )
+    const earliestPost = allPostsForContent.sort(
+      (a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime()
     )[0]
 
     if (earliestPost) {
@@ -266,14 +271,11 @@ export class SchedulingService {
    */
   static async processDuePosts(): Promise<void> {
     const now = Date.now()
-    
+
     // Get posts that are due for publishing
-    const duePostIds = await redis.zrange(
-      this.QUEUE_KEY,
-      0,
-      now,
-      { byScore: true }
-    )
+    const duePostIds = await redis.zrange(this.QUEUE_KEY, 0, now, {
+      byScore: true
+    })
 
     for (const postId of duePostIds) {
       try {
@@ -327,7 +329,7 @@ export class SchedulingService {
       const userId = content[0].userId
 
       // Update post status
-      post.status = 'publishing'
+      post.status = "publishing"
       await redis.setex(key, 3600, JSON.stringify(post))
 
       // Attempt to publish
@@ -340,19 +342,24 @@ export class SchedulingService {
 
       if (publishResult.success) {
         // Success - remove from queue
-        post.status = 'published'
+        post.status = "published"
         await this.cleanupScheduledPost(postId)
       } else {
         // Failed - handle retry
-        await this.handlePublishFailure(post, publishResult.error || "Unknown error")
+        await this.handlePublishFailure(
+          post,
+          publishResult.error || "Unknown error"
+        )
       }
-
     } catch (error) {
       // Handle unexpected errors
       const postData = await redis.get(key)
       if (postData) {
         const post = JSON.parse(postData as string) as ScheduledPost
-        await this.handlePublishFailure(post, error instanceof Error ? error.message : "Unknown error")
+        await this.handlePublishFailure(
+          post,
+          error instanceof Error ? error.message : "Unknown error"
+        )
       }
     } finally {
       await redis.del(processingKey)
@@ -371,8 +378,8 @@ export class SchedulingService {
 
     if (post.retryCount >= this.MAX_RETRIES) {
       // Max retries reached - mark as failed
-      post.status = 'failed'
-      
+      post.status = "failed"
+
       // Update content status
       await db
         .update(generatedContent)
@@ -384,18 +391,17 @@ export class SchedulingService {
 
       // Remove from queue but keep for history
       await redis.zrem(this.QUEUE_KEY, post.id)
-      
+
       // Store failed post for user notification
       const failedKey = `failed_posts:${post.id}`
       await redis.setex(failedKey, 7 * 24 * 60 * 60, JSON.stringify(post)) // Keep for 7 days
-      
     } else {
       // Schedule retry (exponential backoff)
       const retryDelay = Math.pow(2, post.retryCount) * 60 * 1000 // 2^n minutes
       const retryTime = Date.now() + retryDelay
-      
+
       post.scheduledAt = new Date(retryTime)
-      post.status = 'scheduled'
+      post.status = "scheduled"
 
       // Update in Redis
       const key = `${this.QUEUE_KEY}:${post.id}`
@@ -416,14 +422,16 @@ export class SchedulingService {
   /**
    * Get scheduled posts for a specific content
    */
-  private static async getScheduledPostsForContent(contentId: string): Promise<ScheduledPost[]> {
+  private static async getScheduledPostsForContent(
+    contentId: string
+  ): Promise<ScheduledPost[]> {
     const allScheduledIds = await redis.zrange(this.QUEUE_KEY, 0, -1)
     const posts: ScheduledPost[] = []
 
     for (const id of allScheduledIds) {
       const key = `${this.QUEUE_KEY}:${id}`
       const postData = await redis.get(key)
-      
+
       if (postData) {
         const post = JSON.parse(postData as string) as ScheduledPost
         if (post.contentId === contentId) {
@@ -441,10 +449,10 @@ export class SchedulingService {
   static async getFailedPosts(userId: string): Promise<ScheduledPost[]> {
     // This would require scanning failed posts - simplified implementation
     const failedPosts: ScheduledPost[] = []
-    
+
     // In a real implementation, you'd maintain a separate index for failed posts by user
     // For now, we'll return empty array and rely on content status for failure detection
-    
+
     return failedPosts
   }
 
@@ -452,11 +460,11 @@ export class SchedulingService {
    * Clear old scheduled posts (cleanup job)
    */
   static async cleanupOldPosts(): Promise<void> {
-    const cutoffTime = Date.now() - (7 * 24 * 60 * 60 * 1000) // 7 days ago
-    
+    const cutoffTime = Date.now() - 7 * 24 * 60 * 60 * 1000 // 7 days ago
+
     // Remove old posts from sorted set
     await redis.zremrangebyscore(this.QUEUE_KEY, 0, cutoffTime)
-    
+
     // Clean up failed posts older than 7 days
     const pattern = "failed_posts:*"
     // Note: In production, you'd want a more efficient cleanup mechanism

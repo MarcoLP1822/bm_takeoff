@@ -1,7 +1,7 @@
 import { config } from "dotenv"
 import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js"
 import postgres from "postgres"
-import { 
+import {
   customers,
   books,
   generatedContent,
@@ -13,7 +13,21 @@ import {
 } from "./schema"
 
 // Re-export drizzle-orm operators for convenience
-export { eq, and, or, gte, lte, gt, lt, desc, asc, sql, count, sum, avg } from "drizzle-orm"
+export {
+  eq,
+  and,
+  or,
+  gte,
+  lte,
+  gt,
+  lt,
+  desc,
+  asc,
+  sql,
+  count,
+  sum,
+  avg
+} from "drizzle-orm"
 
 config({ path: ".env.local" })
 

@@ -5,19 +5,18 @@ import { z } from "zod"
 
 const scheduleSchema = z.object({
   contentId: z.string().uuid(),
-  accountIds: z.array(z.string().uuid()).min(1, "At least one account must be selected"),
+  accountIds: z
+    .array(z.string().uuid())
+    .min(1, "At least one account must be selected"),
   scheduledAt: z.string().datetime()
 })
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const body = await request.json()
@@ -38,10 +37,9 @@ export async function POST(request: NextRequest) {
       message: "Post scheduled successfully",
       scheduledAt: scheduledAt.toISOString()
     })
-
   } catch (error) {
     console.error("Schedule error:", error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid request data", details: error.errors },
@@ -50,10 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
     return NextResponse.json(
@@ -66,12 +61,9 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     // Get user's scheduled posts
@@ -81,10 +73,9 @@ export async function GET(request: NextRequest) {
       success: true,
       scheduledPosts
     })
-
   } catch (error) {
     console.error("Get scheduled posts error:", error)
-    
+
     return NextResponse.json(
       { error: "Failed to get scheduled posts" },
       { status: 500 }

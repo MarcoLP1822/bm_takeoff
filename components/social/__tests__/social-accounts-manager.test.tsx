@@ -14,17 +14,17 @@ jest.mock("sonner", () => ({
 global.fetch = jest.fn()
 
 // Mock window.location
-Object.defineProperty(window, 'location', {
+Object.defineProperty(window, "location", {
   value: {
-    href: '',
-    search: '',
-    pathname: '/dashboard/settings'
+    href: "",
+    search: "",
+    pathname: "/dashboard/settings"
   },
   writable: true
 })
 
 // Mock window.history
-Object.defineProperty(window, 'history', {
+Object.defineProperty(window, "history", {
   value: {
     replaceState: jest.fn()
   },
@@ -124,7 +124,11 @@ describe("SocialAccountsManager", () => {
     await waitFor(() => {
       expect(screen.getByText("expired")).toBeInTheDocument()
       expect(screen.getByText("Reconnect")).toBeInTheDocument()
-      expect(screen.getByText("Your access token has expired. Please reconnect your account to continue publishing.")).toBeInTheDocument()
+      expect(
+        screen.getByText(
+          "Your access token has expired. Please reconnect your account to continue publishing."
+        )
+      ).toBeInTheDocument()
     })
   })
 
@@ -136,7 +140,10 @@ describe("SocialAccountsManager", () => {
       })
       .mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ authUrl: "https://twitter.com/oauth/authorize?..." })
+        json: () =>
+          Promise.resolve({
+            authUrl: "https://twitter.com/oauth/authorize?..."
+          })
       })
 
     render(<SocialAccountsManager />)
@@ -201,14 +208,13 @@ describe("SocialAccountsManager", () => {
 
   it("should handle OAuth callback success", () => {
     // Mock URL with success parameter
-    Object.defineProperty(window, 'location', {
+    Object.defineProperty(window, "location", {
       value: {
-        search: '?connected=twitter',
-        pathname: '/dashboard/settings'
+        search: "?connected=twitter",
+        pathname: "/dashboard/settings"
       },
       writable: true
     })
-
     ;(fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ accounts: [] })
@@ -216,20 +222,25 @@ describe("SocialAccountsManager", () => {
 
     render(<SocialAccountsManager />)
 
-    expect(toast.success).toHaveBeenCalledWith("Successfully connected Twitter/X")
-    expect(window.history.replaceState).toHaveBeenCalledWith({}, "", "/dashboard/settings")
+    expect(toast.success).toHaveBeenCalledWith(
+      "Successfully connected Twitter/X"
+    )
+    expect(window.history.replaceState).toHaveBeenCalledWith(
+      {},
+      "",
+      "/dashboard/settings"
+    )
   })
 
   it("should handle OAuth callback error", () => {
     // Mock URL with error parameter
-    Object.defineProperty(window, 'location', {
+    Object.defineProperty(window, "location", {
       value: {
-        search: '?error=User%20denied%20access',
-        pathname: '/dashboard/settings'
+        search: "?error=User%20denied%20access",
+        pathname: "/dashboard/settings"
       },
       writable: true
     })
-
     ;(fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve({ accounts: [] })
@@ -238,7 +249,11 @@ describe("SocialAccountsManager", () => {
     render(<SocialAccountsManager />)
 
     expect(toast.error).toHaveBeenCalledWith("User denied access")
-    expect(window.history.replaceState).toHaveBeenCalledWith({}, "", "/dashboard/settings")
+    expect(window.history.replaceState).toHaveBeenCalledWith(
+      {},
+      "",
+      "/dashboard/settings"
+    )
   })
 
   it("should handle API errors", async () => {
@@ -247,7 +262,9 @@ describe("SocialAccountsManager", () => {
     render(<SocialAccountsManager />)
 
     await waitFor(() => {
-      expect(screen.getByText("Failed to load social media accounts")).toBeInTheDocument()
+      expect(
+        screen.getByText("Failed to load social media accounts")
+      ).toBeInTheDocument()
     })
   })
 

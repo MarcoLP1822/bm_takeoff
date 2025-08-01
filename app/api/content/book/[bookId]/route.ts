@@ -1,21 +1,47 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
-import { db } from '@/db'
-import { generatedContent, books } from '@/db/schema'
-import { eq, and, desc, asc, ilike, or, count, gte, lte, sql } from 'drizzle-orm'
-import { z } from 'zod'
+import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
+import { db } from "@/db"
+import { generatedContent, books } from "@/db/schema"
+import {
+  eq,
+  and,
+  desc,
+  asc,
+  ilike,
+  or,
+  count,
+  gte,
+  lte,
+  sql
+} from "drizzle-orm"
+import { z } from "zod"
 
 const querySchema = z.object({
-  limit: z.string().optional().transform(val => val ? parseInt(val) : 20),
-  offset: z.string().optional().transform(val => val ? parseInt(val) : 0),
+  limit: z
+    .string()
+    .optional()
+    .transform(val => (val ? parseInt(val) : 20)),
+  offset: z
+    .string()
+    .optional()
+    .transform(val => (val ? parseInt(val) : 0)),
   search: z.string().optional(),
-  platform: z.enum(['twitter', 'instagram', 'linkedin', 'facebook']).optional(),
-  status: z.enum(['draft', 'scheduled', 'published', 'failed']).optional(),
-  contentType: z.enum(['post', 'story', 'article']).optional(),
-  sortBy: z.enum(['createdAt', 'updatedAt', 'platform', 'status']).optional().default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
-  startDate: z.string().optional().transform(val => val ? new Date(val) : undefined),
-  endDate: z.string().optional().transform(val => val ? new Date(val) : undefined)
+  platform: z.enum(["twitter", "instagram", "linkedin", "facebook"]).optional(),
+  status: z.enum(["draft", "scheduled", "published", "failed"]).optional(),
+  contentType: z.enum(["post", "story", "article"]).optional(),
+  sortBy: z
+    .enum(["createdAt", "updatedAt", "platform", "status"])
+    .optional()
+    .default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
+  startDate: z
+    .string()
+    .optional()
+    .transform(val => (val ? new Date(val) : undefined)),
+  endDate: z
+    .string()
+    .optional()
+    .transform(val => (val ? new Date(val) : undefined))
 })
 
 export async function GET(
@@ -24,19 +50,16 @@ export async function GET(
 ) {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { bookId } = await params
 
     if (!bookId) {
       return NextResponse.json(
-        { error: 'Book ID is required' },
+        { error: "Book ID is required" },
         { status: 400 }
       )
     }
@@ -44,16 +67,16 @@ export async function GET(
     // Parse query parameters
     const { searchParams } = new URL(request.url)
     const query = querySchema.parse({
-      limit: searchParams.get('limit'),
-      offset: searchParams.get('offset'),
-      search: searchParams.get('search'),
-      platform: searchParams.get('platform'),
-      status: searchParams.get('status'),
-      contentType: searchParams.get('contentType'),
-      sortBy: searchParams.get('sortBy'),
-      sortOrder: searchParams.get('sortOrder'),
-      startDate: searchParams.get('startDate'),
-      endDate: searchParams.get('endDate')
+      limit: searchParams.get("limit"),
+      offset: searchParams.get("offset"),
+      search: searchParams.get("search"),
+      platform: searchParams.get("platform"),
+      status: searchParams.get("status"),
+      contentType: searchParams.get("contentType"),
+      sortBy: searchParams.get("sortBy"),
+      sortOrder: searchParams.get("sortOrder"),
+      startDate: searchParams.get("startDate"),
+      endDate: searchParams.get("endDate")
     })
 
     // Verify book belongs to user
@@ -64,10 +87,7 @@ export async function GET(
       .limit(1)
 
     if (book.length === 0) {
-      return NextResponse.json(
-        { error: 'Book not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Book not found" }, { status: 404 })
     }
 
     // Build where conditions
@@ -113,17 +133,29 @@ export async function GET(
     // Build order by clause with proper type checking
     let orderBy
     switch (query.sortBy) {
-      case 'createdAt':
-        orderBy = query.sortOrder === 'asc' ? asc(generatedContent.createdAt) : desc(generatedContent.createdAt)
+      case "createdAt":
+        orderBy =
+          query.sortOrder === "asc"
+            ? asc(generatedContent.createdAt)
+            : desc(generatedContent.createdAt)
         break
-      case 'updatedAt':
-        orderBy = query.sortOrder === 'asc' ? asc(generatedContent.updatedAt) : desc(generatedContent.updatedAt)
+      case "updatedAt":
+        orderBy =
+          query.sortOrder === "asc"
+            ? asc(generatedContent.updatedAt)
+            : desc(generatedContent.updatedAt)
         break
-      case 'platform':
-        orderBy = query.sortOrder === 'asc' ? asc(generatedContent.platform) : desc(generatedContent.platform)
+      case "platform":
+        orderBy =
+          query.sortOrder === "asc"
+            ? asc(generatedContent.platform)
+            : desc(generatedContent.platform)
         break
-      case 'status':
-        orderBy = query.sortOrder === 'asc' ? asc(generatedContent.status) : desc(generatedContent.status)
+      case "status":
+        orderBy =
+          query.sortOrder === "asc"
+            ? asc(generatedContent.status)
+            : desc(generatedContent.status)
         break
       default:
         orderBy = desc(generatedContent.createdAt)
@@ -158,19 +190,18 @@ export async function GET(
         }
       }
     })
-
   } catch (error) {
-    console.error('Content retrieval error:', error)
-    
+    console.error("Content retrieval error:", error)
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Invalid query parameters', details: error.errors },
+        { error: "Invalid query parameters", details: error.errors },
         { status: 400 }
       )
     }
 
     return NextResponse.json(
-      { error: 'Failed to retrieve content. Please try again.' },
+      { error: "Failed to retrieve content. Please try again." },
       { status: 500 }
     )
   }

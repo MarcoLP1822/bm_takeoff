@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sidebar"
 import { LanguageSelector } from "@/components/ui/language-selector"
 import { usePathname } from "next/navigation"
-import { type Locale } from '@/i18n'
+import { type Locale } from "@/i18n"
 import { AppSidebar } from "./app-sidebar"
 
 type Props = {
@@ -53,17 +53,26 @@ export default function DashboardClientLayout({
     const paths = pathname.split("/").filter(Boolean)
     // Remove locale from paths if present
     const normalizedPaths = paths[0] === locale ? paths.slice(1) : paths
-    const breadcrumbs: Array<{ name: string; href: string; current?: boolean }> = []
+    const breadcrumbs: Array<{
+      name: string
+      href: string
+      current?: boolean
+    }> = []
 
     if (normalizedPaths[0] === "dashboard") {
       breadcrumbs.push({ name: "Dashboard", href: `/${locale}/dashboard` })
 
       if (normalizedPaths[1]) {
-        const pageName = normalizedPaths[1].charAt(0).toUpperCase() + normalizedPaths[1].slice(1)
+        const pageName =
+          normalizedPaths[1].charAt(0).toUpperCase() +
+          normalizedPaths[1].slice(1)
 
         if (normalizedPaths[1] === "tracks" && normalizedPaths[2]) {
           // Add Tracks breadcrumb
-          breadcrumbs.push({ name: "Tracks", href: `/${locale}/dashboard/tracks` })
+          breadcrumbs.push({
+            name: "Tracks",
+            href: `/${locale}/dashboard/tracks`
+          })
 
           // Add specific track breadcrumb
           // For now, we'll use a placeholder. In a real app, you'd fetch the track name
@@ -75,7 +84,10 @@ export default function DashboardClientLayout({
           const trackName = trackNames[normalizedPaths[2]] || "Track Details"
           breadcrumbs.push({ name: trackName, href: pathname, current: true })
         } else if (normalizedPaths[1] === "courses") {
-          breadcrumbs.push({ name: "Courses", href: `/${locale}/dashboard/courses` })
+          breadcrumbs.push({
+            name: "Courses",
+            href: `/${locale}/dashboard/courses`
+          })
 
           // Handle course detail pages
           if (normalizedPaths[2]) {
@@ -135,21 +147,33 @@ export default function DashboardClientLayout({
           }
         } else if (paths[1] === "books") {
           breadcrumbs.push({ name: "Books", href: "/dashboard/books" })
-          
+
           if (paths[2] === "upload") {
             breadcrumbs.push({ name: "Upload", href: pathname, current: true })
           } else if (paths[2]) {
-            breadcrumbs.push({ name: "Book Details", href: pathname, current: true })
+            breadcrumbs.push({
+              name: "Book Details",
+              href: pathname,
+              current: true
+            })
           } else {
             breadcrumbs[breadcrumbs.length - 1].current = true
           }
         } else if (paths[1] === "content") {
           breadcrumbs.push({ name: "Content", href: "/dashboard/content" })
-          
+
           if (paths[2] === "generate") {
-            breadcrumbs.push({ name: "Generate", href: pathname, current: true })
+            breadcrumbs.push({
+              name: "Generate",
+              href: pathname,
+              current: true
+            })
           } else if (paths[2]) {
-            breadcrumbs.push({ name: "Content Details", href: pathname, current: true })
+            breadcrumbs.push({
+              name: "Content Details",
+              href: pathname,
+              current: true
+            })
           } else {
             breadcrumbs[breadcrumbs.length - 1].current = true
           }
@@ -157,12 +181,21 @@ export default function DashboardClientLayout({
           breadcrumbs.push({ name: "Analytics", href: pathname, current: true })
         } else if (paths[1] === "settings") {
           breadcrumbs.push({ name: "Settings", href: "/dashboard/settings" })
-          
+
           if (paths[2] === "social") {
-            breadcrumbs.push({ name: "Social Accounts", href: pathname, current: true })
+            breadcrumbs.push({
+              name: "Social Accounts",
+              href: pathname,
+              current: true
+            })
           } else if (paths[2]) {
-            const settingName = paths[2].charAt(0).toUpperCase() + paths[2].slice(1)
-            breadcrumbs.push({ name: settingName, href: pathname, current: true })
+            const settingName =
+              paths[2].charAt(0).toUpperCase() + paths[2].slice(1)
+            breadcrumbs.push({
+              name: settingName,
+              href: pathname,
+              current: true
+            })
           } else {
             breadcrumbs[breadcrumbs.length - 1].current = true
           }
@@ -182,7 +215,7 @@ export default function DashboardClientLayout({
       <AppSidebar userData={userData} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4 flex-1">
+          <div className="flex flex-1 items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator
               orientation="vertical"

@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { 
-  withErrorHandling, 
-  withAuth, 
-  AppError, 
-  ErrorType, 
+import { NextRequest, NextResponse } from "next/server"
+import {
+  withErrorHandling,
+  withAuth,
+  AppError,
+  ErrorType,
   ErrorCreators,
-  ValidationHelpers 
-} from './error-handling'
-import { RetryService } from './retry-service'
-import { z } from 'zod'
+  ValidationHelpers
+} from "./error-handling"
+import { RetryService } from "./retry-service"
+import { z } from "zod"
 
 // Enhanced API middleware with comprehensive error handling
 export function createApiHandler<T = unknown>(config: {
@@ -20,18 +20,21 @@ export function createApiHandler<T = unknown>(config: {
   }
   timeout?: number
 }) {
-  return function(
+  return function (
     handler: (
-      request: NextRequest, 
-      context: { 
+      request: NextRequest,
+      context: {
         userId?: string
         validatedData?: T
         requestId: string
       }
     ) => Promise<NextResponse>
   ) {
-    const wrappedHandler = async (request: NextRequest, context?: Record<string, unknown>) => {
-      const requestId = context?.requestId as string || `req_${Date.now()}`
+    const wrappedHandler = async (
+      request: NextRequest,
+      context?: Record<string, unknown>
+    ) => {
+      const requestId = (context?.requestId as string) || `req_${Date.now()}`
       const startTime = Date.now()
 
       try {
@@ -39,22 +42,21 @@ export function createApiHandler<T = unknown>(config: {
         if (config.timeout) {
           const timeoutPromise = new Promise<never>((_, reject) => {
             setTimeout(() => {
-              reject(new AppError(
-                'Request timeout',
-                ErrorType.INTERNAL,
-                408,
-                'The request took too long to process. Please try again.',
-                undefined,
-                { timeout: config.timeout },
-                true
-              ))
+              reject(
+                new AppError(
+                  "Request timeout",
+                  ErrorType.INTERNAL,
+                  408,
+                  "The request took too long to process. Please try again.",
+                  undefined,
+                  { timeout: config.timeout },
+                  true
+                )
+              )
             }, config.timeout)
           })
 
-          return await Promise.race([
-            processRequest(),
-            timeoutPromise
-          ])
+          return await Promise.race([processRequest(), timeoutPromise])
         } else {
           return await processRequest()
         }
@@ -65,9 +67,9 @@ export function createApiHandler<T = unknown>(config: {
 
           // Handle authentication if required
           if (config.requireAuth) {
-            const { auth } = await import('@clerk/nextjs/server')
+            const { auth } = await import("@clerk/nextjs/server")
             const authResult = await auth()
-            
+
             if (!authResult.userId) {
               throw ErrorCreators.unauthorized({
                 requestId,
@@ -75,7 +77,7 @@ export function createApiHandler<T = unknown>(config: {
                 method: request.method
               })
             }
-            
+
             userId = authResult.userId
           }
 
@@ -87,11 +89,11 @@ export function createApiHandler<T = unknown>(config: {
             } catch (error) {
               if (error instanceof z.ZodError) {
                 throw ErrorCreators.validation(
-                  'request',
-                  'Invalid request data',
-                  { 
+                  "request",
+                  "Invalid request data",
+                  {
                     errors: error.errors.map(e => ({
-                      path: e.path.join('.'),
+                      path: e.path.join("."),
                       message: e.message,
                       code: e.code
                     })),
@@ -115,7 +117,6 @@ export function createApiHandler<T = unknown>(config: {
             requestId
           })
         }
-
       } catch (error) {
         // Enhanced error context
         const errorContext = {
@@ -145,8 +146,8 @@ export function createApiHandler<T = unknown>(config: {
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
 
 async function checkRateLimit(
-  userId: string, 
-  endpoint: string, 
+  userId: string,
+  endpoint: string,
   config: { maxRequests: number; windowMs: number }
 ) {
   const key = `${userId}:${endpoint}`
@@ -214,67 +215,100 @@ export const createAnalyticsHandler = createApiHandler({
 
 // Utility functions for common validations
 export const ApiValidations = {
-  uuid: z.string().uuid('Invalid ID format'),
-  
-  bookId: z.string().uuid('Invalid book ID'),
-  
-  contentId: z.string().uuid('Invalid content ID'),
-  
-  accountIds: z.array(z.string().uuid()).min(1, 'At least one account must be selected'),
-  
-  platform: z.enum(['twitter', 'instagram', 'linkedin', 'facebook'], {
-    errorMap: () => ({ message: 'Invalid platform' })
+  uuid: z.string().uuid("Invalid ID format"),
+
+  bookId: z.string().uuid("Invalid book ID"),
+
+  contentId: z.string().uuid("Invalid content ID"),
+
+  accountIds: z
+    .array(z.string().uuid())
+    .min(1, "At least one account must be selected"),
+
+  platform: z.enum(["twitter", "instagram", "linkedin", "facebook"], {
+    errorMap: () => ({ message: "Invalid platform" })
   }),
-  
-  scheduledAt: z.string().datetime().refine(
-    (date) => new Date(date) > new Date(),
-    'Scheduled time must be in the future'
-  ),
-  
+
+  scheduledAt: z
+    .string()
+    .datetime()
+    .refine(
+      date => new Date(date) > new Date(),
+      "Scheduled time must be in the future"
+    ),
+
   pagination: z.object({
     page: z.number().int().min(1).default(1),
     limit: z.number().int().min(1).max(100).default(20)
   }),
-  
+
   fileUpload: z.object({
-    file: z.instanceof(File).refine(
-      (file) => file.size <= 50 * 1024 * 1024,
-      'File size must be less than 50MB'
-    ).refine(
-      (file) => ['application/pdf', 'application/epub+zip', 'text/plain', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(file.type),
-      'Unsupported file format'
-    )
+    file: z
+      .instanceof(File)
+      .refine(
+        file => file.size <= 50 * 1024 * 1024,
+        "File size must be less than 50MB"
+      )
+      .refine(
+        file =>
+          [
+            "application/pdf",
+            "application/epub+zip",
+            "text/plain",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          ].includes(file.type),
+        "Unsupported file format"
+      )
   })
 }
 
 // Error recovery suggestions for API responses
-export function addRecoverySuggestions(error: AppError, context?: Record<string, unknown>): AppError {
+export function addRecoverySuggestions(
+  error: AppError,
+  context?: Record<string, unknown>
+): AppError {
   const suggestions: string[] = []
 
   // Add context-specific suggestions
-  if (context?.endpoint && typeof context.endpoint === 'string' && context.endpoint.includes('/books/upload')) {
-    suggestions.push('Ensure your file is in a supported format (PDF, EPUB, TXT, DOCX)')
-    suggestions.push('Check that your file size is under 50MB')
-    suggestions.push('Try uploading a different file if the current one is corrupted')
-  } else if (context?.endpoint && typeof context.endpoint === 'string' && context.endpoint.includes('/content/generate')) {
-    suggestions.push('Make sure your book has been analyzed first')
-    suggestions.push('Check your AI service quota and limits')
-    suggestions.push('Try generating content for fewer platforms at once')
-  } else if (context?.endpoint && typeof context.endpoint === 'string' && context.endpoint.includes('/social/publish')) {
-    suggestions.push('Verify your social media accounts are still connected')
-    suggestions.push('Check if your accounts have the necessary permissions')
-    suggestions.push('Try publishing to one platform at a time')
+  if (
+    context?.endpoint &&
+    typeof context.endpoint === "string" &&
+    context.endpoint.includes("/books/upload")
+  ) {
+    suggestions.push(
+      "Ensure your file is in a supported format (PDF, EPUB, TXT, DOCX)"
+    )
+    suggestions.push("Check that your file size is under 50MB")
+    suggestions.push(
+      "Try uploading a different file if the current one is corrupted"
+    )
+  } else if (
+    context?.endpoint &&
+    typeof context.endpoint === "string" &&
+    context.endpoint.includes("/content/generate")
+  ) {
+    suggestions.push("Make sure your book has been analyzed first")
+    suggestions.push("Check your AI service quota and limits")
+    suggestions.push("Try generating content for fewer platforms at once")
+  } else if (
+    context?.endpoint &&
+    typeof context.endpoint === "string" &&
+    context.endpoint.includes("/social/publish")
+  ) {
+    suggestions.push("Verify your social media accounts are still connected")
+    suggestions.push("Check if your accounts have the necessary permissions")
+    suggestions.push("Try publishing to one platform at a time")
   }
 
   // Add general suggestions based on error type
   switch (error.type) {
     case ErrorType.RATE_LIMIT:
-      suggestions.push('Consider upgrading your plan for higher limits')
-      suggestions.push('Spread out your requests over time')
+      suggestions.push("Consider upgrading your plan for higher limits")
+      suggestions.push("Spread out your requests over time")
       break
     case ErrorType.EXTERNAL_SERVICE:
-      suggestions.push('Check the service status page')
-      suggestions.push('Try again during off-peak hours')
+      suggestions.push("Check the service status page")
+      suggestions.push("Try again during off-peak hours")
       break
   }
 

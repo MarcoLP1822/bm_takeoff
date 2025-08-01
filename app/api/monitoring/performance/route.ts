@@ -1,22 +1,19 @@
-import { NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
-import { getDatabaseHealth } from '@/lib/database-optimization'
-import { getCacheStats } from '@/lib/cache-service'
+import { NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
+import { getDatabaseHealth } from "@/lib/database-optimization"
+import { getCacheStats } from "@/lib/cache-service"
 
 export async function GET() {
   try {
     const { userId } = await auth()
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     // Simulate performance metrics (in a real app, these would come from monitoring tools)
     const startTime = Date.now()
-    
+
     // Get database health
     const dbHealth = await getDatabaseHealth()
     const dbQueryTime = Date.now() - startTime
@@ -39,9 +36,9 @@ export async function GET() {
 
     return NextResponse.json(metrics)
   } catch (error) {
-    console.error('Performance monitoring error:', error)
+    console.error("Performance monitoring error:", error)
     return NextResponse.json(
-      { error: 'Failed to fetch performance metrics' },
+      { error: "Failed to fetch performance metrics" },
       { status: 500 }
     )
   }

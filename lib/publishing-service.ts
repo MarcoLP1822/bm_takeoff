@@ -1,5 +1,9 @@
 import { db } from "@/db"
-import { generatedContent, socialAccounts, type SelectGeneratedContent } from "@/db/schema"
+import {
+  generatedContent,
+  socialAccounts,
+  type SelectGeneratedContent
+} from "@/db/schema"
 import { eq, and } from "drizzle-orm"
 import { SocialMediaService, type SocialPlatform } from "./social-media"
 import { AnalyticsService } from "./analytics-service"
@@ -26,7 +30,7 @@ export interface ScheduledPost {
   platform: SocialPlatform
   content: string
   scheduledAt: Date
-  status: 'scheduled' | 'publishing' | 'published' | 'failed'
+  status: "scheduled" | "publishing" | "published" | "failed"
   retryCount: number
   lastError?: string
 }
@@ -161,19 +165,28 @@ export class PublishingService {
 
     // Schedule analytics collection for later (after the post has time to gather engagement)
     // We'll collect initial analytics after 1 hour to allow for some engagement
-    setTimeout(async () => {
-      try {
-        const validAccessToken = await SocialMediaService.getValidAccessToken(userId, accountId)
-        await AnalyticsService.collectPostAnalytics(
-          contentData.id,
-          platform,
-          socialPostId,
-          validAccessToken
-        )
-      } catch (error) {
-        console.error(`Failed to collect initial analytics for post ${socialPostId}:`, error)
-      }
-    }, 60 * 60 * 1000) // 1 hour delay
+    setTimeout(
+      async () => {
+        try {
+          const validAccessToken = await SocialMediaService.getValidAccessToken(
+            userId,
+            accountId
+          )
+          await AnalyticsService.collectPostAnalytics(
+            contentData.id,
+            platform,
+            socialPostId,
+            validAccessToken
+          )
+        } catch (error) {
+          console.error(
+            `Failed to collect initial analytics for post ${socialPostId}:`,
+            error
+          )
+        }
+      },
+      60 * 60 * 1000
+    ) // 1 hour delay
 
     return {
       success: true,
@@ -194,9 +207,10 @@ export class PublishingService {
     hashtags?: string[],
     imageUrl?: string
   ): Promise<string> {
-    const fullContent = hashtags && hashtags.length > 0 
-      ? `${content}\n\n${hashtags.join(' ')}`
-      : content
+    const fullContent =
+      hashtags && hashtags.length > 0
+        ? `${content}\n\n${hashtags.join(" ")}`
+        : content
 
     switch (platform) {
       case "twitter":
@@ -233,7 +247,7 @@ export class PublishingService {
     const response = await fetch("https://api.twitter.com/2/tweets", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify(tweetData)
@@ -317,7 +331,7 @@ export class PublishingService {
     const response = await fetch("https://api.linkedin.com/v2/ugcPosts", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
         "X-Restli-Protocol-Version": "2.0.0"
       },

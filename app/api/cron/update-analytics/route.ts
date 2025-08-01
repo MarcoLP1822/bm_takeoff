@@ -10,7 +10,7 @@ export async function GET() {
     // This endpoint should be called by a cron service (like Vercel Cron or external cron)
     // Verify the request is from a trusted source in production
     const authHeader = process.env.CRON_SECRET
-    
+
     if (process.env.NODE_ENV === "production" && !authHeader) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -40,12 +40,17 @@ export async function GET() {
         await AnalyticsService.updateAllAnalytics(user.userId)
         totalUpdated++
       } catch (error) {
-        console.error(`Failed to update analytics for user ${user.userId}:`, error)
+        console.error(
+          `Failed to update analytics for user ${user.userId}:`,
+          error
+        )
         totalErrors++
       }
     }
 
-    console.log(`Analytics update completed. Updated: ${totalUpdated}, Errors: ${totalErrors}`)
+    console.log(
+      `Analytics update completed. Updated: ${totalUpdated}, Errors: ${totalErrors}`
+    )
 
     return NextResponse.json({
       success: true,
@@ -59,7 +64,7 @@ export async function GET() {
   } catch (error) {
     console.error("Analytics cron job error:", error)
     return NextResponse.json(
-      { 
+      {
         error: "Analytics update failed",
         message: error instanceof Error ? error.message : "Unknown error"
       },

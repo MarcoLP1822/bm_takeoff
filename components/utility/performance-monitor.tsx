@@ -1,21 +1,21 @@
-'use client'
+"use client"
 
-import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { 
-  Activity, 
-  Database, 
-  Zap, 
-  Clock, 
+import React, { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import {
+  Activity,
+  Database,
+  Zap,
+  Clock,
   HardDrive,
   Wifi,
   RefreshCw,
   TrendingUp,
   TrendingDown
-} from 'lucide-react'
+} from "lucide-react"
 
 interface PerformanceMetrics {
   cacheHitRate: number
@@ -48,12 +48,12 @@ export function PerformanceMonitor() {
 
       // Fetch performance metrics
       const [metricsResponse, cacheResponse] = await Promise.all([
-        fetch('/api/monitoring/performance'),
-        fetch('/api/monitoring/cache-stats')
+        fetch("/api/monitoring/performance"),
+        fetch("/api/monitoring/cache-stats")
       ])
 
       if (!metricsResponse.ok || !cacheResponse.ok) {
-        throw new Error('Failed to fetch performance data')
+        throw new Error("Failed to fetch performance data")
       }
 
       const metricsData = await metricsResponse.json()
@@ -62,7 +62,7 @@ export function PerformanceMonitor() {
       setMetrics(metricsData)
       setCacheStats(cacheData)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
+      setError(err instanceof Error ? err.message : "Unknown error")
     } finally {
       setLoading(false)
     }
@@ -70,21 +70,29 @@ export function PerformanceMonitor() {
 
   useEffect(() => {
     fetchMetrics()
-    
+
     // Auto-refresh every 30 seconds
     const interval = setInterval(fetchMetrics, 30000)
     return () => clearInterval(interval)
   }, [])
 
-  const getStatusColor = (value: number, thresholds: { good: number; warning: number }) => {
-    if (value >= thresholds.good) return 'text-green-600'
-    if (value >= thresholds.warning) return 'text-yellow-600'
-    return 'text-red-600'
+  const getStatusColor = (
+    value: number,
+    thresholds: { good: number; warning: number }
+  ) => {
+    if (value >= thresholds.good) return "text-green-600"
+    if (value >= thresholds.warning) return "text-yellow-600"
+    return "text-red-600"
   }
 
-  const getStatusBadge = (value: number, thresholds: { good: number; warning: number }) => {
-    if (value >= thresholds.good) return <Badge className="bg-green-100 text-green-800">Good</Badge>
-    if (value >= thresholds.warning) return <Badge className="bg-yellow-100 text-yellow-800">Warning</Badge>
+  const getStatusBadge = (
+    value: number,
+    thresholds: { good: number; warning: number }
+  ) => {
+    if (value >= thresholds.good)
+      return <Badge className="bg-green-100 text-green-800">Good</Badge>
+    if (value >= thresholds.warning)
+      return <Badge className="bg-yellow-100 text-yellow-800">Warning</Badge>
     return <Badge className="bg-red-100 text-red-800">Critical</Badge>
   }
 
@@ -101,8 +109,8 @@ export function PerformanceMonitor() {
           <div className="space-y-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-2 bg-gray-200 rounded w-full"></div>
+                <div className="mb-2 h-4 w-3/4 rounded bg-gray-200"></div>
+                <div className="h-2 w-full rounded bg-gray-200"></div>
               </div>
             ))}
           </div>
@@ -121,10 +129,10 @@ export function PerformanceMonitor() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8">
-            <p className="text-red-600 mb-4">{error}</p>
+          <div className="py-8 text-center">
+            <p className="mb-4 text-red-600">{error}</p>
             <Button onClick={fetchMetrics} size="sm">
-              <RefreshCw className="h-4 w-4 mr-2" />
+              <RefreshCw className="mr-2 h-4 w-4" />
               Retry
             </Button>
           </div>
@@ -142,25 +150,30 @@ export function PerformanceMonitor() {
             Performance Monitor
           </CardTitle>
           <Button onClick={fetchMetrics} size="sm" variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
+            <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
           </Button>
         </CardHeader>
         <CardContent>
           {metrics && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Cache Hit Rate */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium flex items-center gap-1">
+                  <span className="flex items-center gap-1 text-sm font-medium">
                     <Zap className="h-4 w-4" />
                     Cache Hit Rate
                   </span>
-                  {getStatusBadge(metrics.cacheHitRate, { good: 80, warning: 60 })}
+                  {getStatusBadge(metrics.cacheHitRate, {
+                    good: 80,
+                    warning: 60
+                  })}
                 </div>
                 <div className="space-y-1">
                   <Progress value={metrics.cacheHitRate} className="h-2" />
-                  <span className={`text-lg font-bold ${getStatusColor(metrics.cacheHitRate, { good: 80, warning: 60 })}`}>
+                  <span
+                    className={`text-lg font-bold ${getStatusColor(metrics.cacheHitRate, { good: 80, warning: 60 })}`}
+                  >
                     {metrics.cacheHitRate.toFixed(1)}%
                   </span>
                 </div>
@@ -169,14 +182,23 @@ export function PerformanceMonitor() {
               {/* Response Time */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium flex items-center gap-1">
+                  <span className="flex items-center gap-1 text-sm font-medium">
                     <Clock className="h-4 w-4" />
                     Avg Response Time
                   </span>
-                  {getStatusBadge(metrics.averageResponseTime < 200 ? 100 : metrics.averageResponseTime < 500 ? 70 : 30, { good: 80, warning: 60 })}
+                  {getStatusBadge(
+                    metrics.averageResponseTime < 200
+                      ? 100
+                      : metrics.averageResponseTime < 500
+                        ? 70
+                        : 30,
+                    { good: 80, warning: 60 }
+                  )}
                 </div>
                 <div className="space-y-1">
-                  <span className={`text-lg font-bold ${metrics.averageResponseTime < 200 ? 'text-green-600' : metrics.averageResponseTime < 500 ? 'text-yellow-600' : 'text-red-600'}`}>
+                  <span
+                    className={`text-lg font-bold ${metrics.averageResponseTime < 200 ? "text-green-600" : metrics.averageResponseTime < 500 ? "text-yellow-600" : "text-red-600"}`}
+                  >
                     {metrics.averageResponseTime.toFixed(0)}ms
                   </span>
                 </div>
@@ -185,14 +207,23 @@ export function PerformanceMonitor() {
               {/* Database Query Time */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium flex items-center gap-1">
+                  <span className="flex items-center gap-1 text-sm font-medium">
                     <Database className="h-4 w-4" />
                     DB Query Time
                   </span>
-                  {getStatusBadge(metrics.databaseQueryTime < 100 ? 100 : metrics.databaseQueryTime < 300 ? 70 : 30, { good: 80, warning: 60 })}
+                  {getStatusBadge(
+                    metrics.databaseQueryTime < 100
+                      ? 100
+                      : metrics.databaseQueryTime < 300
+                        ? 70
+                        : 30,
+                    { good: 80, warning: 60 }
+                  )}
                 </div>
                 <div className="space-y-1">
-                  <span className={`text-lg font-bold ${metrics.databaseQueryTime < 100 ? 'text-green-600' : metrics.databaseQueryTime < 300 ? 'text-yellow-600' : 'text-red-600'}`}>
+                  <span
+                    className={`text-lg font-bold ${metrics.databaseQueryTime < 100 ? "text-green-600" : metrics.databaseQueryTime < 300 ? "text-yellow-600" : "text-red-600"}`}
+                  >
                     {metrics.databaseQueryTime.toFixed(0)}ms
                   </span>
                 </div>
@@ -201,18 +232,32 @@ export function PerformanceMonitor() {
               {/* Compression Ratio */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium flex items-center gap-1">
+                  <span className="flex items-center gap-1 text-sm font-medium">
                     <HardDrive className="h-4 w-4" />
                     Compression Ratio
                   </span>
-                  {getStatusBadge(metrics.compressionRatio < 0.5 ? 100 : metrics.compressionRatio < 0.7 ? 70 : 30, { good: 80, warning: 60 })}
+                  {getStatusBadge(
+                    metrics.compressionRatio < 0.5
+                      ? 100
+                      : metrics.compressionRatio < 0.7
+                        ? 70
+                        : 30,
+                    { good: 80, warning: 60 }
+                  )}
                 </div>
                 <div className="space-y-1">
-                  <span className={`text-lg font-bold ${metrics.compressionRatio < 0.5 ? 'text-green-600' : metrics.compressionRatio < 0.7 ? 'text-yellow-600' : 'text-red-600'}`}>
+                  <span
+                    className={`text-lg font-bold ${metrics.compressionRatio < 0.5 ? "text-green-600" : metrics.compressionRatio < 0.7 ? "text-yellow-600" : "text-red-600"}`}
+                  >
                     {(metrics.compressionRatio * 100).toFixed(1)}%
                   </span>
                   <p className="text-xs text-gray-500">
-                    {metrics.compressionRatio < 0.5 ? 'Excellent' : metrics.compressionRatio < 0.7 ? 'Good' : 'Poor'} compression
+                    {metrics.compressionRatio < 0.5
+                      ? "Excellent"
+                      : metrics.compressionRatio < 0.7
+                        ? "Good"
+                        : "Poor"}{" "}
+                    compression
                   </p>
                 </div>
               </div>
@@ -231,22 +276,34 @@ export function PerformanceMonitor() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <span className="text-sm font-medium text-gray-600">Total Keys</span>
-                <span className="text-2xl font-bold">{cacheStats.totalKeys.toLocaleString()}</span>
+                <span className="text-sm font-medium text-gray-600">
+                  Total Keys
+                </span>
+                <span className="text-2xl font-bold">
+                  {cacheStats.totalKeys.toLocaleString()}
+                </span>
               </div>
-              
+
               <div className="space-y-2">
-                <span className="text-sm font-medium text-gray-600">Memory Usage</span>
-                <span className="text-2xl font-bold">{cacheStats.memoryUsage}</span>
+                <span className="text-sm font-medium text-gray-600">
+                  Memory Usage
+                </span>
+                <span className="text-2xl font-bold">
+                  {cacheStats.memoryUsage}
+                </span>
               </div>
-              
+
               {cacheStats.hitRate !== undefined && (
                 <div className="space-y-2">
-                  <span className="text-sm font-medium text-gray-600">Hit Rate</span>
+                  <span className="text-sm font-medium text-gray-600">
+                    Hit Rate
+                  </span>
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold">{cacheStats.hitRate.toFixed(1)}%</span>
+                    <span className="text-2xl font-bold">
+                      {cacheStats.hitRate.toFixed(1)}%
+                    </span>
                     {cacheStats.hitRate >= 80 ? (
                       <TrendingUp className="h-5 w-5 text-green-600" />
                     ) : (
@@ -270,29 +327,48 @@ export function PerformanceMonitor() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <span className="text-sm font-medium text-gray-600">Active Connections</span>
-                <span className="text-2xl font-bold">{metrics.activeConnections}</span>
+                <span className="text-sm font-medium text-gray-600">
+                  Active Connections
+                </span>
+                <span className="text-2xl font-bold">
+                  {metrics.activeConnections}
+                </span>
               </div>
-              
+
               <div className="space-y-2">
-                <span className="text-sm font-medium text-gray-600">Total Requests</span>
-                <span className="text-2xl font-bold">{metrics.totalRequests.toLocaleString()}</span>
+                <span className="text-sm font-medium text-gray-600">
+                  Total Requests
+                </span>
+                <span className="text-2xl font-bold">
+                  {metrics.totalRequests.toLocaleString()}
+                </span>
               </div>
-              
+
               <div className="space-y-2">
-                <span className="text-sm font-medium text-gray-600">Error Rate</span>
+                <span className="text-sm font-medium text-gray-600">
+                  Error Rate
+                </span>
                 <div className="flex items-center gap-2">
-                  <span className={`text-2xl font-bold ${metrics.errorRate < 1 ? 'text-green-600' : metrics.errorRate < 5 ? 'text-yellow-600' : 'text-red-600'}`}>
+                  <span
+                    className={`text-2xl font-bold ${metrics.errorRate < 1 ? "text-green-600" : metrics.errorRate < 5 ? "text-yellow-600" : "text-red-600"}`}
+                  >
                     {metrics.errorRate.toFixed(2)}%
                   </span>
-                  {getStatusBadge(metrics.errorRate < 1 ? 100 : metrics.errorRate < 5 ? 70 : 30, { good: 80, warning: 60 })}
+                  {getStatusBadge(
+                    metrics.errorRate < 1
+                      ? 100
+                      : metrics.errorRate < 5
+                        ? 70
+                        : 30,
+                    { good: 80, warning: 60 }
+                  )}
                 </div>
               </div>
             </div>
-            
-            <div className="mt-4 pt-4 border-t">
+
+            <div className="mt-4 border-t pt-4">
               <p className="text-xs text-gray-500">
                 Last updated: {new Date(metrics.lastUpdated).toLocaleString()}
               </p>
@@ -312,13 +388,13 @@ export function usePerformanceMonitor() {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const response = await fetch('/api/monitoring/performance')
+        const response = await fetch("/api/monitoring/performance")
         if (response.ok) {
           const data = await response.json()
           setMetrics(data)
         }
       } catch (error) {
-        console.error('Failed to fetch performance metrics:', error)
+        console.error("Failed to fetch performance metrics:", error)
       } finally {
         setLoading(false)
       }

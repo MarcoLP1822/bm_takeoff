@@ -52,9 +52,15 @@ import { getCachedAnalyticsData, cacheAnalyticsData } from "@/lib/cache-service"
 
 // Type the mocked functions
 const mockAuth = auth as jest.MockedFunction<typeof auth>
-const mockGetPostPerformance = AnalyticsService.getPostPerformance as jest.MockedFunction<typeof AnalyticsService.getPostPerformance>
-const mockGetCachedAnalyticsData = getCachedAnalyticsData as jest.MockedFunction<typeof getCachedAnalyticsData>
-const mockCacheAnalyticsData = cacheAnalyticsData as jest.MockedFunction<typeof cacheAnalyticsData>
+const mockGetPostPerformance =
+  AnalyticsService.getPostPerformance as jest.MockedFunction<
+    typeof AnalyticsService.getPostPerformance
+  >
+const mockGetCachedAnalyticsData =
+  getCachedAnalyticsData as jest.MockedFunction<typeof getCachedAnalyticsData>
+const mockCacheAnalyticsData = cacheAnalyticsData as jest.MockedFunction<
+  typeof cacheAnalyticsData
+>
 
 describe("/api/analytics/posts", () => {
   beforeEach(() => {
@@ -100,7 +106,9 @@ describe("/api/analytics/posts", () => {
     mockGetCachedAnalyticsData.mockResolvedValue(null)
     mockGetPostPerformance.mockResolvedValue(mockResult)
 
-    const request = new NextRequest("http://localhost/api/analytics/posts?limit=10&platform=twitter")
+    const request = new NextRequest(
+      "http://localhost/api/analytics/posts?limit=10&platform=twitter"
+    )
     const response = await GET(request)
     const data = await response.json()
 
@@ -138,7 +146,7 @@ describe("/api/analytics/posts", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockAuth.mockResolvedValue({ userId: "user-123" } as any)
     mockGetCachedAnalyticsData.mockResolvedValue(null)
-    
+
     const mockResult = {
       posts: [],
       pagination: {
@@ -152,7 +160,7 @@ describe("/api/analytics/posts", () => {
         books: []
       }
     }
-    
+
     mockGetPostPerformance.mockResolvedValue(mockResult)
 
     const request = new NextRequest(
@@ -180,7 +188,9 @@ describe("/api/analytics/posts", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockAuth.mockResolvedValue({ userId: "user-123" } as any)
 
-    const request = new NextRequest("http://localhost/api/analytics/posts?platform=invalid&limit=abc")
+    const request = new NextRequest(
+      "http://localhost/api/analytics/posts?platform=invalid&limit=abc"
+    )
     const response = await GET(request)
     const data = await response.json()
 

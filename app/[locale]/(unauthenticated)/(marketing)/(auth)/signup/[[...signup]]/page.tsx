@@ -35,8 +35,8 @@ export default function SignUpPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              Get instant access to a production-ready app template with
-              everything you need to launch quickly.
+              Get instant access to a production-ready app with everything you
+              need to launch quickly.
             </motion.p>
           </div>
 

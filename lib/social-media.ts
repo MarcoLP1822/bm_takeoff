@@ -103,7 +103,7 @@ export class SocialMediaService {
     }
   }> {
     const config = oauthConfigs[platform]
-    
+
     const tokenParams = new URLSearchParams({
       client_id: config.clientId,
       client_secret: config.clientSecret,
@@ -117,7 +117,7 @@ export class SocialMediaService {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        "Accept": "application/json"
+        Accept: "application/json"
       },
       body: tokenParams.toString()
     })
@@ -127,14 +127,14 @@ export class SocialMediaService {
     }
 
     const tokenData = await response.json()
-    
+
     // Get user info with the access token
     const accountInfo = await this.getUserInfo(platform, tokenData.access_token)
-    
+
     return {
       accessToken: tokenData.access_token,
       refreshToken: tokenData.refresh_token,
-      expiresAt: tokenData.expires_in 
+      expiresAt: tokenData.expires_in
         ? new Date(Date.now() + tokenData.expires_in * 1000)
         : undefined,
       accountInfo
@@ -144,14 +144,17 @@ export class SocialMediaService {
   /**
    * Get user account information from platform
    */
-  static async getUserInfo(platform: SocialPlatform, accessToken: string): Promise<{
+  static async getUserInfo(
+    platform: SocialPlatform,
+    accessToken: string
+  ): Promise<{
     id: string
     name: string
     handle?: string
   }> {
     let userInfoUrl: string
     let headers: Record<string, string> = {
-      "Authorization": `Bearer ${accessToken}`
+      Authorization: `Bearer ${accessToken}`
     }
 
     switch (platform) {
@@ -163,7 +166,8 @@ export class SocialMediaService {
         headers = {} // Instagram uses access_token in URL
         break
       case "linkedin":
-        userInfoUrl = "https://api.linkedin.com/v2/people/~:(id,firstName,lastName)"
+        userInfoUrl =
+          "https://api.linkedin.com/v2/people/~:(id,firstName,lastName)"
         break
       case "facebook":
         userInfoUrl = `https://graph.facebook.com/me?fields=id,name&access_token=${accessToken}`
@@ -174,13 +178,13 @@ export class SocialMediaService {
     }
 
     const response = await fetch(userInfoUrl, { headers })
-    
+
     if (!response.ok) {
       throw new Error(`Failed to get user info: ${response.statusText}`)
     }
 
     const userData = await response.json()
-    
+
     // Platform-specific data parsing
     switch (platform) {
       case "twitter":
@@ -213,13 +217,16 @@ export class SocialMediaService {
   /**
    * Refresh access token if expired
    */
-  static async refreshAccessToken(platform: SocialPlatform, refreshToken: string): Promise<{
+  static async refreshAccessToken(
+    platform: SocialPlatform,
+    refreshToken: string
+  ): Promise<{
     accessToken: string
     refreshToken?: string
     expiresAt?: Date
   }> {
     const config = oauthConfigs[platform]
-    
+
     const params = new URLSearchParams({
       client_id: config.clientId,
       client_secret: config.clientSecret,
@@ -231,7 +238,7 @@ export class SocialMediaService {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        "Accept": "application/json"
+        Accept: "application/json"
       },
       body: params.toString()
     })
@@ -241,11 +248,11 @@ export class SocialMediaService {
     }
 
     const tokenData = await response.json()
-    
+
     return {
       accessToken: tokenData.access_token,
       refreshToken: tokenData.refresh_token || refreshToken,
-      expiresAt: tokenData.expires_in 
+      expiresAt: tokenData.expires_in
         ? new Date(Date.now() + tokenData.expires_in * 1000)
         : undefined
     }
@@ -334,7 +341,10 @@ export class SocialMediaService {
   /**
    * Disconnect social account
    */
-  static async disconnectAccount(userId: string, accountId: string): Promise<void> {
+  static async disconnectAccount(
+    userId: string,
+    accountId: string
+  ): Promise<void> {
     await db
       .update(socialAccounts)
       .set({
@@ -342,10 +352,7 @@ export class SocialMediaService {
         updatedAt: new Date()
       })
       .where(
-        and(
-          eq(socialAccounts.userId, userId),
-          eq(socialAccounts.id, accountId)
-        )
+        and(eq(socialAccounts.userId, userId), eq(socialAccounts.id, accountId))
       )
   }
 
@@ -356,10 +363,7 @@ export class SocialMediaService {
     await db
       .delete(socialAccounts)
       .where(
-        and(
-          eq(socialAccounts.userId, userId),
-          eq(socialAccounts.id, accountId)
-        )
+        and(eq(socialAccounts.userId, userId), eq(socialAccounts.id, accountId))
       )
   }
 
@@ -397,7 +401,10 @@ export class SocialMediaService {
     const accountData = account[0]
 
     // Check if token needs refresh
-    if (this.isTokenExpired(accountData.tokenExpiresAt || undefined) && accountData.refreshToken) {
+    if (
+      this.isTokenExpired(accountData.tokenExpiresAt || undefined) &&
+      accountData.refreshToken
+    ) {
       try {
         const refreshedTokens = await this.refreshAccessToken(
           accountData.platform as SocialPlatform,
@@ -409,7 +416,8 @@ export class SocialMediaService {
           .update(socialAccounts)
           .set({
             accessToken: refreshedTokens.accessToken,
-            refreshToken: refreshedTokens.refreshToken || accountData.refreshToken,
+            refreshToken:
+              refreshedTokens.refreshToken || accountData.refreshToken,
             tokenExpiresAt: refreshedTokens.expiresAt,
             updatedAt: new Date()
           })

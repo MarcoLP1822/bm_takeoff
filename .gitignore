@@ -41,5 +41,21 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# test results
+/test-results/
+
+# temporary files
+temp-*.js
+temp-*.ts
+
+# editor configurations (optional - remove if you want to share these)
+/.vscode/
+/.cursor/
+/.kiro/
+/.claude/
+
+# build cache
+/.swc/
+
 # clerk configuration (can include secrets)
 /.clerk/

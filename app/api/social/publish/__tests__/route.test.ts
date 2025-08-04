@@ -5,7 +5,8 @@
 import { POST } from "../route"
 import { PublishingService } from "@/lib/publishing-service"
 import { auth } from "@clerk/nextjs/server"
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
+import { MockNextRequest, createJSONRequest, createAuthMock } from "../../../../../__tests__/helpers/api-test-utils"
 
 // Mock dependencies
 jest.mock("@/lib/publishing-service")
@@ -18,7 +19,7 @@ const mockAuth = auth as jest.MockedFunction<typeof auth>
 
 // Type the POST function correctly - using unknown first to avoid type assertion error
 const postHandler = POST as unknown as (
-  request: NextRequest
+  request: MockNextRequest
 ) => Promise<NextResponse>
 
 describe("/api/social/publish", () => {
@@ -30,16 +31,10 @@ describe("/api/social/publish", () => {
     const mockUserId = "user-123"
 
     const mockRequest = (body: Record<string, unknown>) =>
-      new NextRequest("http://localhost/api/social/publish", {
-        method: "POST",
-        headers: new Headers({
-          "content-type": "application/json"
-        }),
-        body: JSON.stringify(body)
-      })
+      createJSONRequest("http://localhost/api/social/publish", body)
 
     beforeEach(() => {
-      mockAuth.mockResolvedValue({ userId: mockUserId } as any)
+      mockAuth.mockResolvedValue(createAuthMock("user-123") as any)
     })
 
     it("should publish content successfully", async () => {

@@ -12,43 +12,192 @@
     "signup": "Registrati",
     "library": "Libreria",
     "contentManager": "Gestione Contenuti",
-    "generateContent": "Genera Contenuto",
+    "generateContent": "Genera Contenuti",
     "performance": "Performance",
     "general": "Generale",
     "socialAccounts": "Account Social"
   },
+  "marketing": {
+    "hero": {
+      "badge": "Nuovo Template",
+      "title": "Lancia il Tuo Libro al",
+      "titleHighlight": "Successo",
+      "subtitle": "Tutto quello di cui hai bisogno per creare, lanciare e far crescere il tuo libro con una strategia di marketing completa.",
+      "ctaPrimary": "Inizia a Sviluppare",
+      "ctaSecondary": "Stella su GitHub",
+      "trustIndicators": {
+        "modernTech": "Stack Tecnologico Moderno",
+        "productionReady": "Pronto per la Produzione",
+        "continuousUpdates": "Aggiornamenti Continui"
+      }
+    },
+    "features": {
+      "auth": {
+        "title": "Autenticazione Sicura",
+        "description": "Autenticazione completa con Clerk e protezione dei dati utente."
+      },
+      "payments": {
+        "title": "Pagamenti Integrati",
+        "description": "Sistema di pagamento completo con Stripe per gestire abbonamenti e acquisti."
+      },
+      "database": {
+        "title": "Database Robusto",
+        "description": "Database PostgreSQL con Drizzle ORM per performance e scalabilità."
+      },
+      "ui": {
+        "title": "UI Moderna",
+        "description": "Interfaccia utente elegante costruita con Tailwind CSS e shadcn/ui."
+      },
+      "typescript": {
+        "title": "TypeScript",
+        "description": "Sviluppo type-safe con TypeScript per ridurre errori e migliorare la DX."
+      },
+      "analytics": {
+        "title": "Analytics Avanzati",
+        "description": "Tracciamento dettagliato delle performance e analytics in tempo reale."
+      }
+    },
+    "navigation": {
+      "home": "Home",
+      "about": "Chi Siamo",
+      "features": "Caratteristiche",
+      "pricing": "Prezzi",
+      "contact": "Contatti",
+      "login": "Accedi",
+      "signup": "Registrati"
+    },
+    "cta": {
+      "title": "Pronto a costruire qualcosa di incredibile?",
+      "subtitle": "Smetti di perdere tempo sul boilerplate. Clona questo template e inizia a sviluppare il tuo prodotto oggi stesso.",
+      "cloneTemplate": "Clona Template",
+      "getStarted": "Inizia Subito"
+    },
+    "companies": {
+      "title": "Costruito con tecnologie moderne",
+      "subtitle": "Scelto da sviluppatori in tutto il mondo",
+      "stats": {
+        "githubStars": "Stelle GitHub",
+        "activeProjects": "Progetti Attivi",
+        "contributors": "Contributori"
+      }
+    },
+    "faq": {
+      "title": "Domande Frequenti",
+      "subtitle": "Tutto quello che devi sapere sul template",
+      "questions": {
+        "whatIsThis": {
+          "question": "Cos'è questo template?",
+          "answer": "Un template completo full-stack costruito con Next.js, TypeScript e strumenti moderni per aiutarti a sviluppare più velocemente."
+        },
+        "howToStart": {
+          "question": "Come posso iniziare?",
+          "answer": "Clona il repository, installa le dipendenze, configura le tue variabili d'ambiente e inizia a costruire."
+        },
+        "isItFree": {
+          "question": "È gratuito?",
+          "answer": "Sì, questo template è completamente gratuito e open source sotto licenza MIT."
+        },
+        "supportIncluded": {
+          "question": "Il supporto è incluso?",
+          "answer": "Il supporto della community è disponibile tramite GitHub issues e discussioni."
+        }
+      }
+    },
+    "pricing": {
+      "title": "Prezzi semplici e trasparenti",
+      "subtitle": "Scegli il piano giusto per te",
+      "free": {
+        "title": "Gratuito",
+        "price": "€0",
+        "period": "per sempre",
+        "description": "Perfetto per iniziare",
+        "features": [
+          "Codice sorgente completo",
+          "Autenticazione di base",
+          "Setup database",
+          "Supporto community"
+        ],
+        "cta": "Inizia Subito"
+      },
+      "pro": {
+        "title": "Pro",
+        "price": "€99",
+        "period": "una tantum",
+        "description": "Tutto quello di cui hai bisogno per costruire",
+        "features": [
+          "Tutto del piano Gratuito",
+          "Componenti premium",
+          "Funzionalità avanzate",
+          "Supporto prioritario"
+        ],
+        "cta": "Upgrade a Pro"
+      }
+    },
+    "socialProof": {
+      "title": "Scelto dagli sviluppatori",
+      "subtitle": "Unisciti a migliaia di sviluppatori che hanno costruito prodotti incredibili con questo template"
+    },
+    "video": {
+      "title": "Guardalo in azione",
+      "subtitle": "Guarda quanto è facile iniziare con questo template",
+      "playButton": "Riproduci Video"
+    }
+  },
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Benvenuto in Book Marketing Takeoff",
-    "subtitle": "Gestisci i tuoi libri e contenuti marketing",
+    "subtitle": "Gestisci i tuoi libri e contenuti di marketing",
     "stats": {
-      "totalBooks": "Libri Totali",
+      "totalBooks": "Totale Libri",
       "totalContent": "Contenuti Creati",
       "socialPosts": "Post Social",
-      "engagement": "Engagement"
+      "engagement": "Coinvolgimento"
+    },
+    "buttons": {
+      "uploadBook": "Carica Libro",
+      "generateContent": "Genera Contenuto",
+      "viewAllBooks": "Visualizza Tutti i Libri",
+      "viewAllContent": "Visualizza Tutti i Contenuti"
+    },
+    "sections": {
+      "recentBooks": "Libri Recenti",
+      "recentContent": "Contenuti Recenti", 
+      "performanceOverview": "Panoramica Performance",
+      "quickActions": "Azioni Rapide"
+    },
+    "descriptions": {
+      "booksInLibrary": "Libri nella tua libreria",
+      "socialMediaPosts": "Post sui social media creati",
+      "postsReadyToPublish": "Post pronti per la pubblicazione",
+      "likesSharesComments": "Mi piace, condivisioni e commenti",
+      "recentBooksDesc": "I tuoi libri caricati e analizzati di recente",
+      "recentContentDesc": "I tuoi ultimi post sui social media generati",
+      "noDataThisWeek": "Nessun dato questa settimana",
+      "noContentYet": "Nessun contenuto ancora",
+      "generateFirstContent": "Genera il tuo primo contenuto sui social media dai tuoi libri."
     }
   },
   "books": {
     "title": "I Miei Libri",
     "addNew": "Aggiungi Nuovo Libro",
     "upload": "Carica Libro",
-    "processing": "Elaborazione in corso...",
+    "processing": "Elaborazione...",
     "noBooks": "Nessun libro caricato",
-    "uploadDescription": "Carica i tuoi libri per iniziare a creare contenuti marketing"
+    "uploadDescription": "Carica i tuoi libri per iniziare a creare contenuti di marketing"
   },
   "content": {
-    "title": "Contenuti Marketing",
+    "title": "Contenuti di Marketing",
     "generate": "Genera Contenuto",
     "templates": "Template",
-    "blogPost": "Post Blog",
+    "blogPost": "Post del Blog",
     "socialPost": "Post Social",
     "emailNewsletter": "Newsletter Email",
     "description": "Descrizione",
-    "generating": "Generazione in corso..."
+    "generating": "Generazione..."
   },
   "social": {
     "title": "Social Media",
-    "schedule": "Pianifica Post",
+    "schedule": "Programma Post",
     "published": "Pubblicati",
     "draft": "Bozze",
     "scheduled": "Programmati",
@@ -63,7 +212,7 @@
     "title": "Analytics",
     "overview": "Panoramica",
     "performance": "Performance",
-    "engagement": "Engagement",
+    "engagement": "Coinvolgimento",
     "reach": "Copertura",
     "clicks": "Click",
     "impressions": "Impressioni"
@@ -123,26 +272,21 @@
     "required": "Campo obbligatorio",
     "invalid": "Formato non valido"
   },
-  "errors": {
-    "notFound": "Pagina non trovata",
-    "serverError": "Errore del server",
-    "unauthorized": "Non autorizzato",
-    "forbidden": "Accesso negato",
-    "badRequest": "Richiesta non valida",
-    "networkError": "Errore di rete",
-    "tryAgain": "Riprova più tardi"
-  },
   "payments": {
     "subscription": "Abbonamento",
     "billing": "Fatturazione",
     "plan": "Piano",
     "upgrade": "Aggiorna",
-    "downgrade": "Riduci",
+    "downgrade": "Downgrade",
     "free": "Gratuito",
     "pro": "Pro",
     "enterprise": "Enterprise",
     "monthly": "Mensile",
     "yearly": "Annuale",
-    "cancel": "Annulla Abbonamento"
+    "cancel": "Cancella Abbonamento"
+  },
+  "errors": {
+    "notFound": "Non trovato",
+    "tryAgain": "Riprova"
   }
 }

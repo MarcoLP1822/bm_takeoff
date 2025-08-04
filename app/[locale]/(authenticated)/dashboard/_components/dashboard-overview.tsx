@@ -76,7 +76,42 @@ interface DashboardStats {
   }
 }
 
-export default function DashboardOverview() {
+interface DashboardTranslations {
+  title: string
+  welcome: string
+  subtitle: string
+  stats: {
+    totalBooks: string
+    totalContent: string
+    socialPosts: string
+    engagement: string
+  }
+  buttons: {
+    uploadBook: string
+    generateContent: string
+    viewAllBooks: string
+    viewAllContent: string
+  }
+  sections: {
+    recentBooks: string
+    recentContent: string
+    performanceOverview: string
+    quickActions: string
+  }
+  descriptions: {
+    booksInLibrary: string
+    socialMediaPosts: string
+    postsReadyToPublish: string
+    likesSharesComments: string
+    recentBooksDesc: string
+    recentContentDesc: string
+    noDataThisWeek: string
+    noContentYet: string
+    generateFirstContent: string
+  }
+}
+
+export default function DashboardOverview({ translations }: { translations: DashboardTranslations }) {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -466,7 +501,7 @@ export default function DashboardOverview() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              Dashboard
+              {translations.title}
             </h1>
             {isFirstTime && (
               <Badge variant="secondary" className="hidden sm:inline-flex">
@@ -477,8 +512,8 @@ export default function DashboardOverview() {
           </div>
           <p className="text-muted-foreground mt-2 text-sm sm:text-base">
             {isFirstTime
-              ? "Welcome! Let's get you started with creating amazing social media content from your books."
-              : "Welcome back! Here's an overview of your book content analysis and social media performance."}
+              ? translations.welcome
+              : translations.subtitle}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -592,13 +627,13 @@ export default function DashboardOverview() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="relative overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Books</CardTitle>
+            <CardTitle className="text-sm font-medium">{translations.stats.totalBooks}</CardTitle>
             <BookOpen className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats?.totalBooks || 0}</div>
             <p className="text-muted-foreground text-xs">
-              Books in your library
+              {translations.descriptions.booksInLibrary}
             </p>
             {quickStats.booksAnalyzedToday > 0 && (
               <div className="mt-2 flex items-center text-xs text-green-600">
@@ -613,7 +648,7 @@ export default function DashboardOverview() {
         <Card className="relative overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Generated Content
+              {translations.stats.totalContent}
             </CardTitle>
             <Edit3 className="text-muted-foreground h-4 w-4" />
           </CardHeader>
@@ -622,7 +657,7 @@ export default function DashboardOverview() {
               {stats?.generatedContent || 0}
             </div>
             <p className="text-muted-foreground text-xs">
-              Social media posts created
+              {translations.descriptions.socialMediaPosts}
             </p>
             {quickStats.contentGeneratedToday > 0 && (
               <div className="mt-2 flex items-center text-xs text-green-600">
@@ -637,7 +672,7 @@ export default function DashboardOverview() {
         <Card className="relative overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Scheduled Posts
+              {translations.stats.socialPosts}
             </CardTitle>
             <Calendar className="text-muted-foreground h-4 w-4" />
           </CardHeader>
@@ -646,7 +681,7 @@ export default function DashboardOverview() {
               {stats?.scheduledPosts || 0}
             </div>
             <p className="text-muted-foreground text-xs">
-              Posts ready to publish
+              {translations.descriptions.postsReadyToPublish}
             </p>
             {quickStats.postsPublishedToday > 0 && (
               <div className="mt-2 flex items-center text-xs text-blue-600">
@@ -661,7 +696,7 @@ export default function DashboardOverview() {
         <Card className="relative overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Engagement
+              {translations.stats.engagement}
             </CardTitle>
             <TrendingUp className="text-muted-foreground h-4 w-4" />
           </CardHeader>
@@ -670,7 +705,7 @@ export default function DashboardOverview() {
               {stats?.totalEngagement || 0}
             </div>
             <p className="text-muted-foreground text-xs">
-              Likes, shares, and comments
+              {translations.descriptions.likesSharesComments}
             </p>
             <div className="mt-2 flex items-center text-xs">
               {quickStats.avgEngagementThisWeek > 0 ? (
@@ -681,7 +716,7 @@ export default function DashboardOverview() {
               ) : (
                 <div className="text-muted-foreground flex items-center">
                   <Activity className="mr-1 h-3 w-3" />
-                  No data this week
+                  {translations.descriptions.noDataThisWeek}
                 </div>
               )}
             </div>
@@ -696,15 +731,15 @@ export default function DashboardOverview() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Recent Books</CardTitle>
+              <CardTitle>{translations.sections.recentBooks}</CardTitle>
               <CardDescription>
-                Your recently uploaded and analyzed books
+                {translations.descriptions.recentBooksDesc}
               </CardDescription>
             </div>
             <Button asChild size="sm">
               <Link href="/dashboard/books?action=upload">
                 <Plus className="mr-2 h-4 w-4" />
-                Upload Book
+                {translations.buttons.uploadBook}
               </Link>
             </Button>
           </CardHeader>
@@ -750,7 +785,7 @@ export default function DashboardOverview() {
                 ))}
                 <Button asChild variant="ghost" className="w-full">
                   <Link href="/dashboard/books">
-                    View All Books
+                    {translations.buttons.viewAllBooks}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
@@ -777,15 +812,15 @@ export default function DashboardOverview() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Recent Content</CardTitle>
+              <CardTitle>{translations.sections.recentContent}</CardTitle>
               <CardDescription>
-                Your latest generated social media posts
+                {translations.descriptions.recentContentDesc}
               </CardDescription>
             </div>
             <Button asChild size="sm">
               <Link href="/dashboard/content/generate">
                 <Zap className="mr-2 h-4 w-4" />
-                Generate Content
+                {translations.buttons.generateContent}
               </Link>
             </Button>
           </CardHeader>
@@ -845,14 +880,14 @@ export default function DashboardOverview() {
             ) : (
               <div className="py-6 text-center">
                 <FileText className="text-muted-foreground mx-auto h-12 w-12" />
-                <h3 className="mt-2 text-sm font-semibold">No content yet</h3>
+                <h3 className="mt-2 text-sm font-semibold">{translations.descriptions.noContentYet}</h3>
                 <p className="text-muted-foreground mt-1 text-sm">
-                  Generate your first social media content from your books.
+                  {translations.descriptions.generateFirstContent}
                 </p>
                 <Button asChild className="mt-4">
                   <Link href="/dashboard/content/generate">
                     <Zap className="mr-2 h-4 w-4" />
-                    Generate Content
+                    {translations.buttons.generateContent}
                   </Link>
                 </Button>
               </div>
@@ -864,7 +899,7 @@ export default function DashboardOverview() {
       {/* Analytics Overview */}
       <Card>
         <CardHeader>
-          <CardTitle>Performance Overview</CardTitle>
+          <CardTitle>{translations.sections.performanceOverview}</CardTitle>
           <CardDescription>
             Your social media performance at a glance
           </CardDescription>

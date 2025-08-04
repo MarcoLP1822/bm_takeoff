@@ -19,7 +19,7 @@ describe("/api/social/schedule/[postId]", () => {
 
   const mockUserId = "user-123"
   const mockPostId = "post-123"
-  const mockParams = { params: { postId: mockPostId } }
+  const mockParams = { params: Promise.resolve({ postId: mockPostId }) }
 
   beforeEach(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

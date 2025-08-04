@@ -26,6 +26,29 @@
       "totalContent": "Content Created",
       "socialPosts": "Social Posts",
       "engagement": "Engagement"
+    },
+    "buttons": {
+      "uploadBook": "Upload Book",
+      "generateContent": "Generate Content",
+      "viewAllBooks": "View All Books",
+      "viewAllContent": "View All Content"
+    },
+    "sections": {
+      "recentBooks": "Recent Books",
+      "recentContent": "Recent Content",
+      "performanceOverview": "Performance Overview",
+      "quickActions": "Quick Actions"
+    },
+    "descriptions": {
+      "booksInLibrary": "Books in your library",
+      "socialMediaPosts": "Social media posts created",
+      "postsReadyToPublish": "Posts ready to publish",
+      "likesSharesComments": "Likes, shares, and comments",
+      "recentBooksDesc": "Your recently uploaded and analyzed books",
+      "recentContentDesc": "Your latest generated social media posts",
+      "noDataThisWeek": "No data this week",
+      "noContentYet": "No content yet",
+      "generateFirstContent": "Generate your first social media content from your books."
     }
   },
   "books": {
@@ -144,5 +167,131 @@
     "monthly": "Monthly",
     "yearly": "Yearly",
     "cancel": "Cancel Subscription"
+  },
+  "marketing": {
+    "hero": {
+      "badge": "100% Free & Open Source",
+      "title": "The #1 Full Stack",
+      "titleHighlight": "App Template",
+      "subtitle": "Everything you need to launch your next big idea with authentication, payments, database, and more - start building today.",
+      "ctaPrimary": "Start Building",
+      "ctaSecondary": "Star On GitHub",
+      "trustIndicators": {
+        "modernTech": "Modern Tech Stack",
+        "productionReady": "Production-Ready",
+        "continuousUpdates": "Continuous Updates"
+      }
+    },
+    "features": {
+      "badge": "Everything Included",
+      "title": "Start with a complete foundation",
+      "subtitle": "No more setup headaches. Clone the repo and start building your product immediately.",
+      "auth": {
+        "title": "Authentication Ready",
+        "description": "Clerk authentication pre-configured with protected routes, user management, and session handling."
+      },
+      "payments": {
+        "title": "Payments Integration",
+        "description": "Stripe integration with webhook support, subscription management, and checkout flows."
+      },
+      "database": {
+        "title": "Database Setup",
+        "description": "PostgreSQL with Drizzle ORM configured and ready. Includes migrations and type-safe queries."
+      },
+      "ui": {
+        "title": "Modern UI Components",
+        "description": "Beautiful, accessible components with shadcn/ui. Dark mode support and Tailwind CSS v4."
+      },
+      "typescript": {
+        "title": "TypeScript First",
+        "description": "Full TypeScript support with strict mode, path aliases, and type safety throughout."
+      },
+      "analytics": {
+        "title": "Analytics Built-in",
+        "description": "PostHog analytics integration for tracking user behavior and product metrics."
+      }
+    },
+    "navigation": {
+      "about": "About",
+      "features": "Features", 
+      "pricing": "Pricing",
+      "contact": "Contact"
+    },
+    "cta": {
+      "title": "Ready to build something amazing?",
+      "subtitle": "Stop wasting time on boilerplate. Clone this template and start shipping your product today.",
+      "cloneTemplate": "Clone Template",
+      "getStarted": "Get Started"
+    },
+    "companies": {
+      "title": "Built with modern technology",
+      "subtitle": "Trusted by developers worldwide",
+      "stats": {
+        "githubStars": "GitHub Stars",
+        "activeProjects": "Active Projects", 
+        "contributors": "Contributors"
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Everything you need to know about the template",
+      "questions": {
+        "whatIsThis": {
+          "question": "What is this template?",
+          "answer": "A complete full-stack application template built with Next.js, TypeScript, and modern tools to help you ship faster."
+        },
+        "howToStart": {
+          "question": "How do I get started?",
+          "answer": "Clone the repository, install dependencies, configure your environment variables, and start building."
+        },
+        "isItFree": {
+          "question": "Is it free to use?",
+          "answer": "Yes, this template is completely free and open source under the MIT license."
+        },
+        "supportIncluded": {
+          "question": "Is support included?",
+          "answer": "Community support is available through GitHub issues and discussions."
+        }
+      }
+    },
+    "pricing": {
+      "title": "Simple, transparent pricing",
+      "subtitle": "Choose the plan that's right for you",
+      "free": {
+        "title": "Free",
+        "price": "$0",
+        "period": "forever",
+        "description": "Perfect for getting started",
+        "features": [
+          "Complete source code",
+          "Basic authentication",
+          "Database setup",
+          "Community support"
+        ],
+        "cta": "Get Started"
+      },
+      "pro": {
+        "title": "Pro",
+        "price": "$99",
+        "period": "one-time",
+        "description": "Everything you need to build",
+        "features": [
+          "Everything in Free",
+          "Premium components",
+          "Advanced features",
+          "Priority support"
+        ],
+        "cta": "Upgrade to Pro"
+      }
+    },
+    "socialProof": {
+      "title": "Trusted by developers",
+      "subtitle": "Join thousands of developers who have built amazing products with this template"
+    },
+    "video": {
+      "title": "See it in action",
+      "subtitle": "Watch how easy it is to get started with this template",
+      "playButton": "Play Video"
+    }
   }
 }

@@ -164,7 +164,7 @@ describe("/api/analytics/posts", () => {
     mockGetPostPerformance.mockResolvedValue(mockResult)
 
     const request = new NextRequest(
-      "http://localhost/api/analytics/posts?limit=20&platform=instagram&bookId=book-123&startDate=2024-01-01&endDate=2024-01-31"
+      "http://localhost/api/analytics/posts?limit=20&platform=instagram&bookId=123e4567-e89b-12d3-a456-426614174000&startDate=2024-01-01&endDate=2024-01-31"
     )
     const response = await GET(request)
 
@@ -173,7 +173,7 @@ describe("/api/analytics/posts", () => {
       limit: 20,
       offset: 0,
       platform: "instagram",
-      bookId: "book-123",
+      bookId: "123e4567-e89b-12d3-a456-426614174000",
       search: undefined,
       sortBy: "publishedAt",
       sortOrder: "desc",

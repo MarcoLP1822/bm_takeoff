@@ -22,14 +22,14 @@ const customJestConfig = {
   ],
   extensionsToTreatAsEsm: ['.ts', '.tsx'],
   transformIgnorePatterns: [
-    'node_modules/(?!(uncrypto|@upstash)/)',
+    'node_modules/(?!(uncrypto|@upstash|@clerk)/)',
   ],
   globals: {
     'ts-jest': {
       useESM: true,
     },
   },
-  setupFiles: ['<rootDir>/jest.env.setup.js'],
+  setupFiles: ['<rootDir>/jest.env.setup.js', '<rootDir>/__tests__/setup/global-mocks.ts'],
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

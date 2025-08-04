@@ -1,21 +1,42 @@
-import { AnalyticsService } from "../analytics-service"
-import type {
-  PostPerformance,
-  PlatformComparison,
-  ThemePerformance,
-  OptimalPostingTime
-} from "../analytics-service"
-
 // Mock fetch
 global.fetch = jest.fn()
 
-// Mock the database
+// Mock the database with chainable methods
 jest.mock("@/db", () => ({
   db: {
-    select: jest.fn(),
-    insert: jest.fn(),
-    update: jest.fn(),
-    selectDistinct: jest.fn()
+    select: jest.fn().mockReturnValue({
+      from: jest.fn().mockReturnValue({
+        where: jest.fn().mockReturnValue({
+          limit: jest.fn().mockResolvedValue([]),
+          orderBy: jest.fn().mockReturnValue({
+            limit: jest.fn().mockResolvedValue([])
+          })
+        }),
+        orderBy: jest.fn().mockReturnValue({
+          limit: jest.fn().mockResolvedValue([])
+        }),
+        leftJoin: jest.fn().mockReturnValue({
+          where: jest.fn().mockReturnValue({
+            groupBy: jest.fn().mockReturnValue({
+              orderBy: jest.fn().mockResolvedValue([])
+            })
+          })
+        })
+      })
+    }),
+    insert: jest.fn().mockReturnValue({
+      values: jest.fn().mockResolvedValue(undefined)
+    }),
+    update: jest.fn().mockReturnValue({
+      set: jest.fn().mockReturnValue({
+        where: jest.fn().mockResolvedValue(undefined)
+      })
+    }),
+    selectDistinct: jest.fn().mockReturnValue({
+      from: jest.fn().mockReturnValue({
+        where: jest.fn().mockResolvedValue([])
+      })
+    })
   }
 }))
 
@@ -26,8 +47,18 @@ jest.mock("../social-media", () => ({
   }
 }))
 
+import { AnalyticsService } from "../analytics-service"
+import type {
+  PostPerformance,
+  PlatformComparison,
+  ThemePerformance,
+  OptimalPostingTime
+} from "../analytics-service"
+
 // Import the mocked db for type-safe usage
 import { db } from "@/db"
+
+// Type the mocked db
 const mockedDb = jest.mocked(db)
 
 describe("AnalyticsService", () => {
@@ -57,22 +88,6 @@ describe("AnalyticsService", () => {
         ok: true,
         json: () => Promise.resolve(mockTwitterResponse)
       })
-
-      // Mock database operations
-      const mockSelect = jest.fn().mockReturnValue({
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([])
-          })
-        })
-      })
-
-      const mockInsert = jest.fn().mockReturnValue({
-        values: jest.fn().mockResolvedValue(undefined)
-      })
-
-      mockedDb.select.mockImplementation(mockSelect)
-      mockedDb.insert.mockImplementation(mockInsert)
 
       const result = await AnalyticsService.collectPostAnalytics(
         "content-id",
@@ -115,22 +130,6 @@ describe("AnalyticsService", () => {
         ok: true,
         json: () => Promise.resolve(mockInstagramResponse)
       })
-
-      // Mock database operations
-      const mockSelect = jest.fn().mockReturnValue({
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockResolvedValue([])
-          })
-        })
-      })
-
-      const mockInsert = jest.fn().mockReturnValue({
-        values: jest.fn().mockResolvedValue(undefined)
-      })
-
-      mockedDb.select.mockImplementation(mockSelect)
-      mockedDb.insert.mockImplementation(mockInsert)
 
       const result = await AnalyticsService.collectPostAnalytics(
         "content-id",
@@ -199,8 +198,8 @@ describe("AnalyticsService", () => {
         })
       })
 
-      mockedDb.select.mockImplementation(mockSelect)
-      mockedDb.update.mockImplementation(mockUpdate)
+      
+      
 
       await AnalyticsService.collectPostAnalytics(
         "content-id",
@@ -249,7 +248,7 @@ describe("AnalyticsService", () => {
         from: jest.fn().mockReturnValue(mockQuery)
       })
 
-      mockedDb.select.mockImplementation(mockSelect)
+      
 
       const result = await AnalyticsService.getPostPerformance("user-id", {
         limit: 10,
@@ -290,7 +289,7 @@ describe("AnalyticsService", () => {
         from: jest.fn().mockReturnValue(mockQuery)
       })
 
-      mockedDb.select.mockImplementation(mockSelect)
+      
 
       const result = await AnalyticsService.getPostPerformance("user-id")
 
@@ -331,7 +330,7 @@ describe("AnalyticsService", () => {
         from: jest.fn().mockReturnValue(mockQuery)
       })
 
-      mockedDb.select.mockImplementation(mockSelect)
+      
 
       // Mock getPostPerformance for best performing posts
       jest.spyOn(AnalyticsService, "getPostPerformance").mockResolvedValue({

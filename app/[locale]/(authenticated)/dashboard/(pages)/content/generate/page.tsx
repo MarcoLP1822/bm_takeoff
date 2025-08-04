@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -26,6 +27,8 @@ interface Book {
 
 export default function ContentGeneratePage() {
   const router = useRouter()
+  const params = useParams()
+  const locale = params.locale as string
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -57,13 +60,13 @@ export default function ContentGeneratePage() {
   }
 
   const handleBack = () => {
-    router.push("/dashboard/content")
+    router.push(`/${locale}/dashboard/content`)
   }
 
   const handleGenerateContent = (bookId: string) => {
     // For now, just redirect to content page
     // TODO: Implement actual content generation
-    router.push(`/dashboard/content?book=${bookId}&action=generate`)
+    router.push(`/${locale}/dashboard/content?book=${bookId}&action=generate`)
   }
 
   if (loading) {
@@ -118,7 +121,7 @@ export default function ContentGeneratePage() {
               from them.
             </p>
             <Button
-              onClick={() => router.push("/dashboard/books?action=upload")}
+              onClick={() => router.push(`/${locale}/dashboard/books?action=upload`)}
             >
               <BookOpen className="mr-2 h-4 w-4" />
               Upload Your First Book

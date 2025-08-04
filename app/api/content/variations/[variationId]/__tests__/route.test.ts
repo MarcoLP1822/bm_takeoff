@@ -41,7 +41,7 @@ describe("/api/content/variations/[variationId] PUT", () => {
       }
     )
 
-    const response = await PUT(request, { params: { variationId: "var-123" } })
+    const response = await PUT(request, { params: Promise.resolve({ variationId: "var-123" }) })
     const data = await response.json()
 
     expect(response.status).toBe(401)
@@ -59,7 +59,7 @@ describe("/api/content/variations/[variationId] PUT", () => {
       }
     )
 
-    const response = await PUT(request, { params: { variationId: "var-123" } })
+    const response = await PUT(request, { params: Promise.resolve({ variationId: "var-123" }) })
     const data = await response.json()
 
     expect(response.status).toBe(400)
@@ -77,7 +77,7 @@ describe("/api/content/variations/[variationId] PUT", () => {
       }
     )
 
-    const response = await PUT(request, { params: { variationId: "var-123" } })
+    const response = await PUT(request, { params: Promise.resolve({ variationId: "var-123" }) })
     const data = await response.json()
 
     expect(response.status).toBe(400)
@@ -113,7 +113,7 @@ describe("/api/content/variations/[variationId] PUT", () => {
       }
     )
 
-    const response = await PUT(request, { params: { variationId: "var-123" } })
+    const response = await PUT(request, { params: Promise.resolve({ variationId: "var-123" }) })
     const data = await response.json()
 
     expect(response.status).toBe(200)
@@ -146,7 +146,7 @@ describe("/api/content/variations/[variationId] PUT", () => {
       }
     )
 
-    const response = await PUT(request, { params: { variationId: "var-123" } })
+    const response = await PUT(request, { params: Promise.resolve({ variationId: "var-123" }) })
     const data = await response.json()
 
     expect(response.status).toBe(404)
@@ -171,7 +171,7 @@ describe("/api/content/variations/[variationId] PUT", () => {
       }
     )
 
-    const response = await PUT(request, { params: { variationId: "var-123" } })
+    const response = await PUT(request, { params: Promise.resolve({ variationId: "var-123" }) })
     const data = await response.json()
 
     expect(response.status).toBe(500)
@@ -195,7 +195,7 @@ describe("/api/content/variations/[variationId] DELETE", () => {
     )
 
     const response = await DELETE(request, {
-      params: { variationId: "var-123" }
+      params: Promise.resolve({ variationId: "var-123" })
     })
     const data = await response.json()
 
@@ -217,7 +217,7 @@ describe("/api/content/variations/[variationId] DELETE", () => {
     )
 
     const response = await DELETE(request, {
-      params: { variationId: "var-123" }
+      params: Promise.resolve({ variationId: "var-123" })
     })
     const data = await response.json()
 
@@ -239,7 +239,7 @@ describe("/api/content/variations/[variationId] DELETE", () => {
     )
 
     const response = await DELETE(request, {
-      params: { variationId: "var-123" }
+      params: Promise.resolve({ variationId: "var-123" })
     })
     const data = await response.json()
 
@@ -259,7 +259,7 @@ describe("/api/content/variations/[variationId] DELETE", () => {
     )
 
     const response = await DELETE(request, {
-      params: { variationId: "var-123" }
+      params: Promise.resolve({ variationId: "var-123" })
     })
     const data = await response.json()
 

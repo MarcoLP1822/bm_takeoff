@@ -35,7 +35,7 @@ describe("/api/social/connect/[platform]", () => {
       const request = new NextRequest(
         "http://localhost:3000/api/social/connect/twitter"
       )
-      const response = await GET(request, { params: { platform: "twitter" } })
+      const response = await GET(request, { params: Promise.resolve({ platform: "twitter" }) })
       const data = await response.json()
 
       expect(response.status).toBe(200)
@@ -53,7 +53,7 @@ describe("/api/social/connect/[platform]", () => {
       const request = new NextRequest(
         "http://localhost:3000/api/social/connect/twitter"
       )
-      const response = await GET(request, { params: { platform: "twitter" } })
+      const response = await GET(request, { params: Promise.resolve({ platform: "twitter" }) })
       const data = await response.json()
 
       expect(response.status).toBe(401)
@@ -66,7 +66,7 @@ describe("/api/social/connect/[platform]", () => {
       const request = new NextRequest(
         "http://localhost:3000/api/social/connect/invalid"
       )
-      const response = await GET(request, { params: { platform: "invalid" } })
+      const response = await GET(request, { params: Promise.resolve({ platform: "invalid" }) })
       const data = await response.json()
 
       expect(response.status).toBe(400)
@@ -82,7 +82,7 @@ describe("/api/social/connect/[platform]", () => {
       const request = new NextRequest(
         "http://localhost:3000/api/social/connect/twitter"
       )
-      const response = await GET(request, { params: { platform: "twitter" } })
+      const response = await GET(request, { params: Promise.resolve({ platform: "twitter" }) })
       const data = await response.json()
 
       expect(response.status).toBe(500)

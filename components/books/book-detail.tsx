@@ -36,6 +36,14 @@ interface AnalysisData {
   keyInsights?: string[]
   genre?: string
   targetAudience?: string
+  chapterSummaries?: Array<{
+    chapterNumber: number
+    title?: string
+    summary: string
+    keyPoints: string[]
+  }>
+  overallSummary?: string
+  discussionPoints?: string[]
 }
 
 interface BookDetail {
@@ -424,7 +432,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
 
             {book.analysisStatus === "completed" && book.analysisData && (
               <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                   <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                     <h4 className="mb-2 font-medium text-green-800">
                       Themes Identified
@@ -440,6 +448,24 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                     </h4>
                     <p className="text-2xl font-bold text-blue-600">
                       {book.analysisData.quotes?.length || 0}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg border border-purple-200 bg-purple-50 p-4">
+                    <h4 className="mb-2 font-medium text-purple-800">
+                      Key Insights
+                    </h4>
+                    <p className="text-2xl font-bold text-purple-600">
+                      {book.analysisData.keyInsights?.length || 0}
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
+                    <h4 className="mb-2 font-medium text-orange-800">
+                      Analysis Complete
+                    </h4>
+                    <p className="text-2xl font-bold text-orange-600">
+                      ✓
                     </p>
                   </div>
                 </div>
@@ -470,6 +496,145 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                       </div>
                     </div>
                   )}
+
+                {book.analysisData.quotes &&
+                  book.analysisData.quotes.length > 0 && (
+                    <div>
+                      <h4 className="mb-2 font-medium text-gray-900">
+                        Key Quotes
+                      </h4>
+                      <div className="space-y-3">
+                        {book.analysisData.quotes.slice(0, 5).map(
+                          (quote: string, index: number) => (
+                            <blockquote key={index} className="border-l-4 border-blue-200 bg-blue-50 p-3 text-sm italic text-gray-700">
+                              "{quote}"
+                            </blockquote>
+                          )
+                        )}
+                        {book.analysisData.quotes.length > 5 && (
+                          <p className="text-xs text-gray-500">
+                            And {book.analysisData.quotes.length - 5} more quotes...
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                {book.analysisData.keyInsights &&
+                  book.analysisData.keyInsights.length > 0 && (
+                    <div>
+                      <h4 className="mb-2 font-medium text-gray-900">
+                        Key Insights
+                      </h4>
+                      <ul className="space-y-2">
+                        {book.analysisData.keyInsights.map(
+                          (insight: string, index: number) => (
+                            <li key={index} className="flex items-start">
+                              <div className="mr-2 mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-green-500"></div>
+                              <span className="text-sm text-gray-700">{insight}</span>
+                            </li>
+                          )
+                        )}
+                      </ul>
+                    </div>
+                  )}
+
+                {(book.analysisData.genre || book.analysisData.targetAudience) && (
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {book.analysisData.genre && (
+                      <div className="rounded-lg border border-purple-200 bg-purple-50 p-4">
+                        <h4 className="mb-2 font-medium text-purple-800">
+                          Genre
+                        </h4>
+                        <p className="text-sm text-purple-700">
+                          {book.analysisData.genre}
+                        </p>
+                      </div>
+                    )}
+                    {book.analysisData.targetAudience && (
+                      <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
+                        <h4 className="mb-2 font-medium text-orange-800">
+                          Target Audience
+                        </h4>
+                        <p className="text-sm text-orange-700">
+                          {book.analysisData.targetAudience}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {book.analysisData.chapterSummaries &&
+                  book.analysisData.chapterSummaries.length > 0 && (
+                    <div>
+                      <h4 className="mb-2 font-medium text-gray-900">
+                        Chapter Summaries
+                      </h4>
+                      <div className="space-y-4">
+                        {book.analysisData.chapterSummaries.slice(0, 3).map(
+                          (chapter, index: number) => (
+                            <div key={index} className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                              <h5 className="mb-2 font-medium text-gray-800">
+                                Chapter {chapter.chapterNumber}
+                                {chapter.title && `: ${chapter.title}`}
+                              </h5>
+                              <p className="mb-2 text-sm text-gray-700">
+                                {chapter.summary}
+                              </p>
+                              {chapter.keyPoints && chapter.keyPoints.length > 0 && (
+                                <div>
+                                  <h6 className="text-xs font-medium text-gray-600 mb-1">Key Points:</h6>
+                                  <ul className="text-xs text-gray-600 space-y-1">
+                                    {chapter.keyPoints.map((point, pointIndex) => (
+                                      <li key={pointIndex} className="flex items-start">
+                                        <span className="mr-1">•</span>
+                                        <span>{point}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        )}
+                        {book.analysisData.chapterSummaries.length > 3 && (
+                          <p className="text-xs text-gray-500">
+                            And {book.analysisData.chapterSummaries.length - 3} more chapters...
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                {book.analysisData.discussionPoints &&
+                  book.analysisData.discussionPoints.length > 0 && (
+                    <div>
+                      <h4 className="mb-2 font-medium text-gray-900">
+                        Discussion Points
+                      </h4>
+                      <ul className="space-y-2">
+                        {book.analysisData.discussionPoints.map(
+                          (point: string, index: number) => (
+                            <li key={index} className="flex items-start">
+                              <div className="mr-2 mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-yellow-500"></div>
+                              <span className="text-sm text-gray-700">{point}</span>
+                            </li>
+                          )
+                        )}
+                      </ul>
+                    </div>
+                  )}
+
+                {book.analysisData.overallSummary && (
+                  <div>
+                    <h4 className="mb-2 font-medium text-gray-900">Overall Summary</h4>
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                      <p className="text-sm leading-relaxed text-gray-700">
+                        {book.analysisData.overallSummary}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

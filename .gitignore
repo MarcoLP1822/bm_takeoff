@@ -59,3 +59,12 @@ temp-*.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+
+# Cleanup script generated
+*.tmp
+*.temp
+*.bak
+*.old
+.temp/
+docs/archive/

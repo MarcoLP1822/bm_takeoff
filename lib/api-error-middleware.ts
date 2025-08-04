@@ -8,6 +8,12 @@ import {
   ValidationHelpers
 } from "./error-handling"
 import { RetryService } from "./retry-service"
+import {
+  createErrorResponse,
+  createAuthErrorResponse,
+  createValidationErrorResponse,
+  createRateLimitErrorResponse
+} from "./api-response"
 import { z } from "zod"
 
 // Enhanced API middleware with comprehensive error handling
@@ -27,14 +33,15 @@ export function createApiHandler<T = unknown>(config: {
         userId?: string
         validatedData?: T
         requestId: string
+        params?: Record<string, string>
       }
     ) => Promise<NextResponse>
   ) {
-    const wrappedHandler = async (
+    return async function (
       request: NextRequest,
-      context?: Record<string, unknown>
-    ) => {
-      const requestId = (context?.requestId as string) || `req_${Date.now()}`
+      routeContext?: { params?: Record<string, string> }
+    ): Promise<NextResponse> {
+      const requestId = `req_${Date.now()}`
       const startTime = Date.now()
 
       try {
@@ -114,13 +121,13 @@ export function createApiHandler<T = unknown>(config: {
           return await handler(request, {
             userId,
             validatedData,
-            requestId
+            requestId,
+            params: routeContext?.params
           })
         }
       } catch (error) {
         // Enhanced error context
         const errorContext = {
-          ...context,
           requestId,
           duration: Date.now() - startTime,
           userId: undefined, // Will be set if auth was successful
@@ -131,13 +138,6 @@ export function createApiHandler<T = unknown>(config: {
         // Re-throw to be handled by withErrorHandling
         throw error
       }
-    }
-
-    // Apply error handling wrapper
-    if (config.requireAuth) {
-      return withErrorHandling(wrappedHandler)
-    } else {
-      return withErrorHandling(wrappedHandler)
     }
   }
 }

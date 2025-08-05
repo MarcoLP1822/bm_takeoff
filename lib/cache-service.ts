@@ -113,13 +113,24 @@ export async function getCachedAIAnalysis(
   userId: string
 ): Promise<BookAnalysisResult | null> {
   try {
-    if (!redis) return null // Skip caching if Redis is not configured
+    console.log("Cache check - Redis available:", !!redis)
+    console.log("Cache check - BookId:", bookId, "UserId:", userId)
+    
+    if (!redis) {
+      console.log("Redis not configured, skipping cache")
+      return null // Skip caching if Redis is not configured
+    }
 
     const key = getCacheKey("AI_ANALYSIS", `${userId}:${bookId}`)
+    console.log("Cache key:", key)
+    
     const cached = await redis.get(key)
+    console.log("Cached result:", cached ? "Found" : "Not found")
 
     if (cached && typeof cached === "string") {
-      return JSON.parse(cached) as BookAnalysisResult
+      const parsed = JSON.parse(cached) as BookAnalysisResult
+      console.log("Returning cached analysis with themes:", parsed.themes?.length || 0)
+      return parsed
     }
 
     return null

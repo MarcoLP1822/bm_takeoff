@@ -12,6 +12,17 @@ export interface TextExtractionResult {
   }
 }
 
+// PDF.js text content item interface
+interface TextItem {
+  str: string
+}
+
+interface TextMarkedContent {
+  type: string
+}
+
+type PDFTextItem = TextItem | TextMarkedContent
+
 export class TextExtractionService {
   /**
    * Extract text from various file formats
@@ -46,46 +57,144 @@ export class TextExtractionService {
   }
 
   /**
-   * Extract text from PDF files - Real implementation
+   * Extract text from PDF files - Robust implementation with multiple fallbacks
    */
   private static async extractFromPDF(
     buffer: Buffer,
     fileName?: string
   ): Promise<TextExtractionResult> {
-    try {
-      // Dynamic import to avoid initialization issues
-      const pdfParse = (await import("pdf-parse")).default
-      const data = await pdfParse(buffer)
+    // Validate buffer first
+    if (!buffer || buffer.length === 0) {
+      throw new Error("Invalid or empty PDF buffer")
+    }
 
-      // Use fileName if provided, otherwise use PDF metadata title or fallback
-      const title = fileName
-        ? fileName.replace(/\.[^/.]+$/, "")
-        : data.info?.Title || "PDF Document"
+    console.log(`📄 Starting PDF text extraction for: ${fileName || 'unnamed'}, size: ${buffer.length} bytes`)
+
+    // Method 1: Try pdf-parse first (most reliable when it works)
+    try {
+      console.log("📖 Attempting PDF extraction with pdf-parse...")
+      
+      const pdfParseModule = await import("pdf-parse")
+      const pdfParse = pdfParseModule.default || pdfParseModule
+      
+      // Ensure we have a clean buffer
+      const cleanBuffer = Buffer.from(buffer)
+      
+      // Call with minimal options to avoid any file system issues
+      const pdfData = await pdfParse(cleanBuffer)
+      
+      const text = pdfData?.text ? String(pdfData.text).trim() : ""
+      const title = fileName ? fileName.replace(/\.[^/.]+$/, "") : "PDF Document"
+
+      console.log(`✅ pdf-parse extraction completed: ${text.length} characters extracted`)
 
       return {
-        text: data.text || "No text content found in PDF",
+        text: text || "No text content found in PDF",
         metadata: {
-          pages: data.numpages,
-          wordCount: data.text
-            ? data.text.split(/\s+/).filter((word: string) => word.length > 0)
-                .length
+          pages: pdfData?.numpages || 0,
+          wordCount: text
+            ? text.split(/\s+/).filter((word: string) => word.length > 0).length
             : 0,
           title,
-          author: data.info?.Author || "Unknown"
+          author: "Unknown"
         }
       }
-    } catch (error) {
-      console.error("PDF extraction error:", error)
-      const fallbackTitle = fileName
-        ? fileName.replace(/\.[^/.]+$/, "") + " (Failed)"
-        : "PDF Document (Failed)"
-      return {
-        text: "PDF content extraction failed. Please try converting to DOCX or TXT format.",
-        metadata: {
-          pages: 0,
-          wordCount: 0,
-          title: fallbackTitle,
-          author: "Unknown"
+      
+    } catch (pdfParseError) {
+      console.warn("⚠️ pdf-parse failed, trying pdf2json fallback:", pdfParseError)
+      
+      // Method 2: Try pdf2json as fallback
+      try {
+        console.log("📖 Attempting PDF extraction with pdf2json...")
+        
+        const PDFParser = (await import("pdf2json")).default
+        
+        return new Promise<TextExtractionResult>((resolve, reject) => {
+          const pdfParser = new PDFParser()
+          
+          pdfParser.on("pdfParser_dataError", (errData: unknown) => {
+            console.warn("⚠️ pdf2json error:", errData)
+            reject(new Error(`pdf2json failed: ${(errData as {parserError?: string})?.parserError || 'Unknown error'}`))
+          })
+          
+          pdfParser.on("pdfParser_dataReady", (pdfData: unknown) => {
+            try {
+              let text = ""
+              const data = pdfData as {Pages?: Array<{Texts?: Array<{R?: Array<{T?: string}>}>}>}
+              
+              // Extract text from all pages
+              if (data?.Pages) {
+                for (const page of data.Pages) {
+                  if (page?.Texts) {
+                    for (const textObj of page.Texts) {
+                      if (textObj?.R) {
+                        for (const run of textObj.R) {
+                          if (run?.T) {
+                            text += decodeURIComponent(run.T) + " "
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              
+              text = text.trim()
+              const title = fileName ? fileName.replace(/\.[^/.]+$/, "") : "PDF Document"
+              
+              console.log(`✅ pdf2json extraction completed: ${text.length} characters extracted`)
+              
+              resolve({
+                text: text || "No text content found in PDF",
+                metadata: {
+                  pages: data?.Pages?.length || 0,
+                  wordCount: text
+                    ? text.split(/\s+/).filter((word: string) => word.length > 0).length
+                    : 0,
+                  title,
+                  author: "Unknown"
+                }
+              })
+            } catch (parseError) {
+              reject(parseError)
+            }
+          })
+          
+          // Parse the buffer
+          pdfParser.parseBuffer(buffer)
+        })
+        
+      } catch (pdf2jsonError) {
+        console.error("❌ Both PDF extraction methods failed:", {
+          pdfParseError: pdfParseError instanceof Error ? pdfParseError.message : String(pdfParseError),
+          pdf2jsonError: pdf2jsonError instanceof Error ? pdf2jsonError.message : String(pdf2jsonError)
+        })
+        
+        const fallbackTitle = fileName
+          ? fileName.replace(/\.[^/.]+$/, "") + " (Extraction Failed)"
+          : "PDF Document (Extraction Failed)"
+        
+        // Return a meaningful fallback response instead of throwing
+        return {
+          text: `PDF text extraction failed using multiple methods. This may be due to:
+• The PDF being password-protected
+• The PDF containing only scanned images (requiring OCR)
+• Corrupted or malformed PDF structure
+• Complex PDF features not supported by the extractors
+
+Please try:
+1. Converting the PDF to DOCX or TXT format
+2. Using OCR software if it's a scanned document
+3. Ensuring the PDF is not password-protected
+4. Trying a different PDF file
+
+Technical details: Both pdf-parse and pdf2json failed to extract text from this document.`,
+          metadata: {
+            pages: 0,
+            wordCount: 0,
+            title: fallbackTitle,
+            author: "Unknown"
+          }
         }
       }
     }

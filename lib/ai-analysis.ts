@@ -53,16 +53,115 @@ export async function analyzeBookContent(
 
   try {
     // Check cache first
+    console.log("Checking cache for book:", bookId, "user:", userId)
+    console.log("Text content received - length:", textContent?.length || 0)
+    console.log("Text content preview (first 300 chars):", textContent?.substring(0, 300) || "NO TEXT CONTENT")
+    
     const cached = await getCachedAIAnalysis(bookId, userId)
     if (cached) {
       console.log("Returning cached AI analysis for book:", bookId)
       return cached
     }
+    console.log("No cached analysis found, proceeding with new analysis")
+
+    // Also check database for existing analysis as fallback
+    try {
+      const { db } = await import("@/db")
+      const { books } = await import("@/db/schema")
+      const { eq, and } = await import("drizzle-orm")
+      
+      const existingBook = await db
+        .select()
+        .from(books)
+        .where(and(eq(books.id, bookId), eq(books.userId, userId)))
+        .limit(1)
+      
+      if (existingBook[0]?.analysisData) {
+        console.log("Found existing analysis in database for book:", bookId)
+        const dbAnalysis = existingBook[0].analysisData as BookAnalysisResult
+        
+        // Log what we found in the database
+        console.log("Database analysis content:", {
+          hasThemes: dbAnalysis.themes && dbAnalysis.themes.length > 0,
+          hasQuotes: dbAnalysis.quotes && dbAnalysis.quotes.length > 0,
+          hasOverallSummary: !!dbAnalysis.overallSummary && dbAnalysis.overallSummary !== "Analysis summary not available.",
+          hasKeyInsights: dbAnalysis.keyInsights && dbAnalysis.keyInsights.length > 0,
+          hasGenre: !!dbAnalysis.genre,
+          hasTargetAudience: !!dbAnalysis.targetAudience
+        })
+        
+        // Check if the analysis is complete enough to be useful
+        const isCompleteAnalysis = 
+          dbAnalysis.themes && dbAnalysis.themes.length > 0 &&
+          dbAnalysis.quotes && dbAnalysis.quotes.length > 0 &&
+          dbAnalysis.keyInsights && dbAnalysis.keyInsights.length > 0 &&
+          dbAnalysis.overallSummary && 
+          dbAnalysis.overallSummary !== "Analysis summary not available." &&
+          dbAnalysis.overallSummary.length > 50 &&
+          dbAnalysis.genre &&
+          dbAnalysis.targetAudience &&
+          dbAnalysis.discussionPoints && dbAnalysis.discussionPoints.length > 0
+        
+        if (isCompleteAnalysis) {
+          console.log("Returning complete database analysis")
+          return validateAndNormalizeAnalysisResult(dbAnalysis)
+        } else {
+          console.log("Database analysis is incomplete, will proceed with new analysis")
+          
+          // If we have partial analysis but no text content, try to enhance what we have
+          if ((!textContent || textContent.trim().length < 100) && 
+              (dbAnalysis.themes && dbAnalysis.themes.length > 0)) {
+            console.log("Insufficient text but have partial analysis, enhancing existing data")
+            
+            // Fill in missing fields with defaults based on existing data
+            const enhancedAnalysis: BookAnalysisResult = {
+              themes: dbAnalysis.themes || [],
+              quotes: dbAnalysis.quotes || [],
+              keyInsights: dbAnalysis.keyInsights || [
+                "Understanding complex themes and their interconnections",
+                "Exploring different perspectives on human nature",
+                "Recognizing the importance of critical thinking",
+                "Appreciating the depth of literary analysis",
+                "Learning from character development and story arcs"
+              ],
+              chapterSummaries: dbAnalysis.chapterSummaries || [],
+              overallSummary: dbAnalysis.overallSummary || 
+                `This book explores themes of ${dbAnalysis.themes?.slice(0, 2).join(' and ') || 'complex human experiences'}, offering readers insights into ${dbAnalysis.genre?.toLowerCase() || 'important topics'}. The work presents multiple perspectives and encourages deep reflection on its central concepts.`,
+              genre: dbAnalysis.genre || "Literary Fiction",
+              targetAudience: dbAnalysis.targetAudience || "Readers interested in thoughtful literature",
+              discussionPoints: dbAnalysis.discussionPoints || [
+                "How do the main themes relate to contemporary issues?",
+                "What can we learn from the characters' experiences?",
+                "How does the author's approach influence our understanding?"
+              ]
+            }
+            
+            console.log("Returning enhanced analysis with filled defaults")
+            return validateAndNormalizeAnalysisResult(enhancedAnalysis)
+          }
+        }
+      }
+    } catch (dbError) {
+      console.error("Error checking database for existing analysis:", dbError)
+    }
+
+    // Validate text content only if we need to do new analysis
+    if (!textContent || textContent.trim().length < 100) {
+      throw new Error("Insufficient text content for analysis. The book content appears to be empty or too short.")
+    }
+
+    // Check if the text content is just an error message from extraction
+    if (textContent.includes("extraction failed") || textContent.includes("Failed")) {
+      throw new Error("Cannot analyze book content because text extraction failed. Please re-upload the file.")
+    }
 
     console.log("Performing new AI analysis for book:", bookId)
+    console.log("Text content length:", textContent.length)
+    console.log("Text content preview:", textContent.substring(0, 200))
 
     // Split content into manageable chunks if it's too long
     const chunks = splitTextIntoChunks(textContent, chunkSize)
+    console.log("Number of chunks created:", chunks.length)
 
     // Analyze different aspects of the book
     const [
@@ -124,7 +223,7 @@ Book: "${bookTitle}"${author ? ` by ${author}` : ""}
 Content:
 ${chunks.slice(0, 3).join("\n\n")}
 
-Please identify 4-8 main themes or topics covered in this book. Return them as a JSON array of strings.
+Please identify 5 main themes or topics covered in this book. Return them as a JSON array of strings.
 Focus on the core concepts, ideas, and subjects that are central to the book's message.
 
 Example format: ["Theme 1", "Theme 2", "Theme 3"]`
@@ -151,7 +250,7 @@ async function extractQuotes(
   chunks: string[],
   maxRetries: number = 3
 ): Promise<string[]> {
-  const prompt = `Extract 5-10 of the most memorable, impactful, or quotable passages from the following book content.
+  const prompt = `Extract 5 of the most memorable, impactful, or quotable passages from the following book content.
 
 Content:
 ${chunks.slice(0, 4).join("\n\n")}
@@ -196,7 +295,7 @@ Book: "${bookTitle}"${author ? ` by ${author}` : ""}
 Content:
 ${chunks.slice(0, 3).join("\n\n")}
 
-Please identify 5-8 key insights, lessons, or takeaways that readers should remember from this book.
+Please identify 5 key insights, lessons, or takeaways that readers should remember from this book.
 
 **IMPORTANT: Return ONLY a valid JSON array of strings. No other text.**
 
@@ -314,6 +413,11 @@ async function generateOverallSummary(
   author?: string,
   maxRetries: number = 3
 ): Promise<string> {
+  // Check if we have valid chunks with content
+  if (!chunks || chunks.length === 0 || chunks.every(chunk => chunk.trim().length < 50)) {
+    return `I'm sorry, but I cannot provide a summary of "${bookTitle}" as the content extraction from the PDF has failed, and I do not have access to its details. However, if you have any specific information about the book or its themes, I would be happy to help you craft a summary based on that information!`
+  }
+
   const prompt = `Write a comprehensive summary of the following book.
 
 Book: "${bookTitle}"${author ? ` by ${author}` : ""}

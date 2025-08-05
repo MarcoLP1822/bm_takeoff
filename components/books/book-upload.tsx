@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef } from "react"
 import { useDropzone, FileRejection } from "react-dropzone"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -53,6 +53,8 @@ export function BookUpload({
     error: null,
     success: false
   })
+  
+  const progressRef = useRef(0)
 
   const uploadFile = useCallback(
     async (file: File) => {
@@ -62,22 +64,77 @@ export function BookUpload({
         error: null,
         success: false
       })
+      
+      progressRef.current = 0
 
       try {
         const formData = new FormData()
         formData.append("file", file)
 
-        const response = await fetch("/api/books/upload", {
-          method: "POST",
-          body: formData
+        // Use XMLHttpRequest to track upload progress
+        const uploadPromise = new Promise<{ book: Book; success: boolean; message: string }>((resolve, reject) => {
+          const xhr = new XMLHttpRequest()
+
+          // Track upload progress
+          xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+              // Upload progress represents 0-80% of total progress
+              const uploadPercent = Math.round((event.loaded / event.total) * 80)
+              progressRef.current = uploadPercent
+              setUploadState(prev => ({
+                ...prev,
+                progress: uploadPercent
+              }))
+            }
+          })
+
+          // Handle upload completion
+          xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              // Simulate text extraction and processing phases (80-100%)
+              setUploadState(prev => ({ ...prev, progress: 85 }))
+              
+              setTimeout(() => {
+                setUploadState(prev => ({ ...prev, progress: 95 }))
+              }, 300)
+              
+              setTimeout(() => {
+                setUploadState(prev => ({ ...prev, progress: 100 }))
+              }, 600)
+              
+              try {
+                const result = JSON.parse(xhr.responseText)
+                resolve(result)
+              } catch (e) {
+                reject(new Error('Invalid response format'))
+              }
+            } else {
+              try {
+                const errorData = JSON.parse(xhr.responseText)
+                reject(new Error(errorData.error || 'Upload failed'))
+              } catch (e) {
+                reject(new Error(`Upload failed with status ${xhr.status}`))
+              }
+            }
+          })
+
+          // Handle upload error
+          xhr.addEventListener('error', () => {
+            reject(new Error('Network error during upload'))
+          })
+
+          // Handle upload timeout
+          xhr.addEventListener('timeout', () => {
+            reject(new Error('Upload timeout'))
+          })
+
+          // Start the upload
+          xhr.open('POST', '/api/books/upload')
+          xhr.timeout = 300000 // 5 minutes timeout
+          xhr.send(formData)
         })
 
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || "Upload failed")
-        }
-
-        const result = await response.json()
+        const result = await uploadPromise
 
         setUploadState({
           isUploading: false,
@@ -91,6 +148,7 @@ export function BookUpload({
         // Reset success state after 3 seconds
         setTimeout(() => {
           setUploadState(prev => ({ ...prev, success: false, progress: 0 }))
+          progressRef.current = 0
         }, 3000)
       } catch (error) {
         const errorMessage =
@@ -101,6 +159,7 @@ export function BookUpload({
           error: errorMessage,
           success: false
         })
+        progressRef.current = 0
         onUploadError?.(errorMessage)
       }
     },
@@ -203,10 +262,34 @@ export function BookUpload({
       </div>
 
       {uploadState.isUploading && (
-        <div className="mt-4">
-          <Progress value={uploadState.progress} className="w-full" />
-          <p className="mt-2 text-center text-sm text-gray-500">
-            Processing your book...
+        <div className="mt-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <p className="text-sm text-gray-600 font-medium">
+                {uploadState.progress < 95 ? "Uploading file..." : "Processing content..."}
+              </p>
+            </div>
+            <span className="text-sm font-bold text-blue-600">
+              {uploadState.progress}%
+            </span>
+          </div>
+          <div className="relative">
+            <Progress 
+              value={uploadState.progress} 
+              className="w-full h-3 bg-gray-200" 
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-xs font-medium text-white drop-shadow-sm">
+                {uploadState.progress < 10 ? "" : `${uploadState.progress}%`}
+              </span>
+            </div>
+          </div>
+          <p className="text-xs text-center text-gray-500">
+            {uploadState.progress < 30 && "Validating file format..."}
+            {uploadState.progress >= 30 && uploadState.progress < 70 && "Uploading to secure storage..."}
+            {uploadState.progress >= 70 && uploadState.progress < 95 && "Extracting text content..."}
+            {uploadState.progress >= 95 && "Finalizing upload..."}
           </p>
         </div>
       )}

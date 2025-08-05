@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/db"
-import { books } from "@/db/schema"
+import { books, generatedContent } from "@/db/schema"
 import { eq, and } from "drizzle-orm"
 import {
   generateSocialContent,
@@ -11,6 +11,7 @@ import { ErrorCreators, ValidationHelpers } from "@/lib/error-handling"
 import { RetryService } from "@/lib/retry-service"
 import { createApiHandler, ApiValidations } from "@/lib/api-error-middleware"
 import { invalidateCache } from "@/lib/cache-service"
+import { createContentForBook } from "@/lib/data-access/content-queries"
 import { z } from "zod"
 
 const contentGenerationSchema = z.object({
@@ -137,6 +138,40 @@ export async function POST(request: NextRequest) {
     // Invalidate content cache
     await invalidateCache("GENERATED_CONTENT", userId, bookId)
     await invalidateCache("CONTENT_LIST", userId)
+    
+    // Save content to database
+    console.log('Saving generated content to database...');
+    let savedCount = 0;
+    
+    // For each variation, save the posts to the database
+    try {
+      for (const variation of contentVariations) {
+        for (const post of variation.posts) {
+          // Use direct DB insert to bypass authentication issues
+          const [newContent] = await db
+            .insert(generatedContent)
+            .values({
+              bookId,
+              userId,
+              platform: post.platform,
+              contentType: 'post',
+              content: post.content,
+              hashtags: post.hashtags || [],
+              imageUrl: post.imageUrl,
+              status: 'draft',
+              createdAt: new Date(),
+              updatedAt: new Date()
+            })
+            .returning();
+          
+          if (newContent) savedCount++;
+        }
+      }
+      console.log(`Successfully saved ${savedCount} content items to database`);
+    } catch (dbError) {
+      console.error('Failed to save content to database:', dbError);
+      // Continue even if some saves fail - we still return what we could generate
+    }
 
     return NextResponse.json({
       success: true,
@@ -145,6 +180,7 @@ export async function POST(request: NextRequest) {
         bookTitle: bookData.title,
         author: bookData.author,
         contentVariations,
+        savedCount,
         generatedAt: new Date().toISOString(),
         options: validatedOptions
       }

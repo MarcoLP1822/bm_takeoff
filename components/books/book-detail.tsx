@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter, useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -101,11 +102,16 @@ const getStatusText = (status: string) => {
 }
 
 export function BookDetail({ bookId, onBack }: BookDetailProps) {
+  const router = useRouter()
+  const params = useParams()
+  const locale = params.locale as string
+  
   const [book, setBook] = useState<BookDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isDownloading, setIsDownloading] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [chaptersExpanded, setChaptersExpanded] = useState(false)
 
   const fetchBookDetail = useCallback(async () => {
     try {
@@ -208,6 +214,13 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
     } finally {
       setIsDownloading(false)
     }
+  }
+
+  const handleGenerateContent = () => {
+    if (!book) return
+    
+    // Navigate to content generation page
+    router.push(`/${locale}/dashboard/content/generate?book=${bookId}`)
   }
 
   if (loading) {
@@ -571,36 +584,53 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                         Chapter Summaries
                       </h4>
                       <div className="space-y-4">
-                        {book.analysisData.chapterSummaries.slice(0, 3).map(
-                          (chapter, index: number) => (
-                            <div key={index} className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                              <h5 className="mb-2 font-medium text-gray-800">
-                                Chapter {chapter.chapterNumber}
-                                {chapter.title && `: ${chapter.title}`}
-                              </h5>
-                              <p className="mb-2 text-sm text-gray-700">
-                                {chapter.summary}
-                              </p>
-                              {chapter.keyPoints && chapter.keyPoints.length > 0 && (
-                                <div>
-                                  <h6 className="text-xs font-medium text-gray-600 mb-1">Key Points:</h6>
-                                  <ul className="text-xs text-gray-600 space-y-1">
-                                    {chapter.keyPoints.map((point, pointIndex) => (
-                                      <li key={pointIndex} className="flex items-start">
-                                        <span className="mr-1">•</span>
-                                        <span>{point}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                            </div>
-                          )
-                        )}
+                        {(chaptersExpanded 
+                          ? book.analysisData.chapterSummaries 
+                          : book.analysisData.chapterSummaries.slice(0, 3)
+                        ).map((chapter, index: number) => (
+                          <div key={index} className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                            <h5 className="mb-2 font-medium text-gray-800">
+                              Chapter {chapter.chapterNumber}
+                              {chapter.title && `: ${chapter.title}`}
+                            </h5>
+                            <p className="mb-2 text-sm text-gray-700">
+                              {chapter.summary}
+                            </p>
+                            {chapter.keyPoints && chapter.keyPoints.length > 0 && (
+                              <div>
+                                <h6 className="text-xs font-medium text-gray-600 mb-1">Key Points:</h6>
+                                <ul className="text-xs text-gray-600 space-y-1">
+                                  {chapter.keyPoints.map((point, pointIndex) => (
+                                    <li key={pointIndex} className="flex items-start">
+                                      <span className="mr-1">•</span>
+                                      <span>{point}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                         {book.analysisData.chapterSummaries.length > 3 && (
-                          <p className="text-xs text-gray-500">
-                            And {book.analysisData.chapterSummaries.length - 3} more chapters...
-                          </p>
+                          <div className="flex items-center justify-between">
+                            {!chaptersExpanded ? (
+                              <p className="text-xs text-gray-500">
+                                And {book.analysisData.chapterSummaries.length - 3} more chapters...
+                              </p>
+                            ) : (
+                              <p className="text-xs text-gray-500">
+                                Showing all {book.analysisData.chapterSummaries.length} chapters
+                              </p>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setChaptersExpanded(!chaptersExpanded)}
+                              className="text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                            >
+                              {chaptersExpanded ? "Show Less" : "Show All Chapters"}
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -659,7 +689,11 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
             <h3 className="mb-4 font-semibold">Quick Actions</h3>
             <div className="space-y-2">
               {book.analysisStatus === "completed" && (
-                <Button className="w-full" variant="default">
+                <Button 
+                  className="w-full" 
+                  variant="default"
+                  onClick={handleGenerateContent}
+                >
                   Generate Content
                 </Button>
               )}

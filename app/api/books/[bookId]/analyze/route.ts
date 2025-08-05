@@ -140,16 +140,30 @@ async function processBookAnalysis(
 ): Promise<void> {
   try {
     console.log(`Starting AI analysis for book: ${title}`)
+    console.log("Original text content length:", textContent?.length || 0)
+    console.log("Original text preview:", textContent?.substring(0, 200) || "NO CONTENT")
 
     // Check if we have compressed text content, decompress if needed
     let processedText = textContent
     const decompressed = await decompressBookContent(bookId)
     if (decompressed) {
+      console.log("Found compressed content, using decompressed version")
+      console.log("Decompressed text length:", decompressed.length)
+      console.log("Decompressed text preview:", decompressed.substring(0, 200))
       processedText = decompressed
     } else {
+      console.log("No compressed content found, using original text")
       // Compress and cache the text content for future use
-      await compressBookContent(bookId, textContent)
+      if (textContent && textContent.trim().length > 100) {
+        await compressBookContent(bookId, textContent)
+        console.log("Text content compressed and cached")
+      } else {
+        console.log("WARNING: Original text content is too short to compress:", textContent?.length || 0)
+      }
     }
+
+    console.log("Final processed text length:", processedText?.length || 0)
+    console.log("Final processed text preview:", processedText?.substring(0, 200) || "NO PROCESSED TEXT")
 
     // Perform AI analysis with retry logic
     const analysisResult = await RetryHandler.withRetry(

@@ -10,7 +10,8 @@ import {
 // Initialize OpenAI client
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || "test-key",
-  dangerouslyAllowBrowser: process.env.NODE_ENV === "test"
+  dangerouslyAllowBrowser: process.env.NODE_ENV === "test",
+  timeout: 120000 // 120 seconds timeout
 })
 
 // Platform-specific configuration
@@ -781,7 +782,7 @@ export async function generateSocialContent(
 ): Promise<ContentVariation[]> {
   const {
     platforms = ["twitter", "instagram", "linkedin", "facebook"],
-    variationsPerTheme = 2,
+    variationsPerTheme = 1, // Reduced from 2 to 1 for faster generation
     includeImages = true,
     tone = "inspirational",
     maxRetries = 3
@@ -798,8 +799,8 @@ export async function generateSocialContent(
     console.log("Generating new content for book:", bookId)
     const variations: ContentVariation[] = []
 
-    // Generate content from quotes
-    for (const quote of bookAnalysis.quotes.slice(0, 5)) {
+    // Generate content from quotes (reduced from 5 to 1)
+    for (const quote of bookAnalysis.quotes.slice(0, 1)) {
       const quoteVariations = await generateQuoteContent(
         quote,
         bookTitle,
@@ -813,8 +814,8 @@ export async function generateSocialContent(
       variations.push(...quoteVariations)
     }
 
-    // Generate content from key insights
-    for (const insight of bookAnalysis.keyInsights.slice(0, 3)) {
+    // Generate content from key insights (reduced from 3 to 1)
+    for (const insight of bookAnalysis.keyInsights.slice(0, 1)) {
       const insightVariations = await generateInsightContent(
         insight,
         bookTitle,
@@ -828,8 +829,8 @@ export async function generateSocialContent(
       variations.push(...insightVariations)
     }
 
-    // Generate content from themes
-    for (const theme of bookAnalysis.themes.slice(0, 3)) {
+    // Generate content from themes (reduced from 3 to 1)
+    for (const theme of bookAnalysis.themes.slice(0, 1)) {
       const themeVariations = await generateThemeContent(
         theme,
         bookTitle,
@@ -843,8 +844,8 @@ export async function generateSocialContent(
       variations.push(...themeVariations)
     }
 
-    // Generate content from overall summary
-    if (bookAnalysis.overallSummary) {
+    // Generate content from overall summary only if we have few platforms (for optimization)
+    if (bookAnalysis.overallSummary && platforms.length <= 2) {
       const summaryVariations = await generateSummaryContent(
         bookAnalysis.overallSummary,
         bookTitle,
@@ -858,20 +859,8 @@ export async function generateSocialContent(
       variations.push(...summaryVariations)
     }
 
-    // Generate content from discussion points
-    for (const discussionPoint of bookAnalysis.discussionPoints.slice(0, 2)) {
-      const discussionVariations = await generateDiscussionContent(
-        discussionPoint,
-        bookTitle,
-        author,
-        platforms,
-        variationsPerTheme,
-        tone,
-        maxRetries,
-        bookAnalysis
-      )
-      variations.push(...discussionVariations)
-    }
+    // Skip discussion points generation to speed up the process
+    // Discussion points are often the most time-consuming to generate
 
     // Add image suggestions if requested
     if (includeImages) {
@@ -892,6 +881,10 @@ export async function generateSocialContent(
 
     // Cache the result
     await cacheGeneratedContent(bookId, userId, variations)
+    
+    // We won't save to database here - this should be done in the API handler
+    // The content generation function should focus only on generating content
+    // Database operations are done in the API route to avoid authentication issues
 
     return variations
   } catch (error) {

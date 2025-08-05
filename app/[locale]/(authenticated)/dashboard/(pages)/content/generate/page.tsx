@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card"
-import { ArrowLeft, Zap, BookOpen } from "lucide-react"
+import { ArrowLeft, Zap, BookOpen, Loader2 } from "lucide-react"
 
 interface Book {
   id: string
@@ -29,9 +29,79 @@ export default function ContentGeneratePage() {
   const router = useRouter()
   const params = useParams()
   const locale = params.locale as string
+  
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [abortController, setAbortController] = useState<AbortController | null>(null)
+
+  useEffect(() => {
+    fetchBooks()
+  }, [])
+
+  const handleGenerateContent = useCallback(async (bookId: string) => {
+    try {
+      setIsGenerating(true)
+      setError(null)
+
+      // Create abort controller for timeout
+      const controller = new AbortController()
+      setAbortController(controller)
+      const timeoutId = setTimeout(() => controller.abort(), 300000) // 5 minutes timeout
+
+      // Call the content generation API
+      const response = await fetch('/api/content/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          bookId,
+          options: {
+            platforms: ['twitter', 'instagram'], // Reduced platforms for faster generation
+            variationsPerTheme: 1, // Single variation for faster generation
+            includeImages: false, // Disabled images for faster generation
+            tone: 'inspirational'
+          }
+        }),
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to generate content')
+      }
+
+      const result = await response.json()
+      
+      // Redirect to content management page with success message
+      router.push(`/${locale}/dashboard/content?generated=true`)
+      
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Content generation timed out after 5 minutes. Try again with fewer platforms or content types.')
+      } else {
+        console.error('Error generating content:', err)
+        const errorMessage = err instanceof Error ? err.message : 'Failed to generate content'
+        setError(`Generation failed: ${errorMessage}. Try again with fewer options.`)
+      }
+    } finally {
+      setIsGenerating(false)
+      setAbortController(null)
+    }
+  }, [router, locale])
+
+  const handleCancelGeneration = () => {
+    if (abortController) {
+      abortController.abort()
+      setIsGenerating(false)
+      setAbortController(null)
+      setError('Content generation was cancelled.')
+    }
+  }
 
   useEffect(() => {
     fetchBooks()
@@ -61,12 +131,6 @@ export default function ContentGeneratePage() {
 
   const handleBack = () => {
     router.push(`/${locale}/dashboard/content`)
-  }
-
-  const handleGenerateContent = (bookId: string) => {
-    // For now, just redirect to content page
-    // TODO: Implement actual content generation
-    router.push(`/${locale}/dashboard/content?book=${bookId}&action=generate`)
   }
 
   if (loading) {
@@ -106,6 +170,28 @@ export default function ContentGeneratePage() {
       {error && (
         <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
           <p className="text-red-800">{error}</p>
+        </div>
+      )}
+
+      {isGenerating && (
+        <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Loader2 className="mr-3 h-5 w-5 animate-spin text-blue-600" />
+              <div>
+                <p className="font-medium text-blue-800">Generating content...</p>
+                <p className="text-sm text-blue-600">This may take 3-5 minutes. Please wait.</p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCancelGeneration}
+              className="text-red-600 hover:text-red-700"
+            >
+              Cancel
+            </Button>
+          </div>
         </div>
       )}
 
@@ -154,9 +240,20 @@ export default function ContentGeneratePage() {
                   <Button
                     onClick={() => handleGenerateContent(book.id)}
                     className="w-full"
+                    disabled={isGenerating}
+                    variant="outline"
                   >
-                    <Zap className="mr-2 h-4 w-4" />
-                    Generate Content
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="mr-2 h-4 w-4" />
+                        Generate Content
+                      </>
+                    )}
                   </Button>
                 </div>
               </CardContent>

@@ -73,28 +73,35 @@ export async function getOptimizedBookLibrary(
     offset = 0
   } = filters
 
-  // Try to get from cache first
-  const cacheKey = { userId, ...filters }
-  const cached = await getCachedBookLibrary(userId, cacheKey)
-  if (cached) {
-    return cached as unknown as {
-      books: OptimizedBook[]
-      total: number
-      hasMore: boolean
-    }
-  }
+  // Skip cache for search queries to avoid stale results
+  // const cacheKey = { userId, ...filters }
+  // const cached = await getCachedBookLibrary(userId, cacheKey)
+  // if (cached && !search) {
+  //   return cached as unknown as {
+  //     books: OptimizedBook[]
+  //     total: number
+  //     hasMore: boolean
+  //   }
+  // }
 
   // Build optimized query
   const conditions = [eq(books.userId, userId)]
 
-  // Add search condition with full-text search
-  if (search) {
+  // Add search condition with precise word boundary matching (minimum 3 characters)
+  if (search && search.trim().length >= 3) {
+    const searchTerm = search.trim().toLowerCase()
+    // Escape special regex characters
+    const escapedTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     conditions.push(
       or(
-        sql`to_tsvector('english', ${books.title}) @@ plainto_tsquery('english', ${search})`,
-        sql`to_tsvector('english', coalesce(${books.author}, '')) @@ plainto_tsquery('english', ${search})`,
-        like(books.title, `%${search}%`),
-        like(books.author, `%${search}%`)
+        // Exact word matching - must be complete words
+        sql`LOWER(${books.title}) ~ ${`(^|[^a-zA-Z])${escapedTerm}([^a-zA-Z]|$)`}`,
+        sql`LOWER(COALESCE(${books.author}, '')) ~ ${`(^|[^a-zA-Z])${escapedTerm}([^a-zA-Z]|$)`}`,
+        sql`LOWER(COALESCE(${books.genre}, '')) ~ ${`(^|[^a-zA-Z])${escapedTerm}([^a-zA-Z]|$)`}`,
+        // Prefix matching - only allow search term as prefix of complete words
+        sql`LOWER(${books.title}) ~ ${`(^|[^a-zA-Z])${escapedTerm}[a-zA-Z]*([^a-zA-Z]|$)`}`,
+        sql`LOWER(COALESCE(${books.author}, '')) ~ ${`(^|[^a-zA-Z])${escapedTerm}[a-zA-Z]*([^a-zA-Z]|$)`}`,
+        sql`LOWER(COALESCE(${books.genre}, '')) ~ ${`(^|[^a-zA-Z])${escapedTerm}[a-zA-Z]*([^a-zA-Z]|$)`}`
       )!
     )
   }
@@ -258,9 +265,15 @@ export async function getOptimizedContentList(
     conditions.push(eq(generatedContent.status, status))
   }
 
-  if (search) {
+  if (search && search.trim().length >= 3) {
+    const searchTerm = search.trim().toLowerCase()
     conditions.push(
-      sql`to_tsvector('english', ${generatedContent.content}) @@ plainto_tsquery('english', ${search})`
+      or(
+        // Prioritize partial matches in content
+        sql`LOWER(${generatedContent.content}) LIKE ${'%' + searchTerm + '%'}`,
+        // Add full-text search for complete words as fallback
+        sql`to_tsvector('english', ${generatedContent.content}) @@ plainto_tsquery('english', ${search})`
+      )!
     )
   }
 
@@ -543,42 +556,64 @@ export async function searchAllContent(
   }
 
   if (contentType === "books" || contentType === "all") {
-    results.books = await db
-      .select({
-        id: books.id,
-        title: books.title,
-        author: books.author,
-        genre: books.genre,
-        type: sql<string>`'book'`
-      })
-      .from(books)
-      .where(
-        and(
-          eq(books.userId, userId),
-          sql`to_tsvector('english', coalesce(${books.title}, '') || ' ' || coalesce(${books.author}, '') || ' ' || coalesce(${books.genre}, '')) @@ plainto_tsquery('english', ${query})`
+    // Only search if query has at least 3 characters
+    if (query.trim().length >= 3) {
+      const searchTerm = query.trim().toLowerCase()
+      results.books = await db
+        .select({
+          id: books.id,
+          title: books.title,
+          author: books.author,
+          genre: books.genre,
+          type: sql<string>`'book'`
+        })
+        .from(books)
+        .where(
+          and(
+            eq(books.userId, userId),
+            or(
+              // Exact word matching - must be complete words
+              sql`LOWER(${books.title}) ~ ${`(^|[^a-zA-Z])${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-zA-Z]|$)`}`,
+              sql`LOWER(COALESCE(${books.author}, '')) ~ ${`(^|[^a-zA-Z])${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-zA-Z]|$)`}`,
+              sql`LOWER(COALESCE(${books.genre}, '')) ~ ${`(^|[^a-zA-Z])${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-zA-Z]|$)`}`,
+              // Prefix matching - only allow search term as prefix of complete words
+              sql`LOWER(${books.title}) ~ ${`(^|[^a-zA-Z])${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[a-zA-Z]*([^a-zA-Z]|$)`}`,
+              sql`LOWER(COALESCE(${books.author}, '')) ~ ${`(^|[^a-zA-Z])${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[a-zA-Z]*([^a-zA-Z]|$)`}`,
+              sql`LOWER(COALESCE(${books.genre}, '')) ~ ${`(^|[^a-zA-Z])${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[a-zA-Z]*([^a-zA-Z]|$)`}`
+            )!
+          )
         )
-      )
-      .limit(limit)
+        .limit(limit)
+    }
   }
 
   if (contentType === "content" || contentType === "all") {
-    results.content = await db
-      .select({
-        id: generatedContent.id,
-        content: sql<string>`LEFT(${generatedContent.content}, 200)`,
-        platform: generatedContent.platform,
-        bookTitle: books.title,
-        type: sql<string>`'content'`
-      })
-      .from(generatedContent)
-      .leftJoin(books, eq(generatedContent.bookId, books.id))
-      .where(
-        and(
-          eq(generatedContent.userId, userId),
-          sql`to_tsvector('english', ${generatedContent.content}) @@ plainto_tsquery('english', ${query})`
+    // Only search if query has at least 3 characters
+    if (query.trim().length >= 3) {
+      const searchTerm = query.trim().toLowerCase()
+      results.content = await db
+        .select({
+          id: generatedContent.id,
+          content: sql<string>`LEFT(${generatedContent.content}, 200)`,
+          platform: generatedContent.platform,
+          bookTitle: books.title,
+          type: sql<string>`'content'`
+        })
+        .from(generatedContent)
+        .leftJoin(books, eq(generatedContent.bookId, books.id))
+        .where(
+          and(
+            eq(generatedContent.userId, userId),
+            or(
+              // Prioritize partial matches in content
+              sql`LOWER(${generatedContent.content}) LIKE ${'%' + searchTerm + '%'}`,
+              // Fallback to full-text search
+              sql`to_tsvector('english', ${generatedContent.content}) @@ plainto_tsquery('english', ${query})`
+            )!
+          )
         )
-      )
-      .limit(limit)
+        .limit(limit)
+    }
   }
 
   return results

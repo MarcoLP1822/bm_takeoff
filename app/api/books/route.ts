@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
         .orderBy(asc(books.author))
     ])
 
-    return NextResponse.json({
+    const responseData = {
       success: true,
       books: result.books,
       pagination: {
@@ -102,7 +102,17 @@ export async function GET(request: NextRequest) {
         authors: authorOptions.map(a => a.author).filter(Boolean),
         analysisStatuses: ["pending", "processing", "completed", "failed"]
       }
-    })
+    }
+
+    // Disable caching for search requests to avoid stale results
+    const response = NextResponse.json(responseData)
+    if (query.search) {
+      response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+      response.headers.set('Pragma', 'no-cache')
+      response.headers.set('Expires', '0')
+    }
+
+    return response
   } catch (error) {
     console.error("Get books endpoint error:", error)
 

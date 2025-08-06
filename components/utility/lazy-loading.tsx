@@ -84,6 +84,7 @@ export function LazyLoadingList<T>({
     setItems([])
     setHasMore(true)
     setError(null)
+    setInitialLoading(true)
     offsetRef.current = 0
     loadItems(true)
   }, [loadItems])
@@ -345,6 +346,7 @@ export function useLazyLoading<T>(
     setItems([])
     setHasMore(true)
     setError(null)
+    setInitialLoading(true)
     offsetRef.current = 0
     loadItems(true)
   }, [loadItems])

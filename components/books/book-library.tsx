@@ -138,65 +138,37 @@ export function BookLibrary({
   const [newAuthor, setNewAuthor] = useState("")
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  // Use refs to store current values for stable function
-  const searchQueryRef = useRef(searchQuery)
-  const selectedGenreRef = useRef(selectedGenre)
-  const selectedAuthorRef = useRef(selectedAuthor)
-  const selectedStatusRef = useRef(selectedStatus)
-  const sortByRef = useRef(sortBy)
-  const sortOrderRef = useRef(sortOrder)
-
-  // Update refs when values change
-  useEffect(() => {
-    searchQueryRef.current = searchQuery
-  }, [searchQuery])
-
-  useEffect(() => {
-    selectedGenreRef.current = selectedGenre
-  }, [selectedGenre])
-
-  useEffect(() => {
-    selectedAuthorRef.current = selectedAuthor
-  }, [selectedAuthor])
-
-  useEffect(() => {
-    selectedStatusRef.current = selectedStatus
-  }, [selectedStatus])
-
-  useEffect(() => {
-    sortByRef.current = sortBy
-  }, [sortBy])
-
-  useEffect(() => {
-    sortOrderRef.current = sortOrder
-  }, [sortOrder])
-
-  // Load data function for lazy loading - stable dependencies
+  // Load data function for lazy loading - use current state values
   const loadBooks = useCallback(async (offset: number, limit: number) => {
     const params = new URLSearchParams({
-      sortBy: sortByRef.current,
-      sortOrder: sortOrderRef.current,
+      sortBy: sortBy,
+      sortOrder: sortOrder,
       limit: limit.toString(),
       offset: offset.toString()
     })
 
-    if (searchQueryRef.current.trim()) {
-      params.append("search", searchQueryRef.current.trim())
+    if (searchQuery.trim() && searchQuery.trim().length >= 3) {
+      params.append("search", searchQuery.trim())
+      // Add timestamp to prevent browser caching for search requests
+      params.append("_t", Date.now().toString())
     }
 
-    if (selectedGenreRef.current) {
-      params.append("genre", selectedGenreRef.current)
+    if (selectedGenre) {
+      params.append("genre", selectedGenre)
     }
 
-    if (selectedAuthorRef.current) {
-      params.append("author", selectedAuthorRef.current)
+    if (selectedAuthor) {
+      params.append("author", selectedAuthor)
     }
 
-    if (selectedStatusRef.current) {
-      params.append("analysisStatus", selectedStatusRef.current)
+    if (selectedStatus) {
+      params.append("analysisStatus", selectedStatus)
     }
 
-    const response = await fetch(`/api/books?${params.toString()}`)
+    const response = await fetch(`/api/books?${params.toString()}`, {
+      // Disable caching for search requests
+      cache: searchQuery.trim().length >= 3 ? 'no-store' : 'default'
+    })
     if (!response.ok) {
       throw new Error("Failed to fetch books")
     }
@@ -215,15 +187,11 @@ export function BookLibrary({
       hasMore: data.pagination?.hasMore || false,
       total: data.pagination?.total || 0
     }
-  }, [])
+  }, [searchQuery, selectedGenre, selectedAuthor, selectedStatus, sortBy, sortOrder])
 
-  // Force reload when filters change
+  // Force reload when filters change (immediate reload for all changes)
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setForceReloadTrigger(prev => prev + 1)
-    }, 300) // Debounce to avoid too many requests
-
-    return () => clearTimeout(timeoutId)
+    setForceReloadTrigger(prev => prev + 1)
   }, [
     searchQuery,
     selectedGenre,
@@ -235,7 +203,7 @@ export function BookLibrary({
 
   // Utility functions
   const hasActiveFilters =
-    searchQuery.trim() || selectedGenre || selectedAuthor || selectedStatus
+    (searchQuery.trim() && searchQuery.trim().length >= 3) || selectedGenre || selectedAuthor || selectedStatus
 
   const clearFilters = () => {
     setSearchQuery("")
@@ -336,7 +304,7 @@ export function BookLibrary({
                   >
                     {
                       [
-                        searchQuery.trim(),
+                        searchQuery.trim() && searchQuery.trim().length >= 3 ? searchQuery.trim() : '',
                         selectedGenre,
                         selectedAuthor,
                         selectedStatus
@@ -439,7 +407,10 @@ export function BookLibrary({
           </div>
 
           <div className="text-sm text-gray-500">
-            {t('searchResults')}
+            {searchQuery.trim() && searchQuery.trim().length > 0 && searchQuery.trim().length < 3 
+              ? t('searchTooShort')
+              : t('searchResults')
+            }
           </div>
         </div>
 
@@ -448,7 +419,7 @@ export function BookLibrary({
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm text-gray-600">{t('activeFilters')}:</span>
 
-            {searchQuery.trim() && (
+            {searchQuery.trim() && searchQuery.trim().length >= 3 && (
               <Badge variant="secondary" className="gap-1">
                 {t('search')}: "{searchQuery}"
                 <button
@@ -508,8 +479,23 @@ export function BookLibrary({
         )}
       </div>
 
-      {/* Lazy Loading Book List */}
-      <LazyLoadingList
+      {/* Conditional rendering based on search validity */}
+      {searchQuery.trim() && searchQuery.trim().length > 0 && searchQuery.trim().length < 3 ? (
+        // Show message when search is too short
+        <div className="flex min-h-[200px] items-center justify-center rounded-lg border border-dashed">
+          <div className="text-center">
+            <Search className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">
+              {t('searchTooShort')}
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {t('continueTyping')}
+            </p>
+          </div>
+        </div>
+      ) : (
+        // Show book list when search is valid or empty
+        <LazyLoadingList
         loadDataAction={loadBooks}
         renderItemAction={(book: Book) => (
           <div
@@ -627,6 +613,7 @@ export function BookLibrary({
         className="grid gap-4"
         dependencies={[forceReloadTrigger, refreshTrigger]}
       />
+      )}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

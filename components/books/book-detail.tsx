@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useRouter, useParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -88,23 +89,24 @@ const getStatusColor = (status: string) => {
   }
 }
 
-const getStatusText = (status: string) => {
-  switch (status) {
-    case "completed":
-      return "Analysis Complete"
-    case "processing":
-      return "Analyzing Content..."
-    case "failed":
-      return "Analysis Failed"
-    default:
-      return "Pending Analysis"
-  }
-}
-
 export function BookDetail({ bookId, onBack }: BookDetailProps) {
   const router = useRouter()
   const params = useParams()
   const locale = params.locale as string
+  const t = useTranslations('books')
+  
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "completed":
+        return t('status.analysisComplete')
+      case "processing":
+        return t('status.analyzingContent')
+      case "failed":
+        return t('status.analysisFailed')
+      default:
+        return t('status.pendingAnalysis')
+    }
+  }
   
   const [book, setBook] = useState<BookDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -255,7 +257,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
       <div className="space-y-4">
         <Button variant="ghost" onClick={onBack} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Library
+          {t('backToLibrary')}
         </Button>
 
         <Alert variant="destructive">
@@ -276,7 +278,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
         <div className="flex items-center space-x-4">
           <Button variant="ghost" onClick={onBack}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Library
+            {t('backToLibrary')}
           </Button>
           <h1 className="text-2xl font-bold text-gray-900">{book.title}</h1>
         </div>
@@ -295,13 +297,13 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
           <div className="rounded-lg border bg-white p-6">
             <h2 className="mb-4 flex items-center text-lg font-semibold">
               <BookOpen className="mr-2 h-5 w-5" />
-              Book Information
+              {t('detail.bookInformation')}
             </h2>
 
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-500">
-                  Title
+                  {t('detail.title')}
                 </label>
                 <p className="text-gray-900">{book.title}</p>
               </div>
@@ -309,7 +311,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
               {book.author && (
                 <div>
                   <label className="text-sm font-medium text-gray-500">
-                    Author
+                    {t('detail.author')}
                   </label>
                   <div className="flex items-center">
                     <User className="mr-1 h-4 w-4 text-gray-400" />
@@ -321,7 +323,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
               {book.genre && (
                 <div>
                   <label className="text-sm font-medium text-gray-500">
-                    Genre
+                    {t('detail.genre')}
                   </label>
                   <div className="flex items-center">
                     <Tag className="mr-1 h-4 w-4 text-gray-400" />
@@ -334,7 +336,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
 
               <div>
                 <label className="text-sm font-medium text-gray-500">
-                  File Details
+                  {t('fileDetails')}
                 </label>
                 <div className="space-y-1">
                   <div className="flex items-center">
@@ -343,13 +345,13 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                   </div>
                   {book.fileSize && (
                     <p className="text-sm text-gray-500">
-                      Size: {book.fileSize}
+                      {t('size')}: {book.fileSize}
                     </p>
                   )}
                   {book.hasTextContent && (
                     <p className="text-sm text-gray-500">
-                      Text content: {book.textContentLength.toLocaleString()}{" "}
-                      characters
+                      {t('textContent')}: {book.textContentLength.toLocaleString()}{" "}
+                      {t('characters')}
                     </p>
                   )}
                 </div>
@@ -360,7 +362,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-500">
-                    Uploaded
+                    {t('detail.uploaded')}
                   </label>
                   <div className="flex items-center">
                     <Calendar className="mr-1 h-4 w-4 text-gray-400" />
@@ -377,7 +379,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
 
                 <div>
                   <label className="text-sm font-medium text-gray-500">
-                    Last Updated
+                    {t('detail.lastUpdated')}
                   </label>
                   <div className="flex items-center">
                     <Calendar className="mr-1 h-4 w-4 text-gray-400" />
@@ -399,20 +401,19 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
           <div className="rounded-lg border bg-white p-6">
             <h2 className="mb-4 flex items-center text-lg font-semibold">
               <BarChart3 className="mr-2 h-5 w-5" />
-              Analysis Results
+              {t('detail.analysisResults')}
             </h2>
 
             {book.analysisStatus === "pending" && (
               <div className="py-8 text-center">
                 <Clock className="mx-auto mb-4 h-12 w-12 text-gray-400" />
                 <h3 className="mb-2 text-lg font-medium text-gray-900">
-                  Analysis Not Started
+                  {t('detail.analysisNotStarted')}
                 </h3>
                 <p className="mb-4 text-gray-500">
-                  Start analyzing this book to extract themes, quotes, and
-                  insights for content generation.
+                  {t('status.startAnalyzing')}
                 </p>
-                <Button onClick={handleStartAnalysis}>Start Analysis</Button>
+                <Button onClick={handleStartAnalysis}>{t('detail.startAnalysis')}</Button>
               </div>
             )}
 
@@ -420,10 +421,10 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
               <div className="py-8 text-center">
                 <RefreshCw className="mx-auto mb-4 h-12 w-12 animate-spin text-blue-500" />
                 <h3 className="mb-2 text-lg font-medium text-gray-900">
-                  Analyzing Content...
+                  {t('status.analyzingContent')}
                 </h3>
                 <p className="text-gray-500">
-                  This may take a few minutes depending on the book length.
+                  {t('detail.processingTime')}
                 </p>
               </div>
             )}
@@ -432,13 +433,13 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
               <div className="py-8 text-center">
                 <XCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
                 <h3 className="mb-2 text-lg font-medium text-gray-900">
-                  Analysis Failed
+                  {t('status.analysisFailed')}
                 </h3>
                 <p className="mb-4 text-gray-500">
-                  There was an error analyzing this book. Please try again.
+                  {t('status.analysisError')}
                 </p>
                 <Button onClick={handleStartAnalysis} variant="outline">
-                  Retry Analysis
+                  {t('detail.retryAnalysis')}
                 </Button>
               </div>
             )}
@@ -448,7 +449,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                   <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                     <h4 className="mb-2 font-medium text-green-800">
-                      Themes Identified
+                      {t('detail.themesIdentified')}
                     </h4>
                     <p className="text-2xl font-bold text-green-600">
                       {book.analysisData.themes?.length || 0}
@@ -457,7 +458,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
 
                   <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
                     <h4 className="mb-2 font-medium text-blue-800">
-                      Quotes Extracted
+                      {t('detail.quotesExtracted')}
                     </h4>
                     <p className="text-2xl font-bold text-blue-600">
                       {book.analysisData.quotes?.length || 0}
@@ -466,7 +467,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
 
                   <div className="rounded-lg border border-purple-200 bg-purple-50 p-4">
                     <h4 className="mb-2 font-medium text-purple-800">
-                      Key Insights
+                      {t('detail.keyInsights')}
                     </h4>
                     <p className="text-2xl font-bold text-purple-600">
                       {book.analysisData.keyInsights?.length || 0}
@@ -475,7 +476,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
 
                   <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
                     <h4 className="mb-2 font-medium text-orange-800">
-                      Analysis Complete
+                      {t('detail.analysisComplete')}
                     </h4>
                     <p className="text-2xl font-bold text-orange-600">
                       ✓
@@ -485,7 +486,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
 
                 {book.analysisData.summary && (
                   <div>
-                    <h4 className="mb-2 font-medium text-gray-900">Summary</h4>
+                    <h4 className="mb-2 font-medium text-gray-900">{t('detail.summary')}</h4>
                     <p className="text-sm leading-relaxed text-gray-700">
                       {book.analysisData.summary}
                     </p>
@@ -496,7 +497,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                   book.analysisData.themes.length > 0 && (
                     <div>
                       <h4 className="mb-2 font-medium text-gray-900">
-                        Key Themes
+                        {t('detail.keyThemes')}
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {book.analysisData.themes.map(
@@ -514,7 +515,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                   book.analysisData.quotes.length > 0 && (
                     <div>
                       <h4 className="mb-2 font-medium text-gray-900">
-                        Key Quotes
+                        {t('detail.keyQuotes')}
                       </h4>
                       <div className="space-y-3">
                         {book.analysisData.quotes.slice(0, 5).map(
@@ -526,7 +527,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                         )}
                         {book.analysisData.quotes.length > 5 && (
                           <p className="text-xs text-gray-500">
-                            And {book.analysisData.quotes.length - 5} more quotes...
+                            {t('detail.andMoreQuotes', { count: book.analysisData.quotes.length - 5 })}
                           </p>
                         )}
                       </div>
@@ -537,7 +538,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                   book.analysisData.keyInsights.length > 0 && (
                     <div>
                       <h4 className="mb-2 font-medium text-gray-900">
-                        Key Insights
+                        {t('detail.keyInsights')}
                       </h4>
                       <ul className="space-y-2">
                         {book.analysisData.keyInsights.map(
@@ -557,7 +558,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                     {book.analysisData.genre && (
                       <div className="rounded-lg border border-purple-200 bg-purple-50 p-4">
                         <h4 className="mb-2 font-medium text-purple-800">
-                          Genre
+                          {t('detail.genre')}
                         </h4>
                         <p className="text-sm text-purple-700">
                           {book.analysisData.genre}
@@ -567,7 +568,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                     {book.analysisData.targetAudience && (
                       <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
                         <h4 className="mb-2 font-medium text-orange-800">
-                          Target Audience
+                          {t('detail.targetAudience')}
                         </h4>
                         <p className="text-sm text-orange-700">
                           {book.analysisData.targetAudience}
@@ -581,7 +582,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                   book.analysisData.chapterSummaries.length > 0 && (
                     <div>
                       <h4 className="mb-2 font-medium text-gray-900">
-                        Chapter Summaries
+                        {t('detail.chapterSummaries')}
                       </h4>
                       <div className="space-y-4">
                         {(chaptersExpanded 
@@ -590,7 +591,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                         ).map((chapter, index: number) => (
                           <div key={index} className="rounded-lg border border-gray-200 bg-gray-50 p-4">
                             <h5 className="mb-2 font-medium text-gray-800">
-                              Chapter {chapter.chapterNumber}
+                              {t('detail.chapter')} {chapter.chapterNumber}
                               {chapter.title && `: ${chapter.title}`}
                             </h5>
                             <p className="mb-2 text-sm text-gray-700">
@@ -598,7 +599,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                             </p>
                             {chapter.keyPoints && chapter.keyPoints.length > 0 && (
                               <div>
-                                <h6 className="text-xs font-medium text-gray-600 mb-1">Key Points:</h6>
+                                <h6 className="text-xs font-medium text-gray-600 mb-1">{t('detail.keyPoints')}:</h6>
                                 <ul className="text-xs text-gray-600 space-y-1">
                                   {chapter.keyPoints.map((point, pointIndex) => (
                                     <li key={pointIndex} className="flex items-start">
@@ -615,11 +616,11 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                           <div className="flex items-center justify-between">
                             {!chaptersExpanded ? (
                               <p className="text-xs text-gray-500">
-                                And {book.analysisData.chapterSummaries.length - 3} more chapters...
+                                {t('detail.andMoreChapters', { count: book.analysisData.chapterSummaries.length - 3 })}
                               </p>
                             ) : (
                               <p className="text-xs text-gray-500">
-                                Showing all {book.analysisData.chapterSummaries.length} chapters
+                                {t('detail.showingAllChapters', { count: book.analysisData.chapterSummaries.length })}
                               </p>
                             )}
                             <Button
@@ -628,7 +629,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                               onClick={() => setChaptersExpanded(!chaptersExpanded)}
                               className="text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                             >
-                              {chaptersExpanded ? "Show Less" : "Show All Chapters"}
+                              {chaptersExpanded ? t('detail.showLess') : t('detail.showAllChapters')}
                             </Button>
                           </div>
                         )}
@@ -640,7 +641,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                   book.analysisData.discussionPoints.length > 0 && (
                     <div>
                       <h4 className="mb-2 font-medium text-gray-900">
-                        Discussion Points
+                        {t('detail.discussionPoints')}
                       </h4>
                       <ul className="space-y-2">
                         {book.analysisData.discussionPoints.map(
@@ -657,7 +658,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
 
                 {book.analysisData.overallSummary && (
                   <div>
-                    <h4 className="mb-2 font-medium text-gray-900">Overall Summary</h4>
+                    <h4 className="mb-2 font-medium text-gray-900">{t('detail.overallSummary')}</h4>
                     <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
                       <p className="text-sm leading-relaxed text-gray-700">
                         {book.analysisData.overallSummary}
@@ -672,11 +673,10 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
               <div className="py-8 text-center">
                 <AlertCircle className="mx-auto mb-4 h-12 w-12 text-yellow-500" />
                 <h3 className="mb-2 text-lg font-medium text-gray-900">
-                  No Analysis Data
+                  {t('detail.analysisNoData')}
                 </h3>
                 <p className="text-gray-500">
-                  Analysis completed but no data was found. This might be due to
-                  a processing error.
+                  {t('status.noDataFound')}
                 </p>
               </div>
             )}
@@ -686,7 +686,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
         {/* Actions Sidebar */}
         <div className="space-y-4">
           <div className="rounded-lg border bg-white p-4">
-            <h3 className="mb-4 font-semibold">Quick Actions</h3>
+            <h3 className="mb-4 font-semibold">{t('detail.quickActions')}</h3>
             <div className="space-y-2">
               {book.analysisStatus === "completed" && (
                 <Button 
@@ -694,7 +694,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                   variant="default"
                   onClick={handleGenerateContent}
                 >
-                  Generate Content
+                  {t('detail.generateContent')}
                 </Button>
               )}
 
@@ -709,7 +709,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                 ) : (
                   <Download className="mr-2 h-4 w-4" />
                 )}
-                {isDownloading ? "Downloading..." : "Download File"}
+                {isDownloading ? t('detail.downloading') : t('detail.downloadFile')}
               </Button>
 
               {book.analysisStatus !== "processing" && (
@@ -725,31 +725,13 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                     <RefreshCw className="mr-2 h-4 w-4" />
                   )}
                   {isAnalyzing
-                    ? "Starting Analysis..."
+                    ? t('detail.startingAnalysis')
                     : book.analysisStatus === "completed"
-                      ? "Re-analyze"
-                      : "Start Analysis"}
+                      ? t('detail.reanalyze')
+                      : t('detail.startAnalysis')}
                 </Button>
               )}
             </div>
-          </div>
-
-          <div className="rounded-lg border bg-white p-4">
-            <h3 className="mb-4 font-semibold">Content Generation</h3>
-            <div className="space-y-2 text-sm text-gray-600">
-              <p>• Extract key quotes and insights</p>
-              <p>• Generate platform-specific posts</p>
-              <p>• Create engaging social content</p>
-              <p>• Schedule and publish posts</p>
-            </div>
-
-            {book.analysisStatus !== "completed" && (
-              <div className="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3">
-                <p className="text-sm text-yellow-800">
-                  Complete book analysis to unlock content generation features.
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>

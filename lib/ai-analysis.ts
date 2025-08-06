@@ -10,6 +10,23 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || "test-key"
 })
 
+/**
+ * Helper function to generate locale instruction for AI prompts
+ */
+function getLocaleInstruction(locale: string): string {
+  if (locale === 'en') return ''
+  
+  const languageMap: Record<string, string> = {
+    'it': 'Italian',
+    'es': 'Spanish',
+    'fr': 'French',
+    'de': 'German'
+  }
+  
+  const language = languageMap[locale] || locale
+  return `**Provide the response in ${language} language.**`
+}
+
 export interface BookAnalysisResult {
   themes: string[]
   quotes: string[]
@@ -32,6 +49,7 @@ export interface AnalysisOptions {
   maxRetries?: number
   chunkSize?: number
   includeChapterSummaries?: boolean
+  locale?: string
 }
 
 /**
@@ -48,7 +66,8 @@ export async function analyzeBookContent(
   const {
     maxRetries = 3,
     chunkSize = 8000,
-    includeChapterSummaries = true
+    includeChapterSummaries = true,
+    locale = 'en'
   } = options
 
   try {
@@ -173,14 +192,14 @@ export async function analyzeBookContent(
       discussionPoints,
       chapterSummaries
     ] = await Promise.all([
-      identifyThemes(chunks, bookTitle, author, maxRetries),
-      extractQuotes(chunks, maxRetries),
-      extractKeyInsights(chunks, bookTitle, author, maxRetries),
-      generateOverallSummary(chunks, bookTitle, author, maxRetries),
-      identifyGenreAndAudience(chunks, bookTitle, author, maxRetries),
-      identifyDiscussionPoints(chunks, bookTitle, author, maxRetries),
+      identifyThemes(chunks, bookTitle, locale, author, maxRetries),
+      extractQuotes(chunks, locale, maxRetries),
+      extractKeyInsights(chunks, bookTitle, locale, author, maxRetries),
+      generateOverallSummary(chunks, bookTitle, locale, author, maxRetries),
+      identifyGenreAndAudience(chunks, bookTitle, locale, author, maxRetries),
+      identifyDiscussionPoints(chunks, bookTitle, locale, author, maxRetries),
       includeChapterSummaries
-        ? generateChapterSummaries(textContent, maxRetries)
+        ? generateChapterSummaries(textContent, locale, maxRetries)
         : []
     ])
 
@@ -213,10 +232,13 @@ export async function analyzeBookContent(
 async function identifyThemes(
   chunks: string[],
   bookTitle: string,
+  locale: string = 'en',
   author?: string,
   maxRetries: number = 3
 ): Promise<string[]> {
-  const prompt = `Analyze the following book content and identify the main themes and topics.
+  const localeInstruction = getLocaleInstruction(locale)
+  
+  const prompt = `Analyze the following book content and identify the main themes and topics. ${localeInstruction}
 
 Book: "${bookTitle}"${author ? ` by ${author}` : ""}
 
@@ -242,15 +264,19 @@ Example format: ["Theme 1", "Theme 2", "Theme 3"]`
     const parsed = parseAIResponse(content)
     return parsed as string[]
   }, maxRetries)
-} /**
- * 
-Extract memorable quotes and passages from the book
+}
+
+/**
+ * Extract memorable quotes and passages from the book
  */
 async function extractQuotes(
   chunks: string[],
+  locale: string = 'en',
   maxRetries: number = 3
 ): Promise<string[]> {
-  const prompt = `Extract 5 of the most memorable, impactful, or quotable passages from the following book content.
+  const localeInstruction = getLocaleInstruction(locale)
+  
+  const prompt = `Extract 5 of the most memorable, impactful, or quotable passages from the following book content. ${localeInstruction}
 
 Content:
 ${chunks.slice(0, 4).join("\n\n")}
@@ -285,10 +311,13 @@ Example format: ["Quote 1", "Quote 2", "Quote 3"]`
 async function extractKeyInsights(
   chunks: string[],
   bookTitle: string,
+  locale: string = 'en',
   author?: string,
   maxRetries: number = 3
 ): Promise<string[]> {
-  const prompt = `Analyze the following book content and extract the key insights and takeaways.
+  const localeInstruction = getLocaleInstruction(locale)
+  
+  const prompt = `Analyze the following book content and extract the key insights and takeaways. ${localeInstruction}
 
 Book: "${bookTitle}"${author ? ` by ${author}` : ""}
 
@@ -410,6 +439,7 @@ function parseAIResponseAs<T>(content: string): T {
 async function generateOverallSummary(
   chunks: string[],
   bookTitle: string,
+  locale: string = 'en',
   author?: string,
   maxRetries: number = 3
 ): Promise<string> {
@@ -418,7 +448,9 @@ async function generateOverallSummary(
     return `I'm sorry, but I cannot provide a summary of "${bookTitle}" as the content extraction from the PDF has failed, and I do not have access to its details. However, if you have any specific information about the book or its themes, I would be happy to help you craft a summary based on that information!`
   }
 
-  const prompt = `Write a comprehensive summary of the following book.
+  const localeInstruction = getLocaleInstruction(locale)
+  
+  const prompt = `Write a comprehensive summary of the following book. ${localeInstruction}
 
 Book: "${bookTitle}"${author ? ` by ${author}` : ""}
 
@@ -454,10 +486,13 @@ Write in a clear, engaging style suitable for book descriptions or social media 
 async function identifyGenreAndAudience(
   chunks: string[],
   bookTitle: string,
+  locale: string = 'en',
   author?: string,
   maxRetries: number = 3
 ): Promise<{ genre: string; targetAudience: string }> {
-  const prompt = `Analyze the following book content and identify its genre and target audience.
+  const localeInstruction = getLocaleInstruction(locale)
+  
+  const prompt = `Analyze the following book content and identify its genre and target audience. ${localeInstruction}
 
 Book: "${bookTitle}"${author ? ` by ${author}` : ""}
 
@@ -494,10 +529,13 @@ Fields needed:
 async function identifyDiscussionPoints(
   chunks: string[],
   bookTitle: string,
+  locale: string = 'en',
   author?: string,
   maxRetries: number = 3
 ): Promise<string[]> {
-  const prompt = `Analyze the following book content and identify points that would spark discussion or debate.
+  const localeInstruction = getLocaleInstruction(locale)
+  
+  const prompt = `Analyze the following book content and identify points that would spark discussion or debate. ${localeInstruction}
 
 Book: "${bookTitle}"${author ? ` by ${author}` : ""}
 
@@ -526,12 +564,14 @@ Example format: ["Discussion point 1", "Discussion point 2", "Discussion point 3
 
     return parseAIResponse(content) as string[]
   }, maxRetries)
-} /**
+}
 
+/**
  * Generate chapter summaries for the book
  */
 async function generateChapterSummaries(
   textContent: string,
+  locale: string = 'en',
   maxRetries: number = 3
 ): Promise<ChapterSummary[]> {
   // Try to detect chapter breaks in the text
@@ -551,7 +591,9 @@ async function generateChapterSummaries(
     const batchPromises = batch.map(async (chapter, index) => {
       const chapterNumber = i + index + 1
 
-      const prompt = `Summarize the following chapter from a book:
+      const localeInstruction = getLocaleInstruction(locale)
+      
+      const prompt = `Summarize the following chapter from a book. ${localeInstruction}
 
 Chapter ${chapterNumber}${chapter.title ? `: ${chapter.title}` : ""}
 

@@ -28,7 +28,8 @@ import {
   User
 } from "lucide-react"
 import { useTheme } from "next-themes"
-import Link from "next/link"
+import { useSettingsTranslations, useAuthTranslations } from "@/hooks/use-translations"
+import { Link } from "@/lib/navigation"
 
 export function NavUser({
   user
@@ -43,6 +44,8 @@ export function NavUser({
   const { isMobile } = useSidebar()
   const { theme, setTheme } = useTheme()
   const { signOut } = useClerk()
+  const t = useSettingsTranslations()
+  const tAuth = useAuthTranslations()
 
   const getInitials = (name: string) => {
     const words = name.split(" ")
@@ -104,19 +107,19 @@ export function NavUser({
               <DropdownMenuItem asChild>
                 <Link href="/dashboard/account">
                   <User />
-                  Account
+                  {t("account")}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/dashboard/billing">
                   <CreditCard />
-                  Billing
+                  {t("billing")}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/dashboard/support">
                   <HelpCircle />
-                  Support
+                  {t("support")}
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
@@ -125,12 +128,12 @@ export function NavUser({
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             >
               {theme === "dark" ? <Sun /> : <Moon />}
-              {theme === "dark" ? "Light Mode" : "Dark Mode"}
+              {theme === "dark" ? t("lightMode") : t("darkMode")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut()}>
               <LogOut />
-              Log out
+              {tAuth("signOut")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -36,7 +36,7 @@ export interface BookLibraryFilters {
   search?: string
   genre?: string
   analysisStatus?: (typeof analysisStatus.enumValues)[number]
-  sortBy?: "created_at" | "title" | "author" | "updated_at"
+  sortBy?: "created_at" | "title" | "author" | "genre" | "updated_at"
   sortOrder?: "asc" | "desc"
   limit?: number
   offset?: number
@@ -112,6 +112,7 @@ export async function getOptimizedBookLibrary(
     created_at: books.createdAt,
     title: books.title,
     author: books.author,
+    genre: books.genre,
     updated_at: books.updatedAt
   } as const
 

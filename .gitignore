@@ -68,3 +68,9 @@ temp-*.ts
 *.old
 .temp/
 docs/archive/
+
+# Generated reports
+*-report.json
+audit-hardcoded-strings-report.json
+task-*-validation-report.json
+translation-completeness-report.json

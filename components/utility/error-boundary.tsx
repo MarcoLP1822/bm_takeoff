@@ -1,6 +1,7 @@
 "use client"
 
 import React, { Component, ErrorInfo, ReactNode } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -11,7 +12,7 @@ import {
 } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { RefreshCw, Bug, Home, ArrowLeft } from "lucide-react"
-import { ToastService } from "@/lib/toast-service"
+import { ToastService } from "@/lib/toast-service-i18n"
 import { ErrorLogger, AppError, ErrorType } from "@/lib/error-handling"
 
 interface Props {
@@ -20,6 +21,32 @@ interface Props {
   onError?: (error: Error, errorInfo: ErrorInfo) => void
   showDetails?: boolean
   context?: string
+  translations?: {
+    title: string
+    defaultMessage: string
+    retryButton: string
+    refreshButton: string
+    goBackButton: string
+    goHomeButton: string
+    copyErrorButton: string
+    errorId: string
+    message: string
+    type: string
+    retryable: string
+    context: string
+    yes: string
+    no: string
+    supportMessage: string
+    retryDescription: string
+    supportDescription: string
+    maxRetryDescription: string
+    somethingWentWrong: string
+    unexpectedError: string
+    retrying: string
+    maxRetriesReached: string
+    errorReportCopied: string
+    failedToCopyError: string
+  }
 }
 
 interface State {
@@ -94,10 +121,13 @@ export class ErrorBoundary extends Component<Props, State> {
     this.sendErrorToMonitoring(appError, context)
 
     // Show toast notification
-    ToastService.error("Something went wrong", {
-      description: "The application encountered an unexpected error",
-      duration: 6000
-    })
+    const translations = this.props.translations
+    if (translations) {
+      ToastService.error(translations.somethingWentWrong, {
+        description: translations.unexpectedError,
+        duration: 6000
+      })
+    }
   }
 
   private async sendErrorToMonitoring(
@@ -138,11 +168,17 @@ export class ErrorBoundary extends Component<Props, State> {
         errorId: null
       })
 
-      ToastService.info(`Retrying... (${this.retryCount}/${this.maxRetries})`)
+      const translations = this.props.translations
+      if (translations) {
+        ToastService.info(`${translations.retrying} (${this.retryCount}/${this.maxRetries})`)
+      }
     } else {
-      ToastService.error("Maximum retry attempts reached", {
-        description: "Please refresh the page or contact support"
-      })
+      const translations = this.props.translations
+      if (translations) {
+        ToastService.error(translations.maxRetriesReached, {
+          description: translations.maxRetryDescription
+        })
+      }
     }
   }
 
@@ -179,12 +215,18 @@ export class ErrorBoundary extends Component<Props, State> {
     navigator.clipboard
       .writeText(JSON.stringify(errorReport, null, 2))
       .then(() => {
-        ToastService.success("Error report copied to clipboard", {
-          description: "You can now paste this in a support ticket"
-        })
+        const translations = this.props.translations
+        if (translations) {
+          ToastService.success(translations.errorReportCopied, {
+            description: translations.supportDescription
+          })
+        }
       })
       .catch(() => {
-        ToastService.error("Failed to copy error report")
+        const translations = this.props.translations
+        if (translations) {
+          ToastService.error(translations.failedToCopyError)
+        }
       })
   }
 
@@ -198,6 +240,29 @@ export class ErrorBoundary extends Component<Props, State> {
       const { error, errorInfo, errorId } = this.state
       const canRetry = this.retryCount < this.maxRetries
       const isAppError = error instanceof AppError
+      const t = this.props.translations
+
+      // Fallback to English if no translations provided
+      const defaultTranslations = {
+        title: "Something went wrong",
+        defaultMessage: "The application encountered an unexpected error",
+        retryButton: "Try Again",
+        refreshButton: "Refresh Page",
+        goBackButton: "Go Back",
+        goHomeButton: "Go Home",
+        copyErrorButton: "Copy Error Report",
+        errorId: "Error ID:",
+        message: "Message:",
+        type: "Type:",
+        retryable: "Retryable:",
+        context: "Context:",
+        yes: "Yes",
+        no: "No",
+        supportMessage: "If this problem persists, please contact support with the error ID:",
+        retryDescription: "left"
+      }
+
+      const translations = t || defaultTranslations
 
       return (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
@@ -207,12 +272,12 @@ export class ErrorBoundary extends Component<Props, State> {
                 <Bug className="h-6 w-6 text-red-600" />
               </div>
               <CardTitle className="text-2xl text-red-600">
-                Something went wrong
+                {translations.title}
               </CardTitle>
               <CardDescription>
                 {isAppError
                   ? error.userMessage
-                  : "The application encountered an unexpected error"}
+                  : translations.defaultMessage}
               </CardDescription>
             </CardHeader>
 
@@ -222,23 +287,23 @@ export class ErrorBoundary extends Component<Props, State> {
                 {canRetry && (
                   <Button onClick={this.handleRetry} variant="default">
                     <RefreshCw className="mr-2 h-4 w-4" />
-                    Try Again ({this.maxRetries - this.retryCount} left)
+                    {translations.retryButton} ({this.maxRetries - this.retryCount} {translations.retryDescription})
                   </Button>
                 )}
 
                 <Button onClick={this.handleRefresh} variant="outline">
                   <RefreshCw className="mr-2 h-4 w-4" />
-                  Refresh Page
+                  {translations.refreshButton}
                 </Button>
 
                 <Button onClick={this.handleGoBack} variant="outline">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Go Back
+                  {translations.goBackButton}
                 </Button>
 
                 <Button onClick={this.handleGoHome} variant="outline">
                   <Home className="mr-2 h-4 w-4" />
-                  Go Home
+                  {translations.goHomeButton}
                 </Button>
               </div>
 
@@ -249,25 +314,25 @@ export class ErrorBoundary extends Component<Props, State> {
                   <AlertDescription>
                     <div className="space-y-2">
                       <div>
-                        <strong>Error ID:</strong> {errorId}
+                        <strong>{translations.errorId}</strong> {errorId}
                       </div>
                       <div>
-                        <strong>Message:</strong> {error.message}
+                        <strong>{translations.message}</strong> {error.message}
                       </div>
                       {isAppError && (
                         <>
                           <div>
-                            <strong>Type:</strong> {error.type}
+                            <strong>{translations.type}</strong> {error.type}
                           </div>
                           <div>
-                            <strong>Retryable:</strong>{" "}
-                            {error.retryable ? "Yes" : "No"}
+                            <strong>{translations.retryable}</strong>{" "}
+                            {error.retryable ? translations.yes : translations.no}
                           </div>
                         </>
                       )}
                       {this.props.context && (
                         <div>
-                          <strong>Context:</strong> {this.props.context}
+                          <strong>{translations.context}</strong> {this.props.context}
                         </div>
                       )}
                     </div>
@@ -282,12 +347,11 @@ export class ErrorBoundary extends Component<Props, State> {
                   variant="ghost"
                   size="sm"
                 >
-                  Copy Error Report
+                  {translations.copyErrorButton}
                 </Button>
 
                 <p className="text-sm text-gray-600">
-                  If this problem persists, please contact support with the
-                  error ID:
+                  {translations.supportMessage}
                   <code className="ml-1 rounded bg-gray-100 px-1 py-0.5 text-xs">
                     {errorId}
                   </code>
@@ -306,17 +370,52 @@ export class ErrorBoundary extends Component<Props, State> {
 // Higher-order component for wrapping components with error boundary
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
-  errorBoundaryProps?: Omit<Props, "children">
+  errorBoundaryProps?: Omit<Props, "children" | "translations">
 ) {
   const WrappedComponent = (props: P) => (
-    <ErrorBoundary {...errorBoundaryProps}>
+    <ErrorBoundaryWrapper {...errorBoundaryProps}>
       <Component {...props} />
-    </ErrorBoundary>
+    </ErrorBoundaryWrapper>
   )
 
   WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`
 
   return WrappedComponent
+}
+
+// Wrapper component that provides translations
+export function ErrorBoundaryWrapper(props: Omit<Props, "translations">) {
+  const t = useTranslations("errorBoundary")
+  const tToast = useTranslations("toast")
+
+  const translations = {
+    title: t("title"),
+    defaultMessage: t("defaultMessage"),
+    retryButton: t("retryButton"),
+    refreshButton: t("refreshButton"),
+    goBackButton: t("goBackButton"),
+    goHomeButton: t("goHomeButton"),
+    copyErrorButton: t("copyErrorButton"),
+    errorId: t("errorId"),
+    message: t("message"),
+    type: t("type"),
+    retryable: t("retryable"),
+    context: t("context"),
+    yes: t("yes"),
+    no: t("no"),
+    supportMessage: t("supportMessage"),
+    retryDescription: t("retryDescription"),
+    supportDescription: t("supportDescription"),
+    maxRetryDescription: t("maxRetryDescription"),
+    somethingWentWrong: tToast("error.somethingWentWrong"),
+    unexpectedError: t("defaultMessage"),
+    retrying: tToast("info.retrying"),
+    maxRetriesReached: tToast("error.maxRetriesReached"),
+    errorReportCopied: tToast("success.errorReportCopied"),
+    failedToCopyError: tToast("error.failedToCopyError")
+  }
+
+  return <ErrorBoundary {...props} translations={translations} />
 }
 
 // Hook for programmatic error reporting

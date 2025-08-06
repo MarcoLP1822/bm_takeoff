@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useParams } from "next/navigation"
+import { useTranslations, useFormatter } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -29,20 +30,44 @@ export default function ContentGeneratePage() {
   const router = useRouter()
   const params = useParams()
   const locale = params.locale as string
+  const t = useTranslations('content.generatePage')
+  const format = useFormatter()
   
   const [books, setBooks] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isGenerating, setIsGenerating] = useState(false)
+  const [generatingBookId, setGeneratingBookId] = useState<string | null>(null)
   const [abortController, setAbortController] = useState<AbortController | null>(null)
+
+  const fetchBooks = useCallback(async () => {
+    try {
+      setLoading(true)
+      const response = await fetch("/api/books")
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch books")
+      }
+
+      const data = await response.json()
+      const booksData = data.books || data || []
+      setBooks(
+        booksData.filter((book: Book) => book.analysisStatus === "completed")
+      )
+    } catch (err) {
+      console.error("Error fetching books:", err)
+      setError(t('failedToLoadBooks'))
+    } finally {
+      setLoading(false)
+    }
+  }, [t])
 
   useEffect(() => {
     fetchBooks()
-  }, [])
+  }, [fetchBooks])
 
   const handleGenerateContent = useCallback(async (bookId: string) => {
     try {
-      setIsGenerating(true)
+      setGeneratingBookId(bookId)
       setError(null)
 
       // Create abort controller for timeout
@@ -82,52 +107,30 @@ export default function ContentGeneratePage() {
       
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
-        setError('Content generation timed out after 5 minutes. Try again with fewer platforms or content types.')
+        setError(t('timeout'))
       } else {
         console.error('Error generating content:', err)
         const errorMessage = err instanceof Error ? err.message : 'Failed to generate content'
-        setError(`Generation failed: ${errorMessage}. Try again with fewer options.`)
+        setError(t('failed', { error: errorMessage }))
       }
     } finally {
-      setIsGenerating(false)
+      setGeneratingBookId(null)
       setAbortController(null)
     }
-  }, [router, locale])
+  }, [router, locale, t])
 
   const handleCancelGeneration = () => {
     if (abortController) {
       abortController.abort()
-      setIsGenerating(false)
+      setGeneratingBookId(null)
       setAbortController(null)
-      setError('Content generation was cancelled.')
+      setError(t('cancelled'))
     }
   }
 
   useEffect(() => {
     fetchBooks()
-  }, [])
-
-  const fetchBooks = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch("/api/books")
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch books")
-      }
-
-      const data = await response.json()
-      const booksData = data.books || data || []
-      setBooks(
-        booksData.filter((book: Book) => book.analysisStatus === "completed")
-      )
-    } catch (err) {
-      console.error("Error fetching books:", err)
-      setError("Failed to load books")
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [fetchBooks])
 
   const handleBack = () => {
     router.push(`/${locale}/dashboard/content`)
@@ -139,7 +142,7 @@ export default function ContentGeneratePage() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="border-primary mx-auto h-8 w-8 animate-spin rounded-full border-b-2"></div>
-            <p className="text-muted-foreground mt-2">Loading books...</p>
+            <p className="text-muted-foreground mt-2">{t('loadingBooks')}</p>
           </div>
         </div>
       </div>
@@ -151,19 +154,30 @@ export default function ContentGeneratePage() {
       <div className="mb-8">
         <Button variant="ghost" onClick={handleBack} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Content
+          {t('backToContent')}
         </Button>
 
         <div className="flex items-center">
           <Zap className="mr-3 h-8 w-8" />
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Generate Content
+              {t('title')}
             </h1>
             <p className="mt-2 text-gray-600">
-              Create social media content from your analyzed books
+              {t('description')}
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Content Generation Info Card */}
+      <div className="mb-8 rounded-lg border bg-white p-6">
+        <h2 className="mb-4 font-semibold text-lg">{t('contentGeneration')}</h2>
+        <div className="space-y-2 text-sm text-gray-600">
+          <p>{t('extractQuotes')}</p>
+          <p>{t('generatePosts')}</p>
+          <p>{t('createContent')}</p>
+          <p>{t('schedulePublish')}</p>
         </div>
       </div>
 
@@ -173,14 +187,14 @@ export default function ContentGeneratePage() {
         </div>
       )}
 
-      {isGenerating && (
+      {generatingBookId && (
         <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <Loader2 className="mr-3 h-5 w-5 animate-spin text-blue-600" />
               <div>
-                <p className="font-medium text-blue-800">Generating content...</p>
-                <p className="text-sm text-blue-600">This may take 3-5 minutes. Please wait.</p>
+                <p className="font-medium text-blue-800">{t('generatingMessage')}</p>
+                <p className="text-sm text-blue-600">{t('generatingSubtext')}</p>
               </div>
             </div>
             <Button
@@ -189,7 +203,7 @@ export default function ContentGeneratePage() {
               onClick={handleCancelGeneration}
               className="text-red-600 hover:text-red-700"
             >
-              Cancel
+              {t('cancel')}
             </Button>
           </div>
         </div>
@@ -200,17 +214,16 @@ export default function ContentGeneratePage() {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <BookOpen className="text-muted-foreground mb-4 h-12 w-12" />
             <h3 className="mb-2 text-lg font-semibold">
-              No books ready for content generation
+              {t('noBooksTitle')}
             </h3>
             <p className="text-muted-foreground mb-4 text-center">
-              Upload and analyze books first to generate social media content
-              from them.
+              {t('noBooksDescription')}
             </p>
             <Button
               onClick={() => router.push(`/${locale}/dashboard/books?action=upload`)}
             >
               <BookOpen className="mr-2 h-4 w-4" />
-              Upload Your First Book
+              {t('uploadFirstBook')}
             </Button>
           </CardContent>
         </Card>
@@ -230,28 +243,28 @@ export default function ContentGeneratePage() {
               <CardContent>
                 <div className="space-y-4">
                   <div className="text-muted-foreground text-sm">
-                    <p>File: {book.fileName}</p>
-                    {book.fileSize && <p>Size: {book.fileSize}</p>}
+                    <p>{t('file')}: {book.fileName}</p>
+                    {book.fileSize && <p>{t('size')}: {book.fileSize}</p>}
                     <p>
-                      Uploaded: {new Date(book.createdAt).toLocaleDateString()}
+                      {t('uploaded')}: {format.dateTime(new Date(book.createdAt), { dateStyle: 'medium' })}
                     </p>
                   </div>
 
                   <Button
                     onClick={() => handleGenerateContent(book.id)}
                     className="w-full"
-                    disabled={isGenerating}
+                    disabled={generatingBookId === book.id}
                     variant="outline"
                   >
-                    {isGenerating ? (
+                    {generatingBookId === book.id ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Generating...
+                        {t('generatingMessage')}
                       </>
                     ) : (
                       <>
                         <Zap className="mr-2 h-4 w-4" />
-                        Generate Content
+                        {t('generateFromBook')}
                       </>
                     )}
                   </Button>

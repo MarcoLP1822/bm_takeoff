@@ -4,7 +4,7 @@
  */
 "use client"
 
-import Link from "next/link"
+import { Link } from "@/lib/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -29,10 +29,18 @@ interface RecentBooksProps {
     }
     descriptions: {
       recentBooksDesc: string
+      noBooksYet: string
+      uploadFirstBookDesc: string
+      uploadYourFirstBook: string
     }
     buttons: {
       uploadBook: string
       viewAllBooks: string
+    }
+    status: {
+      analyzing: string
+      completed: string
+      error: string
     }
   }
 }
@@ -85,7 +93,11 @@ export default function RecentBooks({ books, loading = false, translations }: Re
                     }
                     className="text-xs"
                   >
-                    {book.status}
+                    {book.status === "completed" 
+                      ? translations.status.completed
+                      : book.status === "analyzing"
+                      ? translations.status.analyzing
+                      : translations.status.error}
                   </Badge>
                   {book.status === "analyzing" && book.progress && (
                     <div className="flex w-16 flex-col items-end">
@@ -108,14 +120,14 @@ export default function RecentBooks({ books, loading = false, translations }: Re
         ) : (
           <div className="py-6 text-center">
             <BookOpen className="text-muted-foreground mx-auto h-12 w-12" />
-            <h3 className="mt-2 text-sm font-semibold">No books yet</h3>
+            <h3 className="mt-2 text-sm font-semibold">{translations.descriptions.noBooksYet}</h3>
             <p className="text-muted-foreground mt-1 text-sm">
-              Upload your first book to get started with content generation.
+              {translations.descriptions.uploadFirstBookDesc}
             </p>
             <Button asChild className="mt-4">
               <Link href="/dashboard/books?action=upload">
                 <Plus className="mr-2 h-4 w-4" />
-                Upload Your First Book
+                {translations.descriptions.uploadYourFirstBook}
               </Link>
             </Button>
           </div>

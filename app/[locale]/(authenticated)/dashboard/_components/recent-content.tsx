@@ -4,7 +4,7 @@
  */
 "use client"
 
-import Link from "next/link"
+import { Link } from "@/lib/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -37,6 +37,7 @@ interface RecentContentProps {
     }
     buttons: {
       generateContent: string
+      viewAllContent: string
     }
   }
 }
@@ -110,7 +111,7 @@ export default function RecentContent({ content, loading = false, translations }
             ))}
             <Button asChild variant="ghost" className="w-full">
               <Link href="/dashboard/content">
-                View All Content
+                {translations.buttons.viewAllContent}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

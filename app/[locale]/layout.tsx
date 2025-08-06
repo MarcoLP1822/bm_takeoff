@@ -1,6 +1,7 @@
 import { CheckoutRedirect } from "@/components/payments/checkout-redirect"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { TailwindIndicator } from "@/components/utility/tailwind-indicator"
+import { ToastProvider } from "@/components/providers/toast-provider"
 import { ClerkProvider } from "@clerk/nextjs"
 import type { Metadata } from "next"
 import { NextIntlClientProvider } from "next-intl"
@@ -51,15 +52,17 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <ClerkProvider>
       <NextIntlClientProvider messages={messages}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <TooltipProvider>
-            {children}
-            <CheckoutRedirect />
+        <ToastProvider>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+            <TooltipProvider>
+              {children}
+              <CheckoutRedirect />
 
-            <TailwindIndicator />
-            <Toaster />
-          </TooltipProvider>
-        </ThemeProvider>
+              <TailwindIndicator />
+              <Toaster />
+            </TooltipProvider>
+          </ThemeProvider>
+        </ToastProvider>
       </NextIntlClientProvider>
     </ClerkProvider>
   )

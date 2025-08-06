@@ -14,6 +14,23 @@ const openai = new OpenAI({
   timeout: 120000 // 120 seconds timeout
 })
 
+/**
+ * Helper function to generate locale instruction for AI prompts
+ */
+function getLocaleInstruction(locale: string): string {
+  if (locale === 'en') return ''
+  
+  const languageMap: Record<string, string> = {
+    'it': 'Italian',
+    'es': 'Spanish', 
+    'fr': 'French',
+    'de': 'German'
+  }
+  
+  const language = languageMap[locale] || locale
+  return `**Provide the response in ${language} language.**`
+}
+
 // Platform-specific configuration
 export const PLATFORM_CONFIGS = {
   twitter: {
@@ -68,6 +85,7 @@ export interface ContentGenerationOptions {
   includeImages?: boolean
   tone?: "professional" | "casual" | "inspirational" | "educational"
   maxRetries?: number
+  locale?: string
 }
 
 /**
@@ -279,7 +297,8 @@ async function generateQuoteContent(
   variationsCount: number,
   tone: string,
   maxRetries: number,
-  bookAnalysis: BookAnalysisResult
+  bookAnalysis: BookAnalysisResult,
+  locale: string = 'en'
 ): Promise<ContentVariation[]> {
   const variations: ContentVariation[] = []
 
@@ -290,7 +309,9 @@ async function generateQuoteContent(
       const config = PLATFORM_CONFIGS[platform]
 
       try {
-        const prompt = `Create a ${tone} social media post for ${config.name} featuring this quote from "${bookTitle}"${author ? ` by ${author}` : ""}:
+        const localeInstruction = getLocaleInstruction(locale)
+        
+        const prompt = `Create a ${tone} social media post for ${config.name} featuring this quote from "${bookTitle}"${author ? ` by ${author}` : ""}. ${localeInstruction}
 
 "${quote}"
 
@@ -379,7 +400,8 @@ async function generateInsightContent(
   variationsCount: number,
   tone: string,
   maxRetries: number,
-  bookAnalysis: BookAnalysisResult
+  bookAnalysis: BookAnalysisResult,
+  locale: string = 'en'
 ): Promise<ContentVariation[]> {
   const variations: ContentVariation[] = []
 
@@ -390,7 +412,9 @@ async function generateInsightContent(
       const config = PLATFORM_CONFIGS[platform]
 
       try {
-        const prompt = `Create a ${tone} social media post for ${config.name} about this key insight from "${bookTitle}"${author ? ` by ${author}` : ""}:
+        const localeInstruction = getLocaleInstruction(locale)
+        
+        const prompt = `Create a ${tone} social media post for ${config.name} about this key insight from "${bookTitle}"${author ? ` by ${author}` : ""}. ${localeInstruction}
 
 ${insight}
 
@@ -479,7 +503,8 @@ async function generateThemeContent(
   variationsCount: number,
   tone: string,
   maxRetries: number,
-  bookAnalysis: BookAnalysisResult
+  bookAnalysis: BookAnalysisResult,
+  locale: string = 'en'
 ): Promise<ContentVariation[]> {
   const variations: ContentVariation[] = []
 
@@ -490,7 +515,9 @@ async function generateThemeContent(
       const config = PLATFORM_CONFIGS[platform]
 
       try {
-        const prompt = `Create a ${tone} social media post for ${config.name} about the theme "${theme}" from the book "${bookTitle}"${author ? ` by ${author}` : ""}:
+        const localeInstruction = getLocaleInstruction(locale)
+        
+        const prompt = `Create a ${tone} social media post for ${config.name} about the theme "${theme}" from the book "${bookTitle}"${author ? ` by ${author}` : ""}. ${localeInstruction}
 
 Requirements:
 - Maximum ${config.maxLength} characters including hashtags
@@ -577,7 +604,8 @@ async function generateSummaryContent(
   variationsCount: number,
   tone: string,
   maxRetries: number,
-  bookAnalysis: BookAnalysisResult
+  bookAnalysis: BookAnalysisResult,
+  locale: string = 'en'
 ): Promise<ContentVariation[]> {
   const variations: ContentVariation[] = []
 
@@ -588,7 +616,9 @@ async function generateSummaryContent(
       const config = PLATFORM_CONFIGS[platform]
 
       try {
-        const prompt = `Create a ${tone} social media post for ${config.name} summarizing "${bookTitle}"${author ? ` by ${author}` : ""}:
+        const localeInstruction = getLocaleInstruction(locale)
+        
+        const prompt = `Create a ${tone} social media post for ${config.name} summarizing "${bookTitle}"${author ? ` by ${author}` : ""}. ${localeInstruction}
 
 Book summary: ${summary}
 
@@ -677,7 +707,8 @@ async function generateDiscussionContent(
   variationsCount: number,
   tone: string,
   maxRetries: number,
-  bookAnalysis: BookAnalysisResult
+  bookAnalysis: BookAnalysisResult,
+  locale: string = 'en'
 ): Promise<ContentVariation[]> {
   const variations: ContentVariation[] = []
 
@@ -688,7 +719,9 @@ async function generateDiscussionContent(
       const config = PLATFORM_CONFIGS[platform]
 
       try {
-        const prompt = `Create a ${tone} social media post for ${config.name} that starts a discussion about this point from "${bookTitle}"${author ? ` by ${author}` : ""}:
+        const localeInstruction = getLocaleInstruction(locale)
+        
+        const prompt = `Create a ${tone} social media post for ${config.name} that starts a discussion about this point from "${bookTitle}"${author ? ` by ${author}` : ""}. ${localeInstruction}
 
 ${discussionPoint}
 
@@ -784,8 +817,9 @@ export async function generateSocialContent(
     platforms = ["twitter", "instagram", "linkedin", "facebook"],
     variationsPerTheme = 1, // Reduced from 2 to 1 for faster generation
     includeImages = true,
-    tone = "inspirational",
-    maxRetries = 3
+    tone = "professional",
+    maxRetries = 2,
+    locale = 'en'
   } = options
 
   try {
@@ -809,7 +843,8 @@ export async function generateSocialContent(
         variationsPerTheme,
         tone,
         maxRetries,
-        bookAnalysis
+        bookAnalysis,
+        locale
       )
       variations.push(...quoteVariations)
     }
@@ -824,7 +859,8 @@ export async function generateSocialContent(
         variationsPerTheme,
         tone,
         maxRetries,
-        bookAnalysis
+        bookAnalysis,
+        locale
       )
       variations.push(...insightVariations)
     }
@@ -839,7 +875,8 @@ export async function generateSocialContent(
         variationsPerTheme,
         tone,
         maxRetries,
-        bookAnalysis
+        bookAnalysis,
+        locale
       )
       variations.push(...themeVariations)
     }
@@ -854,7 +891,8 @@ export async function generateSocialContent(
         variationsPerTheme,
         tone,
         maxRetries,
-        bookAnalysis
+        bookAnalysis,
+        locale
       )
       variations.push(...summaryVariations)
     }

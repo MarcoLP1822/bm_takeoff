@@ -17,8 +17,12 @@ export default async function Page() {
     buttons: {
       uploadBook: t("buttons.uploadBook"),
       generateContent: t("buttons.generateContent"),
+      connectAccounts: t("buttons.connectAccounts"),
+      viewAnalytics: t("buttons.viewAnalytics"),
       viewAllBooks: t("buttons.viewAllBooks"),
-      viewAllContent: t("buttons.viewAllContent")
+      viewAllContent: t("buttons.viewAllContent"),
+      refresh: t("buttons.refresh"),
+      tryAgain: t("buttons.tryAgain")
     },
     sections: {
       recentBooks: t("sections.recentBooks"),
@@ -33,9 +37,26 @@ export default async function Page() {
       likesSharesComments: t("descriptions.likesSharesComments"),
       recentBooksDesc: t("descriptions.recentBooksDesc"),
       recentContentDesc: t("descriptions.recentContentDesc"),
+      quickActionsDesc: t("descriptions.quickActionsDesc"),
+      uploadBookDesc: t("descriptions.uploadBookDesc"),
+      generateContentDesc: t("descriptions.generateContentDesc"),
+      connectAccountsDesc: t("descriptions.connectAccountsDesc"),
+      viewAnalyticsDesc: t("descriptions.viewAnalyticsDesc"),
       noDataThisWeek: t("descriptions.noDataThisWeek"),
       noContentYet: t("descriptions.noContentYet"),
-      generateFirstContent: t("descriptions.generateFirstContent")
+      generateFirstContent: t("descriptions.generateFirstContent"),
+      noBooksYet: t("descriptions.noBooksYet"),
+      uploadFirstBookDesc: t("descriptions.uploadFirstBookDesc"),
+      uploadYourFirstBook: t("descriptions.uploadYourFirstBook"),
+      generatedToday: t("descriptions.generatedToday")
+    },
+    status: {
+      analyzing: t("status.analyzing"),
+      completed: t("status.completed"),
+      error: t("status.error")
+    },
+    errors: {
+      unableToLoadDashboard: t("errors.unableToLoadDashboard")
     }
   }
   

@@ -4,7 +4,7 @@
  */
 "use client"
 
-import Link from "next/link"
+import { Link } from "@/lib/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Upload, Zap, Users, BarChart3 } from "lucide-react"
@@ -12,9 +12,27 @@ import { Upload, Zap, Users, BarChart3 } from "lucide-react"
 interface QuickActionsProps {
   loading?: boolean
   onActionClick?: (action: string) => void
+  translations?: {
+    sections: {
+      quickActions: string
+    }
+    descriptions: {
+      quickActionsDesc: string
+      uploadBookDesc: string
+      generateContentDesc: string
+      connectAccountsDesc: string
+      viewAnalyticsDesc: string
+    }
+    buttons: {
+      uploadBook: string
+      generateContent: string
+      connectAccounts: string
+      viewAnalytics: string
+    }
+  }
 }
 
-export default function QuickActions({ loading = false, onActionClick }: QuickActionsProps) {
+export default function QuickActions({ loading = false, onActionClick, translations }: QuickActionsProps) {
   if (loading) {
     return <QuickActionsSkeleton />
   }
@@ -28,9 +46,9 @@ export default function QuickActions({ loading = false, onActionClick }: QuickAc
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Quick Actions</CardTitle>
+        <CardTitle>{translations?.sections.quickActions || "Quick Actions"}</CardTitle>
         <CardDescription>
-          Common tasks to help you get started
+          {translations?.descriptions.quickActionsDesc || "Common tasks to help you get started"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -42,8 +60,8 @@ export default function QuickActions({ loading = false, onActionClick }: QuickAc
           >
             <Link href="/dashboard/books?action=upload">
               <Upload className="h-6 w-6" />
-              <span className="text-sm font-medium">Upload Book</span>
-              <span className="text-xs opacity-90">PDF, EPUB, TXT, DOCX</span>
+              <span className="text-sm font-medium">{translations?.buttons.uploadBook || "Upload Book"}</span>
+              <span className="text-xs opacity-90">{translations?.descriptions.uploadBookDesc || "PDF, EPUB, TXT, DOCX"}</span>
             </Link>
           </Button>
 
@@ -55,9 +73,9 @@ export default function QuickActions({ loading = false, onActionClick }: QuickAc
           >
             <Link href="/dashboard/content/generate">
               <Zap className="h-6 w-6 text-green-600" />
-              <span className="text-sm font-medium">Generate Content</span>
+              <span className="text-sm font-medium">{translations?.buttons.generateContent || "Generate Content"}</span>
               <span className="text-muted-foreground text-xs">
-                AI-powered posts
+                {translations?.descriptions.generateContentDesc || "AI-powered posts"}
               </span>
             </Link>
           </Button>
@@ -69,9 +87,9 @@ export default function QuickActions({ loading = false, onActionClick }: QuickAc
           >
             <Link href="/dashboard/settings/social">
               <Users className="h-6 w-6 text-purple-600" />
-              <span className="text-sm font-medium">Connect Accounts</span>
+              <span className="text-sm font-medium">{translations?.buttons.connectAccounts || "Connect Accounts"}</span>
               <span className="text-muted-foreground text-xs">
-                Social platforms
+                {translations?.descriptions.connectAccountsDesc || "Social platforms"}
               </span>
             </Link>
           </Button>
@@ -83,9 +101,9 @@ export default function QuickActions({ loading = false, onActionClick }: QuickAc
           >
             <Link href="/dashboard/analytics">
               <BarChart3 className="h-6 w-6 text-orange-600" />
-              <span className="text-sm font-medium">View Analytics</span>
+              <span className="text-sm font-medium">{translations?.buttons.viewAnalytics || "View Analytics"}</span>
               <span className="text-muted-foreground text-xs">
-                Performance insights
+                {translations?.descriptions.viewAnalyticsDesc || "Performance insights"}
               </span>
             </Link>
           </Button>

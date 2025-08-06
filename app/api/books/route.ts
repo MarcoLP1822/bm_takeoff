@@ -28,7 +28,7 @@ const querySchema = z.object({
     .nullable()
     .optional(),
   sortBy: z
-    .enum(["title", "author", "createdAt", "updatedAt"])
+    .enum(["title", "author", "genre", "createdAt", "updatedAt"])
     .nullable()
     .optional()
     .default("createdAt"),

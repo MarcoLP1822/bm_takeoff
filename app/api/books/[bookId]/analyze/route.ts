@@ -195,6 +195,7 @@ async function processBookAnalysis(
           .set({
             analysisStatus: "completed",
             analysisData: normalizedResult,
+            genre: normalizedResult.genre, // Populate the genre field
             updatedAt: new Date()
           })
           .where(and(eq(books.id, bookId), eq(books.userId, userId)))

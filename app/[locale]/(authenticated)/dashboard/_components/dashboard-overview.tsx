@@ -39,8 +39,12 @@ interface DashboardTranslations {
   buttons: {
     uploadBook: string
     generateContent: string
+    connectAccounts: string
+    viewAnalytics: string
     viewAllBooks: string
     viewAllContent: string
+    refresh: string
+    tryAgain: string
   }
   sections: {
     recentBooks: string
@@ -55,9 +59,26 @@ interface DashboardTranslations {
     likesSharesComments: string
     recentBooksDesc: string
     recentContentDesc: string
+    quickActionsDesc: string
+    uploadBookDesc: string
+    generateContentDesc: string
+    connectAccountsDesc: string
+    viewAnalyticsDesc: string
     noDataThisWeek: string
     noContentYet: string
     generateFirstContent: string
+    noBooksYet: string
+    uploadFirstBookDesc: string
+    uploadYourFirstBook: string
+    generatedToday: string
+  }
+  status: {
+    analyzing: string
+    completed: string
+    error: string
+  }
+  errors: {
+    unableToLoadDashboard: string
   }
 }
 
@@ -91,14 +112,14 @@ export default function DashboardOverview({ translations }: DashboardOverviewPro
       <div className="flex flex-col items-center justify-center py-12">
         <div className="text-center">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Unable to load dashboard
+            {translations.errors.unableToLoadDashboard}
           </h3>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             {error}
           </p>
           <Button onClick={refreshData} className="mt-4">
             <RefreshCw className="mr-2 h-4 w-4" />
-            Try Again
+            {translations.buttons.tryAgain}
           </Button>
         </div>
       </div>
@@ -147,7 +168,7 @@ export default function DashboardOverview({ translations }: DashboardOverviewPro
           <RefreshCw
             className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
           />
-          Refresh
+          {translations.buttons.refresh}
         </Button>
       </div>
 
@@ -180,10 +201,20 @@ export default function DashboardOverview({ translations }: DashboardOverviewPro
           loading={loading}
           translations={{
             sections: { recentBooks: translations.sections.recentBooks },
-            descriptions: { recentBooksDesc: translations.descriptions.recentBooksDesc },
+            descriptions: { 
+              recentBooksDesc: translations.descriptions.recentBooksDesc,
+              noBooksYet: translations.descriptions.noBooksYet,
+              uploadFirstBookDesc: translations.descriptions.uploadFirstBookDesc,
+              uploadYourFirstBook: translations.descriptions.uploadYourFirstBook
+            },
             buttons: {
               uploadBook: translations.buttons.uploadBook,
               viewAllBooks: translations.buttons.viewAllBooks
+            },
+            status: {
+              analyzing: translations.status.analyzing,
+              completed: translations.status.completed,
+              error: translations.status.error
             }
           }}
         />
@@ -199,7 +230,10 @@ export default function DashboardOverview({ translations }: DashboardOverviewPro
               noContentYet: translations.descriptions.noContentYet,
               generateFirstContent: translations.descriptions.generateFirstContent
             },
-            buttons: { generateContent: translations.buttons.generateContent }
+            buttons: { 
+              generateContent: translations.buttons.generateContent,
+              viewAllContent: translations.buttons.viewAllContent
+            }
           }}
         />
       </div>
@@ -221,6 +255,22 @@ export default function DashboardOverview({ translations }: DashboardOverviewPro
       <QuickActions
         loading={loading}
         onActionClick={handleQuickActionClick}
+        translations={{
+          sections: { quickActions: translations.sections.quickActions },
+          descriptions: {
+            quickActionsDesc: translations.descriptions.quickActionsDesc,
+            uploadBookDesc: translations.descriptions.uploadBookDesc,
+            generateContentDesc: translations.descriptions.generateContentDesc,
+            connectAccountsDesc: translations.descriptions.connectAccountsDesc,
+            viewAnalyticsDesc: translations.descriptions.viewAnalyticsDesc
+          },
+          buttons: {
+            uploadBook: translations.buttons.uploadBook,
+            generateContent: translations.buttons.generateContent,
+            connectAccounts: translations.buttons.connectAccounts,
+            viewAnalytics: translations.buttons.viewAnalytics
+          }
+        }}
       />
 
       {/* Mobile Quick Navigation */}

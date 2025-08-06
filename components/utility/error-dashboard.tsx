@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useCallback } from "react"
+import { useFormatter } from "next-intl"
 import {
   Card,
   CardContent,
@@ -64,6 +65,7 @@ interface ErrorStats {
 }
 
 export function ErrorDashboard() {
+  const format = useFormatter()
   const [stats, setStats] = useState<ErrorStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [timeframe, setTimeframe] = useState("1h")
@@ -374,7 +376,10 @@ export function ErrorDashboard() {
                         )}
                       </div>
                       <span className="text-xs text-gray-500">
-                        {new Date(error.timestamp).toLocaleString()}
+                        {format.dateTime(new Date(error.timestamp), { 
+                          dateStyle: 'medium', 
+                          timeStyle: 'short' 
+                        })}
                       </span>
                     </div>
                     <p className="text-sm text-gray-700">{error.message}</p>

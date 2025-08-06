@@ -43,6 +43,7 @@ interface DashboardStatsCardsProps {
       postsReadyToPublish: string
       likesSharesComments: string
       noDataThisWeek: string
+      generatedToday: string
     }
   }
 }
@@ -99,7 +100,7 @@ export default function DashboardStatsCards({
           {quickStats.contentGeneratedToday > 0 && (
             <div className="mt-2 flex items-center text-xs text-green-600">
               <Zap className="mr-1 h-3 w-3" />+
-              {quickStats.contentGeneratedToday} generated today
+              {quickStats.contentGeneratedToday} {translations.descriptions.generatedToday}
             </div>
           )}
         </CardContent>

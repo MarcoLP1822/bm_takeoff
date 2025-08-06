@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { useTranslations, useFormatter } from "next-intl"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -47,6 +48,8 @@ export function ErrorReporting({
   onClose,
   trigger
 }: ErrorReportingProps) {
+  const t = useTranslations('errorReporting')
+  const format = useFormatter()
   const [isOpen, setIsOpen] = useState(false)
   const [userDescription, setUserDescription] = useState("")
   const [userEmail, setUserEmail] = useState("")
@@ -225,7 +228,10 @@ ${errorDetails.stack || "No stack trace available"}
                   </div>
                   <div>
                     <strong>Time:</strong>{" "}
-                    {new Date(errorDetails.timestamp).toLocaleString()}
+                    {format.dateTime(new Date(errorDetails.timestamp), { 
+                      dateStyle: 'medium', 
+                      timeStyle: 'medium' 
+                    })}
                   </div>
                   {errorDetails.context && (
                     <div>

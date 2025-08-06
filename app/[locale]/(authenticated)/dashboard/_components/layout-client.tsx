@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/sidebar"
 import { LanguageSelector } from "@/components/ui/language-selector"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { type Locale } from "@/i18n"
 import { AppSidebar } from "./app-sidebar"
 
@@ -36,6 +37,7 @@ export default function DashboardClientLayout({
   locale
 }: Props) {
   const pathname = usePathname()
+  const t = useTranslations('breadcrumbs')
 
   // Read the sidebar state from cookie on initial load
   const getCookieValue = (name: string) => {
@@ -146,13 +148,13 @@ export default function DashboardClientLayout({
             }
           }
         } else if (paths[1] === "books") {
-          breadcrumbs.push({ name: "Books", href: "/dashboard/books" })
+          breadcrumbs.push({ name: t('books'), href: `/${locale}/dashboard/books` })
 
           if (paths[2] === "upload") {
-            breadcrumbs.push({ name: "Upload", href: pathname, current: true })
+            breadcrumbs.push({ name: t('upload'), href: pathname, current: true })
           } else if (paths[2]) {
             breadcrumbs.push({
-              name: "Book Details",
+              name: t('bookDetails'),
               href: pathname,
               current: true
             })
@@ -160,11 +162,11 @@ export default function DashboardClientLayout({
             breadcrumbs[breadcrumbs.length - 1].current = true
           }
         } else if (paths[1] === "content") {
-          breadcrumbs.push({ name: "Content", href: "/dashboard/content" })
+          breadcrumbs.push({ name: t('content'), href: `/${locale}/dashboard/content` })
 
           if (paths[2] === "generate") {
             breadcrumbs.push({
-              name: "Generate",
+              name: t('generate'),
               href: pathname,
               current: true
             })
@@ -180,7 +182,7 @@ export default function DashboardClientLayout({
         } else if (paths[1] === "analytics") {
           breadcrumbs.push({ name: "Analytics", href: pathname, current: true })
         } else if (paths[1] === "settings") {
-          breadcrumbs.push({ name: "Settings", href: "/dashboard/settings" })
+          breadcrumbs.push({ name: "Settings", href: `/${locale}/dashboard/settings` })
 
           if (paths[2] === "social") {
             breadcrumbs.push({

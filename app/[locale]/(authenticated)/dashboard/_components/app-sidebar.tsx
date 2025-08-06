@@ -10,7 +10,6 @@ import {
   BarChart3
 } from "lucide-react"
 import * as React from "react"
-import { useLocale } from "next-intl"
 import { useNavigationTranslations } from "@/hooks/use-translations"
 
 import {
@@ -35,7 +34,6 @@ export function AppSidebar({
     membership: string
   }
 }) {
-  const locale = useLocale()
   const t = useNavigationTranslations()
 
   const data = {
@@ -65,7 +63,7 @@ export function AppSidebar({
     navMain: [
       {
         title: t("dashboard"),
-        url: `/${locale}/dashboard`,
+        url: "/dashboard",
         icon: BarChart3,
         items: []
       },
@@ -76,7 +74,7 @@ export function AppSidebar({
         items: [
           {
             title: t("library"),
-            url: `/${locale}/dashboard/books`
+            url: "/dashboard/books"
           }
         ]
       },
@@ -87,11 +85,11 @@ export function AppSidebar({
         items: [
           {
             title: t("contentManager"),
-            url: `/${locale}/dashboard/content`
+            url: "/dashboard/content"
           },
           {
             title: t("generateContent"),
-            url: `/${locale}/dashboard/content/generate`
+            url: "/dashboard/content/generate"
           }
         ]
       },
@@ -102,7 +100,7 @@ export function AppSidebar({
         items: [
           {
             title: t("performance"),
-            url: `/${locale}/dashboard/analytics`
+            url: "/dashboard/analytics"
           }
         ]
       },
@@ -113,11 +111,11 @@ export function AppSidebar({
         items: [
           {
             title: t("general"),
-            url: `/${locale}/dashboard/settings`
+            url: "/dashboard/settings"
           },
           {
             title: t("socialAccounts"),
-            url: `/${locale}/dashboard/settings/social`
+            url: "/dashboard/settings/social"
           }
         ]
       }

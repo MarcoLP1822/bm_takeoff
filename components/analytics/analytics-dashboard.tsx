@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useFormatter } from "next-intl"
 import {
   Card,
   CardContent,
@@ -49,6 +50,7 @@ interface AnalyticsDashboardProps {
 }
 
 export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
+  const format = useFormatter()
   const [insights, setInsights] = useState<AnalyticsInsights | null>(null)
   const [posts, setPosts] = useState<PostPerformance[]>([])
   const [platforms, setPlatforms] = useState<PlatformComparison[]>([])
@@ -734,7 +736,7 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
                     </Badge>
                   </div>
                   <CardDescription>
-                    Published {new Date(post.publishedAt).toLocaleDateString()}
+                    Published {format.dateTime(new Date(post.publishedAt), { dateStyle: 'medium' })}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -19,7 +20,8 @@ import {
   X,
   SortAsc,
   SortDesc,
-  Loader2
+  Loader2,
+  Edit3
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -73,6 +75,7 @@ interface BookFilters {
 interface BookLibraryProps {
   onBookSelect?: (book: Book) => void
   onBookDelete?: (bookId: string) => void
+  onBookRename?: (bookId: string, title: string, author?: string) => void
   refreshTrigger?: number
 }
 
@@ -92,24 +95,27 @@ const getStatusColor = (status: string) => {
   }
 }
 
-const getStatusText = (status: string) => {
-  switch (status) {
-    case "completed":
-      return "Analysis Complete"
-    case "processing":
-      return "Analyzing..."
-    case "failed":
-      return "Analysis Failed"
-    default:
-      return "Pending Analysis"
-  }
-}
-
 export function BookLibrary({
   onBookSelect,
   onBookDelete,
+  onBookRename,
   refreshTrigger
 }: BookLibraryProps) {
+  const t = useTranslations('books')
+  
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "completed":
+        return t('status.analysisComplete')
+      case "processing":
+        return t('status.analyzingContent')
+      case "failed":
+        return t('status.analysisFailed')
+      default:
+        return t('status.pendingAnalysis')
+    }
+  }
+  
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedGenre, setSelectedGenre] = useState<string>("")
   const [selectedAuthor, setSelectedAuthor] = useState<string>("")
@@ -125,6 +131,11 @@ export function BookLibrary({
   const [deletingBookId, setDeletingBookId] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null)
+  const [showRenameDialog, setShowRenameDialog] = useState(false)
+  const [bookToRename, setBookToRename] = useState<Book | null>(null)
+  const [renamingBookId, setRenamingBookId] = useState<string | null>(null)
+  const [newTitle, setNewTitle] = useState("")
+  const [newAuthor, setNewAuthor] = useState("")
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   // Use refs to store current values for stable function
@@ -255,6 +266,28 @@ export function BookLibrary({
     setShowDeleteDialog(true)
   }
 
+  const confirmRename = (book: Book) => {
+    setBookToRename(book)
+    setNewTitle(book.title)
+    setNewAuthor(book.author || "")
+    setShowRenameDialog(true)
+  }
+
+  const handleRenameBook = async () => {
+    if (bookToRename && onBookRename && newTitle.trim()) {
+      setRenamingBookId(bookToRename.id)
+      try {
+        await onBookRename(bookToRename.id, newTitle.trim(), newAuthor.trim() || undefined)
+      } finally {
+        setRenamingBookId(null)
+        setShowRenameDialog(false)
+        setBookToRename(null)
+        setNewTitle("")
+        setNewAuthor("")
+      }
+    }
+  }
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -279,7 +312,7 @@ export function BookLibrary({
             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
             <Input
               ref={searchInputRef}
-              placeholder="Search books by title, author, or genre... (Ctrl+K)"
+              placeholder={t('searchPlaceholder')}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -295,7 +328,7 @@ export function BookLibrary({
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <Filter className="mr-2 h-4 w-4" />
-                Filters
+                {t('filters')}
                 {hasActiveFilters && (
                   <Badge
                     variant="secondary"
@@ -314,11 +347,11 @@ export function BookLibrary({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Filter by Genre</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('filterByGenre')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setSelectedGenre("")}>
                 <span className={selectedGenre === "" ? "font-medium" : ""}>
-                  All Genres
+                  {t('allGenres')}
                 </span>
               </DropdownMenuItem>
               {filters.genres.map(genre => (
@@ -334,11 +367,11 @@ export function BookLibrary({
               ))}
 
               <DropdownMenuSeparator />
-              <DropdownMenuLabel>Filter by Author</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('filterByAuthor')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setSelectedAuthor("")}>
                 <span className={selectedAuthor === "" ? "font-medium" : ""}>
-                  All Authors
+                  {t('allAuthors')}
                 </span>
               </DropdownMenuItem>
               {filters.authors.map(author => (
@@ -354,11 +387,11 @@ export function BookLibrary({
               ))}
 
               <DropdownMenuSeparator />
-              <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+              <DropdownMenuLabel>{t('filterByStatus')}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setSelectedStatus("")}>
                 <span className={selectedStatus === "" ? "font-medium" : ""}>
-                  All Statuses
+                  {t('allStatuses')}
                 </span>
               </DropdownMenuItem>
               {filters.analysisStatuses.map(status => (
@@ -379,20 +412,20 @@ export function BookLibrary({
         {/* Sort Controls */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">Sort by:</span>
+            <span className="text-sm text-gray-600">{t('sortBy')}:</span>
             <Select
               value={sortBy}
               onValueChange={(value: SortBy) => setSortBy(value)}
             >
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="min-w-32 w-auto">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="title">Title</SelectItem>
-                <SelectItem value="author">Author</SelectItem>
-                <SelectItem value="genre">Genre</SelectItem>
-                <SelectItem value="createdAt">Upload Date</SelectItem>
-                <SelectItem value="updatedAt">Last Updated</SelectItem>
+                <SelectItem value="title">{t('titleSort')}</SelectItem>
+                <SelectItem value="author">{t('author')}</SelectItem>
+                <SelectItem value="genre">{t('genre')}</SelectItem>
+                <SelectItem value="createdAt">{t('uploadDate')}</SelectItem>
+                <SelectItem value="updatedAt">{t('lastUpdated')}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -406,18 +439,18 @@ export function BookLibrary({
           </div>
 
           <div className="text-sm text-gray-500">
-            Search results will be displayed below
+            {t('searchResults')}
           </div>
         </div>
 
         {/* Active Filters */}
         {hasActiveFilters && (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-gray-600">Active filters:</span>
+            <span className="text-sm text-gray-600">{t('activeFilters')}:</span>
 
             {searchQuery.trim() && (
               <Badge variant="secondary" className="gap-1">
-                Search: "{searchQuery}"
+                {t('search')}: "{searchQuery}"
                 <button
                   onClick={() => setSearchQuery("")}
                   className="ml-1 rounded hover:bg-gray-200"
@@ -429,7 +462,7 @@ export function BookLibrary({
 
             {selectedGenre && (
               <Badge variant="secondary" className="gap-1">
-                Genre: {selectedGenre}
+                {t('genre')}: {selectedGenre}
                 <button
                   onClick={() => setSelectedGenre("")}
                   className="ml-1 rounded hover:bg-gray-200"
@@ -441,7 +474,7 @@ export function BookLibrary({
 
             {selectedAuthor && (
               <Badge variant="secondary" className="gap-1">
-                Author: {selectedAuthor}
+                {t('author')}: {selectedAuthor}
                 <button
                   onClick={() => setSelectedAuthor("")}
                   className="ml-1 rounded hover:bg-gray-200"
@@ -453,7 +486,7 @@ export function BookLibrary({
 
             {selectedStatus && (
               <Badge variant="secondary" className="gap-1">
-                Status: {getStatusText(selectedStatus)}
+                {t('statusLabel')}: {getStatusText(selectedStatus)}
                 <button
                   onClick={() => setSelectedStatus("")}
                   className="ml-1 rounded hover:bg-gray-200"
@@ -469,7 +502,7 @@ export function BookLibrary({
               onClick={clearFilters}
               className="h-6 px-2 text-xs"
             >
-              Clear all
+              {t('clearAll')}
             </Button>
           </div>
         )}
@@ -503,7 +536,21 @@ export function BookLibrary({
                     data-testid={`view-details-${book.id}`}
                   >
                     <Eye className="mr-2 h-4 w-4" />
-                    View Details
+                    {t('viewDetails')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => confirmRename(book)}
+                    data-testid={`rename-book-${book.id}`}
+                    disabled={renamingBookId === book.id}
+                  >
+                    {renamingBookId === book.id ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Edit3 className="mr-2 h-4 w-4" />
+                    )}
+                    {renamingBookId === book.id ? t('renaming') : t('rename')}
                   </Button>
                   <Button
                     variant="outline"
@@ -518,7 +565,7 @@ export function BookLibrary({
                     ) : (
                       <Trash2 className="mr-2 h-4 w-4" />
                     )}
-                    {deletingBookId === book.id ? "Deleting..." : "Delete"}
+                    {deletingBookId === book.id ? t('deleting') : t('delete')}
                   </Button>
                 </div>
 
@@ -539,14 +586,14 @@ export function BookLibrary({
 
                   <div className="flex items-center text-sm text-gray-500">
                     <Calendar className="mr-1 h-4 w-4" />
-                    Uploaded{" "}
+                    {t('uploaded')}{" "}
                     {formatDistanceToNow(new Date(book.createdAt), {
                       addSuffix: true
                     })}
                   </div>
 
                   <div className="text-sm text-gray-500">
-                    File: {book.fileName}{" "}
+                    {t('file')}: {book.fileName}{" "}
                     {book.fileSize && `(${book.fileSize})`}
                   </div>
                 </div>
@@ -559,10 +606,10 @@ export function BookLibrary({
           <div className="py-12 text-center">
             <BookOpen className="mx-auto mb-4 h-12 w-12 text-gray-400" />
             <h3 className="mb-2 text-lg font-medium text-gray-900">
-              No books found
+              {t('noBooksFound')}
             </h3>
             <p className="text-gray-500">
-              Try adjusting your search terms or filters
+              {t('adjustSearch')}
             </p>
           </div>
         )}
@@ -570,10 +617,10 @@ export function BookLibrary({
           <div className="py-12 text-center">
             <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-400" />
             <h3 className="mb-2 text-lg font-medium text-gray-900">
-              Failed to load books
+              {t('failedToLoad')}
             </h3>
             <p className="mb-4 text-gray-500">{error.message}</p>
-            <Button onClick={retry}>Try Again</Button>
+            <Button onClick={retry}>{t('tryAgain')}</Button>
           </div>
         )}
         itemsPerPage={20}
@@ -585,10 +632,9 @@ export function BookLibrary({
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Book</DialogTitle>
+            <DialogTitle>{t('deleteBook')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{bookToDelete?.title}"? This
-              action cannot be undone.
+              {t('deleteConfirmation')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -597,7 +643,7 @@ export function BookLibrary({
               onClick={() => setShowDeleteDialog(false)}
               disabled={deletingBookId !== null}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               variant="destructive"
@@ -607,10 +653,70 @@ export function BookLibrary({
               {deletingBookId ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
+                  {t('deleting')}
                 </>
               ) : (
-                "Delete Book"
+                t('deleteBook')
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rename Book Dialog */}
+      <Dialog open={showRenameDialog} onOpenChange={setShowRenameDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('renameBook')}</DialogTitle>
+            <DialogDescription>
+              Modifica il titolo e l'autore del libro nel database.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="new-title" className="text-sm font-medium">
+                {t('newTitle')} *
+              </label>
+              <Input
+                id="new-title"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder={t('titleRequired')}
+                disabled={renamingBookId !== null}
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="new-author" className="text-sm font-medium">
+                {t('newAuthor')}
+              </label>
+              <Input
+                id="new-author"
+                value={newAuthor}
+                onChange={(e) => setNewAuthor(e.target.value)}
+                placeholder="Nome dell'autore"
+                disabled={renamingBookId !== null}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowRenameDialog(false)}
+              disabled={renamingBookId !== null}
+            >
+              {t('cancel')}
+            </Button>
+            <Button
+              onClick={handleRenameBook}
+              disabled={renamingBookId !== null || !newTitle.trim()}
+            >
+              {renamingBookId ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {t('renaming')}
+                </>
+              ) : (
+                t('save')
               )}
             </Button>
           </DialogFooter>

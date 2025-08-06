@@ -49,7 +49,7 @@ export default function OnboardingSection({ isFirstTime, translations }: Onboard
             {isFirstTime && (
               <Badge variant="secondary" className="hidden sm:inline-flex">
                 <Sparkles className="mr-1 h-3 w-3" />
-                Welcome!
+                Benvenuto!
               </Badge>
             )}
           </div>
@@ -68,7 +68,7 @@ export default function OnboardingSection({ isFirstTime, translations }: Onboard
               className="hidden sm:inline-flex"
             >
               <HelpCircle className="mr-2 h-4 w-4" />
-              Help
+              Aiuto
             </Button>
           )}
         </div>

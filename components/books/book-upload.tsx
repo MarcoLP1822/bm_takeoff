@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from "react"
 import { useDropzone, FileRejection } from "react-dropzone"
+import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -47,6 +48,8 @@ export function BookUpload({
   onUploadSuccess,
   onUploadError
 }: BookUploadProps) {
+  const t = useTranslations('books')
+  
   const [uploadState, setUploadState] = useState<UploadState>({
     isUploading: false,
     progress: 0,
@@ -111,7 +114,7 @@ export function BookUpload({
             } else {
               try {
                 const errorData = JSON.parse(xhr.responseText)
-                reject(new Error(errorData.error || 'Upload failed'))
+                reject(new Error(errorData.error || t('uploadFailed')))
               } catch (e) {
                 reject(new Error(`Upload failed with status ${xhr.status}`))
               }
@@ -152,7 +155,7 @@ export function BookUpload({
         }, 3000)
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : "Upload failed"
+          error instanceof Error ? error.message : t('uploadFailed')
         setUploadState({
           isUploading: false,
           progress: 0,
@@ -163,7 +166,7 @@ export function BookUpload({
         onUploadError?.(errorMessage)
       }
     },
-    [onUploadSuccess, onUploadError]
+    [onUploadSuccess, onUploadError, t]
   )
 
   const onDrop = useCallback(
@@ -233,23 +236,23 @@ export function BookUpload({
               <p className="text-lg font-medium">Uploading...</p>
             ) : uploadState.success ? (
               <p className="text-lg font-medium text-green-600">
-                Upload successful!
+                {t('uploadSuccessful')}
               </p>
             ) : isDragActive ? (
               <p className="text-lg font-medium">Drop your book file here</p>
             ) : (
               <div>
                 <p className="text-lg font-medium">
-                  Drag & drop a book file here
+                  {t('dragAndDrop')}
                 </p>
-                <p className="mt-1 text-sm text-gray-500">or click to browse</p>
+                <p className="mt-1 text-sm text-gray-500">{t('clickToBrowse')}</p>
               </div>
             )}
           </div>
 
           <div className="text-sm text-gray-500">
-            <p>Supported formats: PDF, EPUB, TXT, DOCX</p>
-            <p>Maximum file size: 50MB</p>
+            <p>{t('supportedFormatsExtended')}</p>
+            <p>{t('maxFileSize')}</p>
           </div>
 
           {!uploadState.isUploading && !uploadState.success && (

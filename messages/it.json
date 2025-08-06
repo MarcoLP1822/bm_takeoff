@@ -7,174 +7,69 @@
     "analytics": "Analytics",
     "settings": "Impostazioni",
     "profile": "Profilo",
-    "logout": "Esci",
+    "logout": "Logout",
     "login": "Accedi",
     "signup": "Registrati",
     "library": "Libreria",
     "contentManager": "Gestione Contenuti",
-    "generateContent": "Genera Contenuti",
+    "generateContent": "Genera Contenuto",
     "performance": "Performance",
     "general": "Generale",
     "socialAccounts": "Account Social"
-  },
-  "marketing": {
-    "hero": {
-      "badge": "Nuovo Template",
-      "title": "Lancia il Tuo Libro al",
-      "titleHighlight": "Successo",
-      "subtitle": "Tutto quello di cui hai bisogno per creare, lanciare e far crescere il tuo libro con una strategia di marketing completa.",
-      "ctaPrimary": "Inizia a Sviluppare",
-      "ctaSecondary": "Stella su GitHub",
-      "trustIndicators": {
-        "modernTech": "Stack Tecnologico Moderno",
-        "productionReady": "Pronto per la Produzione",
-        "continuousUpdates": "Aggiornamenti Continui"
-      }
-    },
-    "features": {
-      "auth": {
-        "title": "Autenticazione Sicura",
-        "description": "Autenticazione completa con Clerk e protezione dei dati utente."
-      },
-      "payments": {
-        "title": "Pagamenti Integrati",
-        "description": "Sistema di pagamento completo con Stripe per gestire abbonamenti e acquisti."
-      },
-      "database": {
-        "title": "Database Robusto",
-        "description": "Database PostgreSQL con Drizzle ORM per performance e scalabilità."
-      },
-      "ui": {
-        "title": "UI Moderna",
-        "description": "Interfaccia utente elegante costruita con Tailwind CSS e shadcn/ui."
-      },
-      "typescript": {
-        "title": "TypeScript",
-        "description": "Sviluppo type-safe con TypeScript per ridurre errori e migliorare la DX."
-      },
-      "analytics": {
-        "title": "Analytics Avanzati",
-        "description": "Tracciamento dettagliato delle performance e analytics in tempo reale."
-      }
-    },
-    "navigation": {
-      "home": "Home",
-      "about": "Chi Siamo",
-      "features": "Caratteristiche",
-      "pricing": "Prezzi",
-      "contact": "Contatti",
-      "login": "Accedi",
-      "signup": "Registrati"
-    },
-    "cta": {
-      "title": "Pronto a costruire qualcosa di incredibile?",
-      "subtitle": "Smetti di perdere tempo sul boilerplate. Clona questo template e inizia a sviluppare il tuo prodotto oggi stesso.",
-      "cloneTemplate": "Clona Template",
-      "getStarted": "Inizia Subito"
-    },
-    "companies": {
-      "title": "Costruito con tecnologie moderne",
-      "subtitle": "Scelto da sviluppatori in tutto il mondo",
-      "stats": {
-        "githubStars": "Stelle GitHub",
-        "activeProjects": "Progetti Attivi",
-        "contributors": "Contributori"
-      }
-    },
-    "faq": {
-      "title": "Domande Frequenti",
-      "subtitle": "Tutto quello che devi sapere sul template",
-      "questions": {
-        "whatIsThis": {
-          "question": "Cos'è questo template?",
-          "answer": "Un template completo full-stack costruito con Next.js, TypeScript e strumenti moderni per aiutarti a sviluppare più velocemente."
-        },
-        "howToStart": {
-          "question": "Come posso iniziare?",
-          "answer": "Clona il repository, installa le dipendenze, configura le tue variabili d'ambiente e inizia a costruire."
-        },
-        "isItFree": {
-          "question": "È gratuito?",
-          "answer": "Sì, questo template è completamente gratuito e open source sotto licenza MIT."
-        },
-        "supportIncluded": {
-          "question": "Il supporto è incluso?",
-          "answer": "Il supporto della community è disponibile tramite GitHub issues e discussioni."
-        }
-      }
-    },
-    "pricing": {
-      "title": "Prezzi semplici e trasparenti",
-      "subtitle": "Scegli il piano giusto per te",
-      "free": {
-        "title": "Gratuito",
-        "price": "€0",
-        "period": "per sempre",
-        "description": "Perfetto per iniziare",
-        "features": [
-          "Codice sorgente completo",
-          "Autenticazione di base",
-          "Setup database",
-          "Supporto community"
-        ],
-        "cta": "Inizia Subito"
-      },
-      "pro": {
-        "title": "Pro",
-        "price": "€99",
-        "period": "una tantum",
-        "description": "Tutto quello di cui hai bisogno per costruire",
-        "features": [
-          "Tutto del piano Gratuito",
-          "Componenti premium",
-          "Funzionalità avanzate",
-          "Supporto prioritario"
-        ],
-        "cta": "Upgrade a Pro"
-      }
-    },
-    "socialProof": {
-      "title": "Scelto dagli sviluppatori",
-      "subtitle": "Unisciti a migliaia di sviluppatori che hanno costruito prodotti incredibili con questo template"
-    },
-    "video": {
-      "title": "Guardalo in azione",
-      "subtitle": "Guarda quanto è facile iniziare con questo template",
-      "playButton": "Riproduci Video"
-    }
   },
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Benvenuto in Book Marketing Takeoff",
     "subtitle": "Gestisci i tuoi libri e contenuti di marketing",
     "stats": {
-      "totalBooks": "Totale Libri",
+      "totalBooks": "Libri Totali",
       "totalContent": "Contenuti Creati",
       "socialPosts": "Post Social",
-      "engagement": "Coinvolgimento"
+      "engagement": "Engagement"
     },
     "buttons": {
       "uploadBook": "Carica Libro",
       "generateContent": "Genera Contenuto",
+      "connectAccounts": "Collega Account",
+      "viewAnalytics": "Visualizza Analytics",
       "viewAllBooks": "Visualizza Tutti i Libri",
-      "viewAllContent": "Visualizza Tutti i Contenuti"
+      "viewAllContent": "Visualizza Tutti i Contenuti",
+      "refresh": "Aggiorna",
+      "tryAgain": "Riprova"
     },
     "sections": {
       "recentBooks": "Libri Recenti",
-      "recentContent": "Contenuti Recenti", 
+      "recentContent": "Contenuti Recenti",
       "performanceOverview": "Panoramica Performance",
       "quickActions": "Azioni Rapide"
     },
     "descriptions": {
       "booksInLibrary": "Libri nella tua libreria",
-      "socialMediaPosts": "Post sui social media creati",
+      "socialMediaPosts": "Post social media creati",
       "postsReadyToPublish": "Post pronti per la pubblicazione",
       "likesSharesComments": "Mi piace, condivisioni e commenti",
       "recentBooksDesc": "I tuoi libri caricati e analizzati di recente",
-      "recentContentDesc": "I tuoi ultimi post sui social media generati",
+      "recentContentDesc": "I tuoi ultimi post social media generati",
+      "quickActionsDesc": "Attività comuni per aiutarti a iniziare",
+      "uploadBookDesc": "PDF, EPUB, TXT, DOCX",
+      "generateContentDesc": "Post alimentati da AI",
+      "connectAccountsDesc": "Piattaforme social",
+      "viewAnalyticsDesc": "Insights sulle performance",
       "noDataThisWeek": "Nessun dato questa settimana",
       "noContentYet": "Nessun contenuto ancora",
-      "generateFirstContent": "Genera il tuo primo contenuto sui social media dai tuoi libri."
+      "generateFirstContent": "Genera i tuoi primi contenuti social media dai tuoi libri.",
+      "noBooksYet": "Nessun libro ancora",
+      "uploadFirstBookDesc": "Carica il tuo primo libro per iniziare a generare contenuti.",
+      "uploadYourFirstBook": "Carica il Tuo Primo Libro",
+      "generatedToday": "generati oggi"
+    },
+    "status": {
+      "analyzing": "Analizzando",
+      "completed": "Completato",
+      "error": "Errore"
+    },
+    "errors": {
+      "unableToLoadDashboard": "Impossibile caricare la dashboard"
     }
   },
   "books": {
@@ -183,24 +78,168 @@
     "upload": "Carica Libro",
     "processing": "Elaborazione...",
     "noBooks": "Nessun libro caricato",
-    "uploadDescription": "Carica i tuoi libri per iniziare a creare contenuti di marketing"
+    "uploadDescription": "Carica i tuoi libri per iniziare a creare contenuti di marketing",
+    "library": "Libreria",
+    "libraryDescription": "Gestisci i tuoi libri caricati",
+    "uploadNew": "Carica Nuovo Libro",
+    "delete": "Elimina",
+    "deleteBook": "Elimina Libro",
+    "deleteConfirmation": "Sei sicuro di voler eliminare questo libro?",
+    "deleteSuccess": "Libro eliminato con successo",
+    "deleteError": "Errore durante l'eliminazione del libro",
+    "rename": "Rinomina",
+    "renameBook": "Rinomina Libro",
+    "renameSuccess": "Libro rinominato con successo",
+    "renameError": "Errore durante la rinomina del libro",
+    "newTitle": "Nuovo Titolo",
+    "newAuthor": "Nuovo Autore (opzionale)",
+    "titleRequired": "Il titolo è obbligatorio",
+    "renaming": "Rinominando...",
+    "save": "Salva",
+    "selectFiles": "Seleziona File",
+    "dropZone": "Trascina qui i tuoi file PDF o clicca per selezionare",
+    "supportedFormats": "Formati supportati: PDF",
+    "maxFileSize": "Dimensione massima: 50MB",
+    "uploadError": "Errore durante il caricamento",
+    "uploadSuccess": "Libro caricato con successo",
+    "unknownError": "Errore sconosciuto",
+    "backToLibrary": "Torna alla Libreria",
+    "fileDetails": "Dettagli File",
+    "size": "Dimensione",
+    "textContent": "Contenuto testuale",
+    "characters": "caratteri",
+    "viewDetails": "Visualizza Dettagli",
+    "deleting": "Eliminazione...",
+    "uploaded": "Caricato",
+    "file": "File",
+    "searchPlaceholder": "Cerca libri per titolo, autore o genere",
+    "filters": "Filtri",
+    "filterByGenre": "Filtra per Genere",
+    "allGenres": "Tutti i Generi",
+    "filterByAuthor": "Filtra per Autore", 
+    "allAuthors": "Tutti gli Autori",
+    "filterByStatus": "Filtra per Stato",
+    "allStatuses": "Tutti gli Stati",
+    "sortBy": "Ordina per",
+    "titleSort": "Titolo",
+    "author": "Autore",
+    "genre": "Genere",
+    "uploadDate": "Data Caricamento",
+    "lastUpdated": "Ultimo Aggiornamento",
+    "searchResults": "I risultati della ricerca verranno visualizzati qui sotto",
+    "activeFilters": "Filtri attivi",
+    "search": "Ricerca",
+    "statusLabel": "Stato",
+    "clearAll": "Cancella tutto",
+    "noBooksFound": "Nessun libro trovato",
+    "adjustSearch": "Prova a modificare i termini di ricerca o i filtri",
+    "failedToLoad": "Impossibile caricare i libri",
+    "tryAgain": "Riprova",
+    "cancel": "Annulla",
+    "clickToBrowse": "o clicca per sfogliare",
+    "dragAndDrop": "Trascina e rilascia i tuoi file qui",
+    "supportedFormatsExtended": "Formati supportati: PDF, EPUB, TXT, DOCX",
+    "uploadSuccessful": "Caricamento riuscito!",
+    "uploadFailed": "Caricamento fallito",
+    "selectFile": "Seleziona File",
+    "status": {
+      "analyzing": "Analizzando",
+      "completed": "Completato",
+      "error": "Errore",
+      "analysisComplete": "Analisi Completata",
+      "analyzingContent": "Analizzando Contenuto...",
+      "analysisFailed": "Analisi Fallita",
+      "pendingAnalysis": "Analisi in Attesa",
+      "startAnalyzing": "Inizia ad analizzare questo libro per estrarre temi, citazioni e",
+      "analysisError": "C'è stato un errore nell'analizzare questo libro. Riprova.",
+      "noDataFound": "Analisi completata ma nessun dato trovato. Questo potrebbe essere dovuto a"
+    },
+    "detail": {
+      "bookInformation": "Informazioni Libro",
+      "title": "Titolo",
+      "author": "Autore", 
+      "genre": "Genere",
+      "uploaded": "Caricato",
+      "lastUpdated": "Ultimo Aggiornamento",
+      "analysisResults": "Risultati Analisi",
+      "analysisNotStarted": "Analisi Non Iniziata",
+      "analysisNoData": "Nessun Dato di Analisi",
+      "themesIdentified": "Temi Identificati",
+      "quotesExtracted": "Citazioni Estratte",
+      "keyInsights": "Intuizioni Chiave",
+      "analysisComplete": "Analisi Completata",
+      "summary": "Riassunto",
+      "keyThemes": "Temi Principali",
+      "keyQuotes": "Citazioni Principali",
+      "targetAudience": "Pubblico Target",
+      "chapterSummaries": "Riassunti Capitoli",
+      "chapter": "Capitolo",
+      "keyPoints": "Punti Chiave",
+      "showLess": "Mostra Meno",
+      "showAllChapters": "Mostra Tutti i Capitoli",
+      "andMoreChapters": "E {count} altri capitoli...",
+      "showingAllChapters": "Visualizzando tutti i {count} capitoli",
+      "discussionPoints": "Punti di Discussione",
+      "overallSummary": "Riassunto Generale",
+      "quickActions": "Azioni Rapide",
+      "contentGeneration": "Generazione Contenuti",
+      "extractQuotes": "• Estrai citazioni e intuizioni chiave",
+      "generatePosts": "• Genera post specifici per piattaforma",
+      "createContent": "• Crea contenuti social coinvolgenti",
+      "schedulePublish": "• Programma e pubblica post",
+      "analysisRequiredNote": "Completa l'analisi del libro per sbloccare le funzionalità di generazione contenuti.",
+      "downloading": "Scaricando...",
+      "startingAnalysis": "Avvio Analisi...",
+      "andMoreQuotes": "E {count} altre citazioni...",
+      "processingTime": "Questo potrebbe richiedere alcuni minuti a seconda della lunghezza del libro.",
+      "retryAnalysis": "Riprova Analisi",
+      "generateContent": "Genera Contenuto",
+      "downloadFile": "Scarica File",
+      "reanalyze": "Ri-analizza",
+      "startAnalysis": "Inizia Analisi"
+    }
   },
   "content": {
     "title": "Contenuti di Marketing",
-    "generate": "Genera Contenuto",
-    "templates": "Template",
+    "generate": "Genera Contenuti",
+    "templates": "Modelli",
     "blogPost": "Post del Blog",
     "socialPost": "Post Social",
     "emailNewsletter": "Newsletter Email",
     "description": "Descrizione",
-    "generating": "Generazione..."
+    "generating": "Generazione in corso...",
+    "generatePage": {
+      "title": "Genera Contenuti",
+      "description": "Crea contenuti per i social media dai tuoi libri analizzati",
+      "backToContent": "Torna ai Contenuti",
+      "generatingMessage": "Generazione contenuti in corso...",
+      "generatingSubtext": "Potrebbero servire 3-5 minuti. Attendere prego.",
+      "cancel": "Annulla",
+      "cancelled": "La generazione dei contenuti è stata annullata.",
+      "timeout": "La generazione dei contenuti è scaduta dopo 5 minuti. Riprova con meno piattaforme o tipi di contenuto.",
+      "failed": "Generazione fallita: {error}. Riprova con meno opzioni.",
+      "noBooksTitle": "Nessun libro pronto per la generazione di contenuti",
+      "noBooksDescription": "Carica e analizza prima i libri per generare contenuti per i social media.",
+      "uploadFirstBook": "Carica il Tuo Primo Libro",
+      "loadingBooks": "Caricamento libri...",
+      "failedToLoadBooks": "Impossibile caricare i libri",
+      "generateFromBook": "Genera Contenuti",
+      "uploaded": "Caricato",
+      "file": "File",
+      "size": "Dimensione",
+      "contentGeneration": "Generazione Contenuti",
+      "extractQuotes": "• Estrai citazioni e intuizioni chiave",
+      "generatePosts": "• Genera post specifici per piattaforma",
+      "createContent": "• Crea contenuti social coinvolgenti",
+      "schedulePublish": "• Programma e pubblica post"
+    }
   },
   "social": {
     "title": "Social Media",
     "schedule": "Programma Post",
-    "published": "Pubblicati",
+    "published": "Pubblicato",
     "draft": "Bozze",
-    "scheduled": "Programmati",
+    "scheduled": "Programmato",
     "platforms": {
       "facebook": "Facebook",
       "instagram": "Instagram",
@@ -209,13 +248,61 @@
     }
   },
   "analytics": {
-    "title": "Analytics",
+    "title": "Dashboard Analisi",
     "overview": "Panoramica",
     "performance": "Performance",
     "engagement": "Coinvolgimento",
     "reach": "Copertura",
-    "clicks": "Click",
-    "impressions": "Impressioni"
+    "clicks": "Clic",
+    "impressions": "Impressioni",
+    "updateAnalytics": "Aggiorna Analisi",
+    "updating": "Aggiornamento...",
+    "totalPosts": "Post Totali",
+    "totalEngagement": "Coinvolgimento Totale",
+    "avgEngagementRate": "Tasso Coinvolgimento Medio",
+    "bestPlatform": "Piattaforma Migliore",
+    "recentTrends": "Tendenze Recenti",
+    "engagementRate": "Tasso di Coinvolgimento",
+    "platformPerformance": "Performance Piattaforme",
+    "themeAnalysis": "Analisi Temi",
+    "optimalTimes": "Orari Ottimali",
+    "recentPosts": "Post Recenti",
+    "posts": "Post",
+    "totalImpressions": "Impressioni Totali",
+    "topPerformingPost": "Post con Migliori Performance",
+    "filters": "Filtri",
+    "clearFilters": "Cancella Filtri",
+    "searchPlaceholder": "Cerca post...",
+    "platform": "Piattaforma",
+    "allPlatforms": "Tutte le Piattaforme",
+    "book": "Libro",
+    "allBooks": "Tutti i Libri",
+    "sortBy": "Ordina per",
+    "publishedAt": "Pubblicato il",
+    "engagementRateSort": "Tasso di Coinvolgimento",
+    "likes": "Mi Piace",
+    "shares": "Condivisioni",
+    "comments": "Commenti",
+    "minEngagementRate": "Tasso Coinvolgimento Min (%)",
+    "maxEngagementRate": "Tasso Coinvolgimento Max (%)",
+    "startDate": "Data Inizio",
+    "endDate": "Data Fine",
+    "noPostsFound": "Nessun post trovato corrispondente ai criteri",
+    "adjustFilters": "Prova ad aggiustare i filtri o la query di ricerca.",
+    "noPlatformData": "Nessun dato piattaforma disponibile",
+    "noThemeData": "Nessun dato analisi temi disponibile",
+    "noOptimalTimes": "Nessun dato orari ottimali disponibile",
+    "bestTime": "Orario Migliore",
+    "averageEngagement": "Coinvolgimento Medio",
+    "postCount": "Numero Post",
+    "content": "Contenuto"
+  },
+  "breadcrumbs": {
+    "books": "Libri",
+    "upload": "Carica",
+    "bookDetails": "Dettagli Libro",
+    "content": "Contenuti",
+    "generate": "Genera"
   },
   "auth": {
     "signIn": "Accedi",
@@ -242,16 +329,88 @@
     "loading": "Caricamento...",
     "error": "Errore",
     "success": "Successo",
-    "warning": "Attenzione",
+    "warning": "Avviso",
     "info": "Informazione",
     "confirm": "Conferma",
     "yes": "Sì",
-    "no": "No"
+    "no": "No",
+    "retry": "Riprova",
+    "unauthorized": "Non autorizzato",
+    "booknotfound": "Libro non trovato",
+    "bookidisrequired": "ID libro richiesto",
+    "book": "Libro",
+    "aiserviceisnotconfigured": "Servizio AI non configurato",
+    "analysisstartedsuccessfully": "Analisi avviata con successo",
+    "analysiserror": "Errore di analisi",
+    "failedtostartanalysis": "Impossibile avviare l'analisi",
+    "operationcompletedsuccessfully": "Operazione completata con successo",
+    "operationfailed": "Operazione fallita",
+    "authenticationrequired": "Autenticazione Richiesta",
+    "accessdenied": "Accesso Negato",
+    "pleasewaitbeforetryingagain": "Attendi prima di riprovare",
+    "ratelimitexceeded": "Limite di Velocità Superato",
+    "thismightbeatemporaryissue": "Questo potrebbe essere un problema temporaneo",
+    "fileprocessingerror": "Errore di Elaborazione File",
+    "notfound": "Non Trovato",
+    "somethingwentwrong": "Qualcosa è andato storto",
+    "anunexpectederroroccurred": "Si è verificato un errore inaspettato",
+    "fileuploadedsuccessfully": "File caricato con successo",
+    "uploadfailed": "Caricamento fallito",
+    "analysiscompleted": "Analisi completata",
+    "analysisfailed": "Analisi fallita",
+    "partialsuccess": "Successo parziale",
+    "postscheduledsuccessfully": "Post programmato con successo",
+    "scheduledpostcancelled": "Post programmato annullato",
+    "postrescheduled": "Post riprogrammato",
+    "youcannowpublishcontenttothisaccount": "Ora puoi pubblicare contenuti su questo account",
+    "accounthasbeensafelyremoved": "Account rimosso in sicurezza",
+    "pleasereconnectyouraccounttocontinuepublishing": "Riconnetti il tuo account per continuare a pubblicare",
+    "contentgenerationpartiallycompleted": "Generazione contenuti completata parzialmente",
+    "contentgenerationfailed": "Generazione contenuti fallita",
+    "analyticsupdated": "Analytics aggiornate",
+    "allplatformdatarefreshed": "Tutti i dati delle piattaforme aggiornati",
+    "analyticsdatamaybeoutdated": "I dati analytics potrebbero essere obsoleti",
+    "datawillbeavailableoncepostsarepublished": "I dati saranno disponibili una volta pubblicati i post",
+    "bookuploadedsuccessfully": "Libro caricato con successo",
+    "bookdeleted": "Libro eliminato",
+    "analysisqueued": "Analisi in coda",
+    "justnow": "Ora",
+    "unknownauthor": "Autore Sconosciuto",
+    "twitter": "Twitter",
+    "failedtofetchdashboarddata": "Impossibile recuperare i dati della dashboard",
+    "errorfetchingdashboarddata": "Errore nel recupero dei dati della dashboard",
+    "failedtoloaddashboarddata": "Impossibile caricare i dati della dashboard",
+    "networkerror": "Errore di Rete",
+    "pleasetryagain": "Riprova",
+    "internalservererror": "Errore interno del server",
+    "failedtoretrievebooks": "Impossibile recuperare i libri",
+    "methodnotallowed": "Metodo non consentito",
+    "epub": "EPUB",
+    "docx": "DOCX",
+    "pdf": "PDF",
+    "txt": "TXT",
+    "fileupload": "Caricamento File",
+    "textextraction": "Estrazione Testo",
+    "savebookrecord": "Salva Record Libro",
+    "contentnotfound": "Contenuto non trovato",
+    "unknownerror": "Errore sconosciuto",
+    "post": "POST",
+    "contenttype": "Tipo di Contenuto",
+    "published": "PUBBLICATO",
+    "none": "NESSUNO",
+    "public": "PUBBLICO",
+    "processing": "Elaborazione",
+    "operation": "Operazione",
+    "item": "Elemento",
+    "unknownerroroccurred": "Si è verificato un errore sconosciuto",
+    "usernotauthenticated": "Utente non autenticato"
   },
   "settings": {
     "title": "Impostazioni",
     "profile": "Profilo",
     "account": "Account",
+    "billing": "Fatturazione",
+    "support": "Supporto",
     "notifications": "Notifiche",
     "privacy": "Privacy",
     "language": "Lingua",
@@ -272,21 +431,268 @@
     "required": "Campo obbligatorio",
     "invalid": "Formato non valido"
   },
+  "errors": {
+    "notFound": "Pagina non trovata",
+    "serverError": "Errore del server",
+    "unauthorized": "Non autorizzato",
+    "forbidden": "Accesso negato",
+    "badRequest": "Richiesta non valida",
+    "networkError": "Errore di rete",
+    "tryAgain": "Riprova più tardi",
+    "unableToLoadDashboard": "Impossibile caricare la dashboard",
+    "invalidqueryparameters": "Parametri di query non validi",
+    "failedtofetchanalyticsinsights": "Impossibile recuperare informazioni analytics",
+    "failedtofetchoptimalpostingtimes": "Impossibile recuperare orari ottimali di pubblicazione",
+    "failedtofetchplatformanalytics": "Impossibile recuperare analytics piattaforma",
+    "failedtofetchpostanalytics": "Impossibile recuperare analytics post",
+    "failedtofetchthemeanalytics": "Impossibile recuperare analytics temi",
+    "analyticsupdatedsuccessfully": "Analytics aggiornate con successo",
+    "failedtoupdateanalytics": "Impossibile aggiornare analytics",
+    "getbooksendpointerror": "Errore endpoint libri",
+    "fileformatvalidationfailed": "Validazione formato file fallita. Assicurati che il file non sia corrotto.",
+    "fileuploadtostoragefailed": "Caricamento file su storage fallito",
+    "fileuploadedsuccessfullyandtextextracted": "File caricato con successo e testo estratto",
+    "fileuploadedsuccessfullybuttextextractionfailed": "File caricato con successo, ma estrazione testo fallita. Puoi riprovare l'analisi più tardi.",
+    "textextractionfailedbutfilewasuploadedsuccessfully": "Estrazione testo fallita ma file caricato con successo",
+    "uploaderror": "Errore caricamento",
+    "failedtouploadfile": "Impossibile caricare file",
+    "getanalysisendpointerror": "Errore endpoint analisi",
+    "failedtoretrievebookanalysis": "Impossibile recuperare analisi libro",
+    "bookhasnotextcontenttoanalyzepleasereuploadthefileortrytextextractionagain": "Il libro non ha contenuto testuale da analizzare. Ricarica il file o riprova l'estrazione del testo.",
+    "backgroundanalysisfailed": "Analisi in background fallita",
+    "analysisprocessingerror": "Errore elaborazione analisi",
+    "aianalysis": "Analisi AI",
+    "unknownanalysiserror": "Errore analisi sconosciuto",
+    "structuredanalysiserror": "Errore analisi strutturata",
+    "failedtoupdatebookstatustofailed": "Impossibile aggiornare stato libro a fallito"
+  },
+  "toast": {
+    "uploadingfile": "Caricamento file...",
+    "analyzingbook": "Analisi libro...",
+    "publishingto": "Pubblicazione su account...",
+    "accountconnected": "Account collegato",
+    "accountdisconnected": "Account scollegato",
+    "accounterror": "Errore account",
+    "generatingcontent": "Generazione contenuto...",
+    "contentgenerated": "Contenuto generato con successo",
+    "itemsgenerated": "elementi creati",
+    "partialgeneration": "Alcuni elementi non sono stati generati",
+    "analyticsmaybeoutdated": "Le analisi potrebbero essere non aggiornate",
+    "noanalyticsdata": "Nessun dato di analisi disponibile",
+    "success": {
+      "errorReportCopied": "Report errore copiato negli appunti"
+    },
+    "error": {
+      "somethingWentWrong": "Qualcosa è andato storto",
+      "maxRetriesReached": "Numero massimo di tentativi raggiunto",
+      "failedToCopyError": "Impossibile copiare il report errore"
+    },
+    "info": {
+      "retrying": "Riprovando..."
+    }
+  },
+  "errorBoundary": {
+    "title": "Qualcosa è andato storto",
+    "defaultMessage": "L'applicazione ha riscontrato un errore imprevisto",
+    "retryButton": "Riprova",
+    "refreshButton": "Aggiorna Pagina",
+    "goBackButton": "Torna Indietro",
+    "goHomeButton": "Vai alla Home",
+    "copyErrorButton": "Copia Report Errore",
+    "errorId": "ID Errore:",
+    "message": "Messaggio:",
+    "type": "Tipo:",
+    "retryable": "Riprovabile:",
+    "context": "Contesto:",
+    "yes": "Sì",
+    "no": "No",
+    "supportMessage": "Se questo problema persiste, contatta il supporto con l'ID errore:",
+    "retryDescription": "rimasti",
+    "supportDescription": "Ora puoi incollare questo in un ticket di supporto",
+    "maxRetryDescription": "Si prega di aggiornare la pagina o contattare il supporto"
+  },
+  "errorReporting": {
+    "title": "Segnala Errore",
+    "description": "Aiutaci a migliorare l'applicazione segnalando questo errore. Il tuo feedback è prezioso.",
+    "submitSuccessTitle": "Segnalazione Inviata con Successo",
+    "submitSuccessDescription": "Grazie per il tuo feedback. Indagheremo su questo problema.",
+    "userDescriptionLabel": "Cosa stavi cercando di fare quando si è verificato questo errore?",
+    "userDescriptionPlaceholder": "Per favore descrivi cosa stavi facendo, cosa ti aspettavi che accadesse, e cosa è successo invece...",
+    "emailLabel": "Email (opzionale)",
+    "emailPlaceholder": "tua.email@esempio.com",
+    "emailHint": "Potremmo contattarti per informazioni aggiuntive su questo errore",
+    "technicalDetails": "Dettagli Tecnici",
+    "copyDetailsButton": "Copia Dettagli",
+    "submitButton": "Invia Segnalazione",
+    "submittingButton": "Invio in corso...",
+    "reportErrorButton": "Segnala Errore",
+    "errorId": "ID Errore:",
+    "time": "Ora:",
+    "context": "Contesto:",
+    "retryable": "Riprovabile:",
+    "yes": "Sì",
+    "no": "No",
+    "errorType": "Errore",
+    "submitSuccess": "Segnalazione errore inviata",
+    "submitSuccessDesc": "Grazie per averci aiutato a migliorare l'applicazione",
+    "copySuccess": "Dettagli errore copiati negli appunti",
+    "copyError": "Impossibile copiare i dettagli dell'errore",
+    "submitError": "Impossibile inviare la segnalazione errore"
+  },
+  "errorDashboard": {
+    "title": "Dashboard Monitoraggio Errori",
+    "subtitle": "Stato di salute del sistema e tracciamento errori per",
+    "loading": "Caricamento statistiche errori...",
+    "failed": "Impossibile caricare le statistiche errori. Riprova.",
+    "systemHealth": "Stato Sistema",
+    "totalErrors": "Errori Totali",
+    "criticalErrors": "Errori Critici",
+    "autoRefresh": "Aggiornamento Automatico",
+    "refresh": "Aggiorna",
+    "lastHour": "Ultima Ora",
+    "last24Hours": "Ultime 24 Ore",
+    "last7Days": "Ultimi 7 Giorni",
+    "overallHealthScore": "Punteggio generale di salute del sistema",
+    "errorsPerHour": "errori/ora",
+    "cleared": "Statistiche errori cancellate"
+  },
   "payments": {
     "subscription": "Abbonamento",
     "billing": "Fatturazione",
     "plan": "Piano",
     "upgrade": "Aggiorna",
-    "downgrade": "Downgrade",
+    "downgrade": "Riduci",
     "free": "Gratuito",
     "pro": "Pro",
     "enterprise": "Enterprise",
     "monthly": "Mensile",
     "yearly": "Annuale",
-    "cancel": "Cancella Abbonamento"
+    "cancel": "Annulla Abbonamento"
   },
-  "errors": {
-    "notFound": "Non trovato",
-    "tryAgain": "Riprova"
+  "marketing": {
+    "hero": {
+      "badge": "100% Gratuito e Open Source",
+      "title": "Il #1 Template",
+      "titleHighlight": "Full Stack",
+      "subtitle": "Tutto quello che ti serve per lanciare la tua prossima grande idea con autenticazione, pagamenti, database e altro - inizia a costruire oggi.",
+      "ctaPrimary": "Inizia a Costruire",
+      "ctaSecondary": "Stella su GitHub",
+      "trustIndicators": {
+        "modernTech": "Stack Tecnologico Moderno",
+        "productionReady": "Pronto per Produzione",
+        "continuousUpdates": "Aggiornamenti Continui"
+      }
+    },
+    "features": {
+      "badge": "Tutto Incluso",
+      "title": "Inizia con una base completa",
+      "subtitle": "Niente più mal di testa di setup. Clona il repo e inizia subito a costruire il tuo prodotto.",
+      "auth": {
+        "title": "Autenticazione Pronta",
+        "description": "Autenticazione Clerk preconfigurata con route protette, gestione utenti e gestione sessioni."
+      },
+      "payments": {
+        "title": "Integrazione Pagamenti",
+        "description": "Integrazione Stripe con supporto webhook, gestione abbonamenti e flussi checkout."
+      },
+      "database": {
+        "title": "Setup Database",
+        "description": "PostgreSQL con Drizzle ORM configurato e pronto. Include migrazioni e query type-safe."
+      },
+      "ui": {
+        "title": "Componenti UI Moderni",
+        "description": "Componenti belli e accessibili con shadcn/ui. Supporto modalità scura e Tailwind CSS v4."
+      },
+      "typescript": {
+        "title": "TypeScript First",
+        "description": "Supporto completo TypeScript con modalità strict, alias path e type safety ovunque."
+      },
+      "analytics": {
+        "title": "Analytics Integrati",
+        "description": "Integrazione analytics PostHog per tracciare comportamento utenti e metriche prodotto."
+      }
+    },
+    "navigation": {
+      "about": "Chi Siamo",
+      "features": "Funzionalità", 
+      "pricing": "Prezzi",
+      "contact": "Contatti"
+    },
+    "cta": {
+      "title": "Pronto a costruire qualcosa di incredibile?",
+      "subtitle": "Smetti di sprecare tempo su boilerplate. Clona questo template e inizia a spedire il tuo prodotto oggi.",
+      "cloneTemplate": "Clona Template",
+      "getStarted": "Inizia"
+    },
+    "companies": {
+      "title": "Costruito con tecnologia moderna",
+      "subtitle": "Di fiducia degli sviluppatori di tutto il mondo",
+      "stats": {
+        "githubStars": "Stelle GitHub",
+        "activeProjects": "Progetti Attivi", 
+        "contributors": "Contributori"
+      }
+    },
+    "faq": {
+      "title": "Domande Frequenti",
+      "subtitle": "Tutto quello che devi sapere sul template",
+      "questions": {
+        "whatIsThis": {
+          "question": "Cos'è questo template?",
+          "answer": "Un template completo di applicazione full-stack costruito con Next.js, TypeScript e strumenti moderni per aiutarti a spedire più velocemente."
+        },
+        "howToStart": {
+          "question": "Come iniziare?",
+          "answer": "Clona il repository, installa le dipendenze, configura le tue variabili d'ambiente e inizia a costruire."
+        },
+        "isItFree": {
+          "question": "È gratuito da usare?",
+          "answer": "Sì, questo template è completamente gratuito e open source sotto licenza MIT."
+        },
+        "supportIncluded": {
+          "question": "Il supporto è incluso?",
+          "answer": "Il supporto della community è disponibile attraverso GitHub issues e discussioni."
+        }
+      }
+    },
+    "pricing": {
+      "title": "Prezzi semplici e trasparenti",
+      "subtitle": "Scegli il piano giusto per te",
+      "free": {
+        "title": "Gratuito",
+        "price": "€0",
+        "period": "per sempre",
+        "description": "Perfetto per iniziare",
+        "features": [
+          "Codice sorgente completo",
+          "Autenticazione di base",
+          "Setup database",
+          "Supporto community"
+        ],
+        "cta": "Inizia"
+      },
+      "pro": {
+        "title": "Pro",
+        "price": "€99",
+        "period": "una tantum",
+        "description": "Tutto quello che ti serve per costruire",
+        "features": [
+          "Tutto del Gratuito",
+          "Componenti premium",
+          "Funzionalità avanzate",
+          "Supporto prioritario"
+        ],
+        "cta": "Aggiorna a Pro"
+      }
+    },
+    "socialProof": {
+      "title": "Di fiducia degli sviluppatori",
+      "subtitle": "Unisciti a migliaia di sviluppatori che hanno costruito prodotti incredibili con questo template"
+    },
+    "video": {
+      "title": "Guardalo in azione",
+      "subtitle": "Guarda quanto è facile iniziare con questo template",
+      "playButton": "Riproduci Video"
+    }
   }
 }

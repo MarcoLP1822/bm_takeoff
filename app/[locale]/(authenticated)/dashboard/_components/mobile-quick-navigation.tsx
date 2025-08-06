@@ -4,7 +4,7 @@
  */
 "use client"
 
-import Link from "next/link"
+import { Link } from "@/lib/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { BookOpen, Edit3, BarChart3, Settings } from "lucide-react"

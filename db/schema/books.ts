@@ -29,6 +29,7 @@ export const books = pgTable("books", {
     .default("pending")
     .notNull(),
   analysisData: json("analysis_data"),
+  analysisProgress: json("analysis_progress").default('{}'),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
 })

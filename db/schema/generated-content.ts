@@ -1,4 +1,4 @@
-import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import { json, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
 import { books } from "./books"
 
 export const platform = pgEnum("platform", [
@@ -30,6 +30,10 @@ export const generatedContent = pgTable("generated_content", {
   scheduledAt: timestamp("scheduled_at"),
   publishedAt: timestamp("published_at"),
   socialPostId: text("social_post_id"), // ID from the social media platform after publishing
+  sourceType: text("source_type"), // 'theme', 'quote', 'insight', 'manual'
+  sourceContent: text("source_content"), // Original content that inspired this generation
+  variationGroupId: uuid("variation_group_id"), // Group related variations together
+  generationContext: json("generation_context"), // Additional context for regeneration
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
 })

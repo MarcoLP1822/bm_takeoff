@@ -62,6 +62,7 @@ export interface GeneratedPost {
   characterCount: number
   isValid: boolean
   validationErrors: string[]
+  engagementPotential?: number
 }
 
 interface ContentEditorProps {

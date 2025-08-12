@@ -25,6 +25,7 @@ import PerformanceOverview from "./performance-overview"
 import QuickActions from "./quick-actions"
 import NotificationsPanel from "./notifications-panel"
 import MobileQuickNavigation from "./mobile-quick-navigation"
+import WelcomeWizard from "@/components/utility/welcome-wizard"
 
 interface DashboardTranslations {
   title: string
@@ -84,9 +85,13 @@ interface DashboardTranslations {
 
 interface DashboardOverviewProps {
   translations: DashboardTranslations
+  onboardingCompleted?: boolean
 }
 
-export default function DashboardOverview({ translations }: DashboardOverviewProps) {
+export default function DashboardOverview({ 
+  translations, 
+  onboardingCompleted = true 
+}: DashboardOverviewProps) {
   const {
     // Data state
     stats,
@@ -105,6 +110,14 @@ export default function DashboardOverview({ translations }: DashboardOverviewPro
     simulateLongRunningOperation,
     formatTimeAgo
   } = useDashboardState()
+
+  // Se onboarding non completato, mostra wizard
+  if (!onboardingCompleted) {
+    return <WelcomeWizard translations={{
+      title: translations.title,
+      welcome: translations.welcome
+    }} />
+  }
 
   // Error state - if data fails to load completely
   if (error && !stats) {

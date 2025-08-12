@@ -229,7 +229,7 @@ export async function analyzeBookContent(
 /**
  * Identify main themes and topics in the book
  */
-async function identifyThemes(
+export async function identifyThemes(
   chunks: string[],
   bookTitle: string,
   locale: string = 'en',
@@ -269,7 +269,7 @@ Example format: ["Theme 1", "Theme 2", "Theme 3"]`
 /**
  * Extract memorable quotes and passages from the book
  */
-async function extractQuotes(
+export async function extractQuotes(
   chunks: string[],
   locale: string = 'en',
   maxRetries: number = 3
@@ -308,7 +308,7 @@ Example format: ["Quote 1", "Quote 2", "Quote 3"]`
 /**
  * Extract key insights and takeaways from the book
  */
-async function extractKeyInsights(
+export async function extractKeyInsights(
   chunks: string[],
   bookTitle: string,
   locale: string = 'en',
@@ -436,7 +436,7 @@ function parseAIResponseAs<T>(content: string): T {
 /**
  * Generate an overall summary of the book
  */
-async function generateOverallSummary(
+export async function generateOverallSummary(
   chunks: string[],
   bookTitle: string,
   locale: string = 'en',
@@ -483,7 +483,7 @@ Write in a clear, engaging style suitable for book descriptions or social media 
 /**
  * Identify the book's genre and target audience
  */
-async function identifyGenreAndAudience(
+export async function identifyGenreAndAudience(
   chunks: string[],
   bookTitle: string,
   locale: string = 'en',
@@ -526,7 +526,7 @@ Fields needed:
 /**
  * Identify controversial or discussion-worthy points
  */
-async function identifyDiscussionPoints(
+export async function identifyDiscussionPoints(
   chunks: string[],
   bookTitle: string,
   locale: string = 'en',
@@ -569,7 +569,7 @@ Example format: ["Discussion point 1", "Discussion point 2", "Discussion point 3
 /**
  * Generate chapter summaries for the book
  */
-async function generateChapterSummaries(
+export async function generateChapterSummaries(
   textContent: string,
   locale: string = 'en',
   maxRetries: number = 3

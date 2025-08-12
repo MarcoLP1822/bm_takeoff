@@ -106,3 +106,34 @@ export async function updateCustomerByStripeCustomerId(
     return { isSuccess: false }
   }
 }
+
+export async function completeOnboarding(
+  userId: string
+): Promise<{ isSuccess: boolean; data?: SelectCustomer }> {
+  try {
+    const customer = await getCustomerByUserId(userId)
+    
+    if (!customer) {
+      return { isSuccess: false }
+    }
+
+    // Solo se onboarding non è già completato
+    if (!customer.onboardingCompleted) {
+      const [updatedCustomer] = await db
+        .update(customers)
+        .set({ 
+          onboardingCompleted: true,
+          updatedAt: new Date()
+        })
+        .where(eq(customers.userId, userId))
+        .returning()
+
+      return { isSuccess: true, data: updatedCustomer }
+    }
+
+    return { isSuccess: true, data: customer }
+  } catch (error) {
+    console.error("Error completing onboarding:", error)
+    return { isSuccess: false }
+  }
+}

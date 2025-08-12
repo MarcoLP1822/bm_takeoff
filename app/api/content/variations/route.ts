@@ -62,21 +62,22 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .offset(offset)
 
-    // Group content by variation (assuming we group by theme and source content)
+    // Group content by variation using variationGroupId or fall back to individual content
     const variationsMap = new Map()
 
     contentWithBooks.forEach(({ content, book }) => {
-      // Create a variation key based on book, theme, and source content
-      // For now, we'll use content ID as variation ID since we don't have explicit variations
-      const variationKey = content.id
+      // Use variationGroupId if available, otherwise use individual content ID
+      const variationKey = content.variationGroupId || content.id
 
       if (!variationsMap.has(variationKey)) {
         variationsMap.set(variationKey, {
           id: variationKey,
           posts: [],
-          theme: extractThemeFromContent(content.content), // Helper function to extract theme
-          sourceType: "quote" as const, // Default to quote for now
-          sourceContent: content.content.substring(0, 200) + "...", // Truncated content as source
+          theme: content.sourceType === 'theme' 
+            ? content.sourceContent || extractThemeFromContent(content.content)
+            : extractThemeFromContent(content.content),
+          sourceType: content.sourceType || "quote" as const,
+          sourceContent: content.sourceContent || (content.content.substring(0, 200) + "..."),
           bookId: book.id,
           bookTitle: book.title,
           author: book.author,

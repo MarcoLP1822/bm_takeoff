@@ -49,7 +49,8 @@ export default async function DashboardLayout({ children, params }: Props) {
           : user.firstName || user.username || "User",
       email: user.emailAddresses[0]?.emailAddress || "",
       avatar: user.imageUrl,
-      membership: finalCustomer.membership
+      membership: finalCustomer.membership,
+      onboardingCompleted: finalCustomer.onboardingCompleted
     }
 
     return (

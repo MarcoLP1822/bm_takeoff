@@ -74,3 +74,17 @@ docs/archive/
 audit-hardcoded-strings-report.json
 task-*-validation-report.json
 translation-completeness-report.json
+
+# IDE and editor files
+*.swp
+*.swo
+*~
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Backup files
+*.backup
+*.bak.json

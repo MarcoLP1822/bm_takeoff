@@ -1,4 +1,4 @@
-import { Platform, PLATFORM_CONFIGS, GeneratedPost } from "./content-generation"
+import { Platform, PLATFORM_CONFIGS, GeneratedPost } from "./content-types"
 
 /**
  * Optimize content for better engagement
@@ -232,4 +232,137 @@ export function generateContentPreview(post: GeneratedPost): {
     displayLength: fullContent.length,
     truncated
   }
+}
+
+/**
+ * Engagement factors for content analysis
+ */
+export interface EngagementFactors {
+  hasQuestion: boolean
+  hasCallToAction: boolean
+  hasEmojis: boolean
+  optimalLength: boolean
+  hashtagQuality: number
+  readabilityScore: number
+}
+
+/**
+ * Calculate engagement potential score (1-5 stars)
+ */
+export function calculateEngagementPotential(post: GeneratedPost): number {
+  const factors = analyzeEngagementFactors(post)
+  
+  let score = 1 // Score base
+  
+  // Fattori positivi
+  if (factors.hasQuestion) score += 0.8
+  if (factors.hasCallToAction) score += 0.6
+  if (factors.hasEmojis) score += 0.4
+  if (factors.optimalLength) score += 0.7
+  
+  // Qualità hashtag (0-1)
+  score += factors.hashtagQuality * 0.5
+  
+  // Leggibilità (0-1)
+  score += factors.readabilityScore * 0.4
+  
+  // Normalizzare a scala 1-5
+  return Math.min(5, Math.max(1, Math.round(score)))
+}
+
+/**
+ * Analyze engagement factors of a post
+ */
+function analyzeEngagementFactors(post: GeneratedPost): EngagementFactors {
+  const content = post.content.toLowerCase()
+  
+  return {
+    hasQuestion: /[?]/.test(content),
+    hasCallToAction: /\b(commenta|condividi|segui|clicca|scopri|leggi|acquista|scarica)\b/.test(content),
+    hasEmojis: /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}]/u.test(post.content),
+    optimalLength: isOptimalLength(post.content.length, post.platform),
+    hashtagQuality: calculateHashtagQuality(post.hashtags),
+    readabilityScore: calculateReadabilityScore(content)
+  }
+}
+
+/**
+ * Check if content length is optimal for platform
+ */
+function isOptimalLength(length: number, platform: Platform): boolean {
+  const optimal = {
+    twitter: { min: 120, max: 250 },
+    instagram: { min: 150, max: 500 },
+    linkedin: { min: 200, max: 1000 },
+    facebook: { min: 100, max: 400 }
+  }
+  
+  const range = optimal[platform]
+  return length >= range.min && length <= range.max
+}
+
+/**
+ * Calculate hashtag quality score (0-1)
+ */
+function calculateHashtagQuality(hashtags: string[]): number {
+  if (hashtags.length === 0) return 0
+  
+  let qualityScore = 0
+  
+  // Penalizzare hashtag troppo generici
+  const generic = ['#book', '#reading', '#author', '#books', '#read']
+  const specificCount = hashtags.filter(tag => 
+    !generic.includes(tag.toLowerCase())
+  ).length
+  
+  qualityScore = specificCount / hashtags.length
+  
+  // Bonus per lunghezza ottimale
+  if (hashtags.length >= 3 && hashtags.length <= 8) {
+    qualityScore += 0.2
+  }
+  
+  return Math.min(1, qualityScore)
+}
+
+/**
+ * Calculate readability score (0-1)
+ */
+function calculateReadabilityScore(content: string): number {
+  // Semplice metrica di leggibilità
+  const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 0).length
+  const words = content.split(/\s+/).filter(w => w.length > 0).length
+  
+  if (sentences === 0) return 0
+  
+  const avgWordsPerSentence = words / sentences
+  
+  // Ottimale: 10-15 parole per frase
+  if (avgWordsPerSentence >= 10 && avgWordsPerSentence <= 15) {
+    return 1
+  } else if (avgWordsPerSentence >= 8 && avgWordsPerSentence <= 18) {
+    return 0.7
+  } else {
+    return 0.4
+  }
+}
+
+/**
+ * Get human-readable explanation of engagement score
+ */
+export function getEngagementExplanation(post: GeneratedPost): string {
+  const factors = analyzeEngagementFactors(post)
+  const explanations = []
+  
+  if (factors.hasQuestion) explanations.push("Include una domanda per stimolare l'interazione")
+  if (factors.hasCallToAction) explanations.push("Ha una chiara chiamata all'azione")
+  if (factors.hasEmojis) explanations.push("Uso appropriato di emoji")
+  if (factors.optimalLength) explanations.push("Lunghezza ottimale per la piattaforma")
+  if (factors.hashtagQuality > 0.7) explanations.push("Hashtag specifici e rilevanti")
+  
+  if (explanations.length === 0) {
+    return "Può essere migliorato aggiungendo domande, call-to-action o emoji"
+  }
+  
+  return explanations.join(" • ")
 }

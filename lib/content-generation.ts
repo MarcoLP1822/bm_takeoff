@@ -6,13 +6,55 @@ import {
   getCachedGeneratedContent,
   cacheGeneratedContent
 } from "./cache-service"
+import { calculateEngagementPotential } from "./content-optimization"
+import {
+  Platform,
+  PLATFORM_CONFIGS,
+  GeneratedPost,
+  ContentVariation,
+  ContentGenerationOptions,
+  GenerationProgress,
+  ContentGenerationResult,
+  ImageSuggestion
+} from "./content-types"
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "test-key",
-  dangerouslyAllowBrowser: process.env.NODE_ENV === "test",
-  timeout: 120000 // 120 seconds timeout
-})
+// Re-export types for server-side use
+export type {
+  Platform,
+  GeneratedPost,
+  ContentVariation,
+  ContentGenerationOptions,
+  GenerationProgress,
+  ContentGenerationResult,
+  ImageSuggestion
+}
+export { PLATFORM_CONFIGS }
+
+// Check if we're in a browser environment
+const isBrowser = typeof window !== "undefined"
+
+// Initialize OpenAI client only on server-side
+const openai = isBrowser 
+  ? null 
+  : new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || "test-key",
+      timeout: 120000 // 120 seconds timeout
+    })
+
+// Helper function to ensure server-side execution
+function ensureServerSide(functionName: string) {
+  if (isBrowser) {
+    throw new Error(
+      `${functionName} should not be called on the client-side. ` +
+      `Use the API routes in /api/content/ instead. ` +
+      `This protects your OpenAI API keys from being exposed to clients.`
+    )
+  }
+  if (!openai) {
+    throw new Error(`OpenAI client not initialized for ${functionName}`)
+  }
+  return openai
+}
 
 /**
  * Helper function to generate locale instruction for AI prompts
@@ -29,63 +71,6 @@ function getLocaleInstruction(locale: string): string {
   
   const language = languageMap[locale] || locale
   return `**Provide the response in ${language} language.**`
-}
-
-// Platform-specific configuration
-export const PLATFORM_CONFIGS = {
-  twitter: {
-    maxLength: 280,
-    hashtagLimit: 5,
-    imageSupported: true,
-    name: "Twitter/X"
-  },
-  instagram: {
-    maxLength: 2200,
-    hashtagLimit: 30,
-    imageSupported: true,
-    name: "Instagram"
-  },
-  linkedin: {
-    maxLength: 3000,
-    hashtagLimit: 10,
-    imageSupported: true,
-    name: "LinkedIn"
-  },
-  facebook: {
-    maxLength: 63206,
-    hashtagLimit: 10,
-    imageSupported: true,
-    name: "Facebook"
-  }
-} as const
-
-export type Platform = keyof typeof PLATFORM_CONFIGS
-
-export interface GeneratedPost {
-  platform: Platform
-  content: string
-  hashtags: string[]
-  imageUrl?: string
-  characterCount: number
-  isValid: boolean
-  validationErrors: string[]
-}
-
-export interface ContentVariation {
-  id: string
-  posts: GeneratedPost[]
-  theme: string
-  sourceType: "quote" | "insight" | "theme" | "summary" | "discussion"
-  sourceContent: string
-}
-
-export interface ContentGenerationOptions {
-  platforms?: Platform[]
-  variationsPerTheme?: number
-  includeImages?: boolean
-  tone?: "professional" | "casual" | "inspirational" | "educational"
-  maxRetries?: number
-  locale?: string
 }
 
 /**
@@ -259,11 +244,14 @@ export function generateImageSuggestion(
   bookTitle: string,
   bookAnalysis?: BookAnalysisResult
 ): string {
+  // Provide default if sourceType is undefined
+  const safeSourceType = sourceType || "summary"
+  
   if (bookAnalysis) {
     const suggestions = ImageSuggestionEngine.generateImageSuggestions(
       content,
       platform,
-      sourceType,
+      safeSourceType,
       bookTitle,
       bookAnalysis.genre,
       bookAnalysis.themes
@@ -283,7 +271,7 @@ export function generateImageSuggestion(
     discussion: "conversation-bubble"
   }
 
-  return `/api/images/generate?type=${imageTypes[sourceType]}&content=${encodeURIComponent(content.slice(0, 100))}`
+  return `/api/images/generate?type=${imageTypes[safeSourceType]}&content=${encodeURIComponent(content.slice(0, 100))}`
 }
 
 /**
@@ -324,7 +312,8 @@ Requirements:
 
 Format: Just return the post content, no quotes or extra formatting.`
 
-        const response = await openai.chat.completions.create({
+        const client = ensureServerSide('generateQuotePosts')
+        const response = await client.chat.completions.create({
           model: "gpt-4",
           messages: [{ role: "user", content: prompt }],
           max_tokens: 200,
@@ -343,14 +332,19 @@ Format: Just return the post content, no quotes or extra formatting.`
         )
         const validation = validatePost(content, hashtags, platform)
 
-        posts.push({
+        const post: GeneratedPost = {
           platform,
           content,
           hashtags,
           characterCount: validation.characterCount,
           isValid: validation.isValid,
           validationErrors: validation.errors
-        })
+        }
+        
+        // Calculate engagement potential
+        post.engagementPotential = calculateEngagementPotential(post)
+        
+        posts.push(post)
       } catch (error) {
         console.error(`Failed to generate ${platform} quote content:`, error)
         // Create fallback content
@@ -366,14 +360,19 @@ Format: Just return the post content, no quotes or extra formatting.`
         )
         const validation = validatePost(fallbackContent, hashtags, platform)
 
-        posts.push({
+        const post: GeneratedPost = {
           platform,
           content: fallbackContent,
           hashtags,
           characterCount: validation.characterCount,
           isValid: validation.isValid,
           validationErrors: validation.errors
-        })
+        }
+        
+        // Calculate engagement potential
+        post.engagementPotential = calculateEngagementPotential(post)
+        
+        posts.push(post)
       }
     }
 
@@ -427,7 +426,8 @@ Requirements:
 
 Format: Just return the post content, no quotes or extra formatting.`
 
-        const response = await openai.chat.completions.create({
+        const client = ensureServerSide('generateInsightPosts')
+        const response = await client.chat.completions.create({
           model: "gpt-4",
           messages: [{ role: "user", content: prompt }],
           max_tokens: 250,
@@ -446,14 +446,19 @@ Format: Just return the post content, no quotes or extra formatting.`
         )
         const validation = validatePost(content, hashtags, platform)
 
-        posts.push({
+        const post: GeneratedPost = {
           platform,
           content,
           hashtags,
           characterCount: validation.characterCount,
           isValid: validation.isValid,
           validationErrors: validation.errors
-        })
+        }
+        
+        // Calculate engagement potential
+        post.engagementPotential = calculateEngagementPotential(post)
+        
+        posts.push(post)
       } catch (error) {
         console.error(`Failed to generate ${platform} insight content:`, error)
         // Create fallback content
@@ -469,14 +474,19 @@ Format: Just return the post content, no quotes or extra formatting.`
         )
         const validation = validatePost(fallbackContent, hashtags, platform)
 
-        posts.push({
+        const post: GeneratedPost = {
           platform,
           content: fallbackContent,
           hashtags,
           characterCount: validation.characterCount,
           isValid: validation.isValid,
           validationErrors: validation.errors
-        })
+        }
+        
+        // Calculate engagement potential
+        post.engagementPotential = calculateEngagementPotential(post)
+        
+        posts.push(post)
       }
     }
 
@@ -528,7 +538,8 @@ Requirements:
 
 Format: Just return the post content, no quotes or extra formatting.`
 
-        const response = await openai.chat.completions.create({
+        const client = ensureServerSide('generateThemePosts')
+        const response = await client.chat.completions.create({
           model: "gpt-4",
           messages: [{ role: "user", content: prompt }],
           max_tokens: 250,
@@ -547,14 +558,19 @@ Format: Just return the post content, no quotes or extra formatting.`
         )
         const validation = validatePost(content, hashtags, platform)
 
-        posts.push({
+        const post: GeneratedPost = {
           platform,
           content,
           hashtags,
           characterCount: validation.characterCount,
           isValid: validation.isValid,
           validationErrors: validation.errors
-        })
+        }
+        
+        // Calculate engagement potential
+        post.engagementPotential = calculateEngagementPotential(post)
+        
+        posts.push(post)
       } catch (error) {
         console.error(`Failed to generate ${platform} theme content:`, error)
         // Create fallback content
@@ -570,14 +586,19 @@ Format: Just return the post content, no quotes or extra formatting.`
         )
         const validation = validatePost(fallbackContent, hashtags, platform)
 
-        posts.push({
+        const post: GeneratedPost = {
           platform,
           content: fallbackContent,
           hashtags,
           characterCount: validation.characterCount,
           isValid: validation.isValid,
           validationErrors: validation.errors
-        })
+        }
+        
+        // Calculate engagement potential
+        post.engagementPotential = calculateEngagementPotential(post)
+        
+        posts.push(post)
       }
     }
 
@@ -631,7 +652,8 @@ Requirements:
 
 Format: Just return the post content, no quotes or extra formatting.`
 
-        const response = await openai.chat.completions.create({
+        const client = ensureServerSide('generateSummaryPosts')
+        const response = await client.chat.completions.create({
           model: "gpt-4",
           messages: [{ role: "user", content: prompt }],
           max_tokens: 300,
@@ -650,14 +672,19 @@ Format: Just return the post content, no quotes or extra formatting.`
         )
         const validation = validatePost(content, hashtags, platform)
 
-        posts.push({
+        const post: GeneratedPost = {
           platform,
           content,
           hashtags,
           characterCount: validation.characterCount,
           isValid: validation.isValid,
           validationErrors: validation.errors
-        })
+        }
+        
+        // Calculate engagement potential
+        post.engagementPotential = calculateEngagementPotential(post)
+        
+        posts.push(post)
       } catch (error) {
         console.error(`Failed to generate ${platform} summary content:`, error)
         // Create fallback content
@@ -673,14 +700,19 @@ Format: Just return the post content, no quotes or extra formatting.`
         )
         const validation = validatePost(fallbackContent, hashtags, platform)
 
-        posts.push({
+        const post: GeneratedPost = {
           platform,
           content: fallbackContent,
           hashtags,
           characterCount: validation.characterCount,
           isValid: validation.isValid,
           validationErrors: validation.errors
-        })
+        }
+        
+        // Calculate engagement potential
+        post.engagementPotential = calculateEngagementPotential(post)
+        
+        posts.push(post)
       }
     }
 
@@ -734,7 +766,8 @@ Requirements:
 
 Format: Just return the post content, no quotes or extra formatting.`
 
-        const response = await openai.chat.completions.create({
+        const client = ensureServerSide('generateDiscussionPosts')
+        const response = await client.chat.completions.create({
           model: "gpt-4",
           messages: [{ role: "user", content: prompt }],
           max_tokens: 250,
@@ -753,14 +786,19 @@ Format: Just return the post content, no quotes or extra formatting.`
         )
         const validation = validatePost(content, hashtags, platform)
 
-        posts.push({
+        const post: GeneratedPost = {
           platform,
           content,
           hashtags,
           characterCount: validation.characterCount,
           isValid: validation.isValid,
           validationErrors: validation.errors
-        })
+        }
+        
+        // Calculate engagement potential
+        post.engagementPotential = calculateEngagementPotential(post)
+        
+        posts.push(post)
       } catch (error) {
         console.error(
           `Failed to generate ${platform} discussion content:`,
@@ -779,14 +817,19 @@ Format: Just return the post content, no quotes or extra formatting.`
         )
         const validation = validatePost(fallbackContent, hashtags, platform)
 
-        posts.push({
+        const post: GeneratedPost = {
           platform,
           content: fallbackContent,
           hashtags,
           characterCount: validation.characterCount,
           isValid: validation.isValid,
           validationErrors: validation.errors
-        })
+        }
+        
+        // Calculate engagement potential
+        post.engagementPotential = calculateEngagementPotential(post)
+        
+        posts.push(post)
       }
     }
 
@@ -805,6 +848,122 @@ Format: Just return the post content, no quotes or extra formatting.`
 /**
  * Main function to generate social media content from book analysis
  */
+/**
+ * Generate targeted content from a specific source (theme, quote, or insight)
+ * This function enables the Content Workshop "interactive laboratory" experience
+ */
+export async function generatePlatformContent(
+  sourceType: 'theme' | 'quote' | 'insight',
+  sourceContent: string,
+  platform: Platform,
+  bookContext: BookAnalysisResult,
+  bookTitle: string,
+  author?: string,
+  options: {
+    variationsCount?: number,
+    tone?: "professional" | "casual" | "inspirational" | "educational",
+    includeImages?: boolean,
+    locale?: string,
+    maxRetries?: number
+  } = {}
+): Promise<ContentVariation[]> {
+  const {
+    variationsCount = 3, // Generate multiple variations for "Generate More" functionality
+    tone = "professional",
+    includeImages = true,
+    locale = 'en',
+    maxRetries = 2
+  } = options
+
+  try {
+    console.log(`Generating ${variationsCount} variations for ${sourceType}: ${sourceContent.substring(0, 50)}...`)
+
+    const variations: ContentVariation[] = []
+
+    // Generate multiple variations based on source type
+    for (let i = 0; i < variationsCount; i++) {
+      let contentVariations: ContentVariation[]
+
+      switch (sourceType) {
+        case 'quote':
+          contentVariations = await generateQuoteContent(
+            sourceContent,
+            bookTitle,
+            author,
+            [platform], // Single platform for targeted generation
+            1, // Single variation per call
+            tone,
+            maxRetries,
+            bookContext,
+            locale
+          )
+          break
+
+        case 'insight':
+          contentVariations = await generateInsightContent(
+            sourceContent,
+            bookTitle,
+            author,
+            [platform],
+            1,
+            tone,
+            maxRetries,
+            bookContext,
+            locale
+          )
+          break
+
+        case 'theme':
+          contentVariations = await generateThemeContent(
+            sourceContent,
+            bookTitle,
+            author,
+            [platform],
+            1,
+            tone,
+            maxRetries,
+            bookContext,
+            locale
+          )
+          break
+
+        default:
+          throw new Error(`Unsupported source type: ${sourceType}`)
+      }
+
+      variations.push(...contentVariations)
+    }
+
+    // Add image suggestions if requested
+    if (includeImages) {
+      variations.forEach(variation => {
+        if (variation.posts && Array.isArray(variation.posts)) {
+          variation.posts.forEach(post => {
+            if (PLATFORM_CONFIGS[post.platform].imageSupported) {
+              post.imageUrl = generateImageSuggestion(
+                post.content,
+                variation.sourceType,
+                post.platform,
+                bookTitle,
+                bookContext
+              )
+            }
+          })
+        }
+      })
+    }
+
+    console.log(`Successfully generated ${variations.length} targeted content variations`)
+    return variations
+
+  } catch (error) {
+    console.error("Targeted content generation failed:", error)
+    throw new Error(
+      `Failed to generate platform content: ${error instanceof Error ? error.message : "Unknown error"}`
+    )
+  }
+}
+
 export async function generateSocialContent(
   bookAnalysis: BookAnalysisResult,
   bookTitle: string,
@@ -903,17 +1062,19 @@ export async function generateSocialContent(
     // Add image suggestions if requested
     if (includeImages) {
       variations.forEach(variation => {
-        variation.posts.forEach(post => {
-          if (PLATFORM_CONFIGS[post.platform].imageSupported) {
-            post.imageUrl = generateImageSuggestion(
-              post.content,
-              variation.sourceType,
-              post.platform,
-              bookTitle,
-              bookAnalysis
-            )
-          }
-        })
+        if (variation.posts && Array.isArray(variation.posts)) {
+          variation.posts.forEach(post => {
+            if (PLATFORM_CONFIGS[post.platform].imageSupported) {
+              post.imageUrl = generateImageSuggestion(
+                post.content,
+                variation.sourceType,
+                post.platform,
+                bookTitle,
+                bookAnalysis
+              )
+            }
+          })
+        }
       })
     }
 

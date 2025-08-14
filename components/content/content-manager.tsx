@@ -17,10 +17,12 @@ import {
   Edit3,
   Trash2,
   Eye,
-  EyeOff
+  EyeOff,
+  Star
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ContentEditor, GeneratedPost, Platform } from "./content-editor"
+import { getEngagementExplanation } from "@/lib/content-optimization"
 import {
   LazyLoadingList,
   ContentSkeleton
@@ -76,6 +78,29 @@ interface ContentManagerProps {
 
 type FilterBy = "all" | "book" | "platform" | "theme" | "status"
 type SortBy = "newest" | "oldest" | "book" | "theme"
+
+// Helper function to render engagement stars
+const renderEngagementStars = (score: number, explanation: string) => {
+  return (
+    <div className="flex items-center space-x-1" title={explanation}>
+      <div className="flex">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={`h-4 w-4 ${
+              star <= score
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-gray-300"
+            }`}
+          />
+        ))}
+      </div>
+      <span className="text-sm text-muted-foreground">
+        {score}/5
+      </span>
+    </div>
+  )
+}
 
 export function ContentManager({
   contentVariations,
@@ -525,6 +550,21 @@ export function ContentManager({
                                   Invalid
                                 </Badge>
                               )}
+                              {post.engagementPotential && (
+                                <div className="flex items-center gap-2">
+                                  {renderEngagementStars(
+                                    post.engagementPotential,
+                                    getEngagementExplanation(post)
+                                  )}
+                                  <Badge 
+                                    variant={post.engagementPotential >= 4 ? "default" : "secondary"}
+                                    className="text-xs"
+                                  >
+                                    {post.engagementPotential >= 4 ? "Alto potenziale" : 
+                                     post.engagementPotential >= 3 ? "Potenziale medio" : "Da migliorare"}
+                                  </Badge>
+                                </div>
+                              )}
                             </div>
 
                             <Button
@@ -586,6 +626,109 @@ export function ContentManager({
           })
         )}
       </div>
+
+      {/* Azioni di gruppo basate sui punteggi */}
+      {filteredAndSortedVariations.length > 0 && (
+        <div className="border-t pt-6 mt-6">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Azioni di Gruppo</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-card rounded-lg p-4 border">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`h-4 w-4 ${
+                          star <= 5 ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <Badge variant="default" className="text-xs">
+                    Alto Potenziale
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  {filteredAndSortedVariations.filter(v => 
+                    v.posts.some(p => p.engagementPotential && p.engagementPotential >= 4)
+                  ).length} contenuti con punteggio 4-5 stelle
+                </p>
+                <Button variant="outline" size="sm" className="w-full">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Programma tutti gli high performer
+                </Button>
+              </div>
+
+              <div className="bg-card rounded-lg p-4 border">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex">
+                    {[1, 2, 3].map((star) => (
+                      <Star
+                        key={star}
+                        className={`h-4 w-4 ${
+                          star <= 3 ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    Potenziale Medio
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  {filteredAndSortedVariations.filter(v => 
+                    v.posts.some(p => p.engagementPotential && p.engagementPotential === 3)
+                  ).length} contenuti con punteggio 3 stelle
+                </p>
+                <Button variant="outline" size="sm" className="w-full">
+                  <Edit3 className="h-4 w-4 mr-2" />
+                  Migliora contenuti medi
+                </Button>
+              </div>
+
+              <div className="bg-card rounded-lg p-4 border">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex">
+                    {[1, 2].map((star) => (
+                      <Star
+                        key={star}
+                        className={`h-4 w-4 ${
+                          star <= 2 ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <Badge variant="destructive" className="text-xs">
+                    Da Migliorare
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  {filteredAndSortedVariations.filter(v => 
+                    v.posts.some(p => p.engagementPotential && p.engagementPotential <= 2)
+                  ).length} contenuti con punteggio 1-2 stelle
+                </p>
+                <Button variant="outline" size="sm" className="w-full">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Elimina contenuti poco performanti
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 justify-center">
+              <Button variant="outline" size="sm">
+                <Calendar className="h-4 w-4 mr-2" />
+                Crea piano editoriale smart
+              </Button>
+              <Button variant="outline" size="sm">
+                <Edit3 className="h-4 w-4 mr-2" />
+                Rigenera contenuti sotto soglia
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -84,12 +84,12 @@ export async function DELETE(
 
     const { variationId } = await params
 
-    // Delete all content for this variation that belongs to the user
+    // Delete all content for this variation group that belongs to the user
     const deletedContent = await db
       .delete(generatedContent)
       .where(
         and(
-          eq(generatedContent.id, variationId),
+          eq(generatedContent.variationGroupId, variationId),
           eq(generatedContent.userId, userId)
         )
       )

@@ -27,14 +27,16 @@ export interface OAuthConfig {
 }
 
 // OAuth configurations for each platform
+// These are YOUR APP's credentials (not user credentials)
+// Users will authenticate with their own accounts through your app
 export const oauthConfigs: Record<SocialPlatform, OAuthConfig> = {
   twitter: {
-    clientId: process.env.TWITTER_CLIENT_ID!,
-    clientSecret: process.env.TWITTER_CLIENT_SECRET!,
+    clientId: process.env.TWITTER_CLIENT_ID!, // Your Twitter App's Client ID
+    clientSecret: process.env.TWITTER_CLIENT_SECRET!, // Your Twitter App's Secret
     redirectUri: `${process.env.NEXTAUTH_URL}/api/social/callback/twitter`,
-    scope: "tweet.read tweet.write users.read offline.access",
-    authUrl: "https://twitter.com/i/oauth2/authorize",
-    tokenUrl: "https://api.twitter.com/2/oauth2/token"
+    scope: "", // OAuth 1.0a doesn't use scope parameter
+    authUrl: "https://api.twitter.com/oauth/request_token", // OAuth 1.0a
+    tokenUrl: "https://api.twitter.com/oauth/access_token"
   },
   instagram: {
     clientId: process.env.INSTAGRAM_CLIENT_ID!,
@@ -68,6 +70,17 @@ export class SocialMediaService {
    */
   static generateAuthUrl(platform: SocialPlatform, state?: string): string {
     const config = oauthConfigs[platform]
+    
+    // Validate configuration
+    if (!config.clientId || !config.clientSecret) {
+      throw new Error(
+        `OAuth application credentials not configured for ${platform}. ` +
+        `Please create a ${platform} Developer App and set the app credentials ` +
+        `(CLIENT_ID and CLIENT_SECRET) in your .env.local file. ` +
+        `This allows users to connect their own ${platform} accounts.`
+      )
+    }
+    
     const params = new URLSearchParams({
       client_id: config.clientId,
       redirect_uri: config.redirectUri,
@@ -78,8 +91,9 @@ export class SocialMediaService {
 
     // Platform-specific parameters
     if (platform === "twitter") {
-      params.append("code_challenge", "challenge")
-      params.append("code_challenge_method", "plain")
+      // Twitter OAuth 2.0 no longer requires PKCE for confidential clients
+      // Remove PKCE parameters for server-side apps
+      // Only add if you're using a public client (mobile/SPA)
     }
 
     return `${config.authUrl}?${params.toString()}`
@@ -267,7 +281,7 @@ export class SocialMediaService {
       .from(socialAccounts)
       .where(eq(socialAccounts.userId, userId))
 
-    return accounts.map(account => ({
+    const mappedAccounts = accounts.map(account => ({
       id: account.id,
       platform: account.platform as SocialPlatform,
       accountId: account.accountId,
@@ -278,6 +292,29 @@ export class SocialMediaService {
       createdAt: account.createdAt,
       updatedAt: account.updatedAt
     }))
+
+    // In development, add mock Twitter account if no real Twitter account exists
+    if (process.env.NODE_ENV === 'development') {
+      const hasTwitterAccount = mappedAccounts.some(acc => acc.platform === 'twitter')
+      
+      if (!hasTwitterAccount) {
+        const mockTwitterAccount = {
+          id: 'mock-twitter-dev',
+          platform: 'twitter' as SocialPlatform,
+          accountId: 'mock_twitter_123',
+          accountName: 'Mock Twitter Account (Dev)',
+          accountHandle: 'mock_dev_account',
+          isActive: true,
+          tokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+        
+        mappedAccounts.push(mockTwitterAccount)
+      }
+    }
+
+    return mappedAccounts
   }
 
   /**

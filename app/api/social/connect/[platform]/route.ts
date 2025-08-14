@@ -23,6 +23,15 @@ export async function GET(
       return NextResponse.json({ error: "Invalid platform" }, { status: 400 })
     }
 
+    // TEMPORARY: Mock Twitter connection for development
+    if (platformType === "twitter") {
+      // For mock, return a special URL that the frontend will handle
+      return NextResponse.json({ 
+        authUrl: `/dashboard/settings/social?connected=twitter&mock=true`,
+        mock: true 
+      })
+    }
+
     // Generate state parameter for CSRF protection
     const state = `${userId}:${crypto.randomUUID()}`
 

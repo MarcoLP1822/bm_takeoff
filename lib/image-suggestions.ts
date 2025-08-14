@@ -1,4 +1,4 @@
-import { Platform } from "./content-generation"
+import { Platform } from "./content-types"
 
 export interface ImageSuggestion {
   type:

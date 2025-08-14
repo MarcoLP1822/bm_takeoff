@@ -1,4 +1,4 @@
-import { Platform, PLATFORM_CONFIGS } from "./content-generation"
+import { Platform, PLATFORM_CONFIGS } from "./content-types"
 import { BookAnalysisResult } from "./ai-analysis"
 
 interface HashtagSuggestion {

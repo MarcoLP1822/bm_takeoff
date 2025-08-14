@@ -3,11 +3,14 @@
 import { useState, useCallback, useRef } from "react"
 import { useDropzone, FileRejection } from "react-dropzone"
 import { useTranslations } from "next-intl"
+import { useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Upload, FileText, AlertCircle, CheckCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { completeOnboarding } from "@/actions/customers"
 
 interface Book {
   id: string
@@ -49,6 +52,8 @@ export function BookUpload({
   onUploadError
 }: BookUploadProps) {
   const t = useTranslations('books')
+  const { user } = useUser()
+  const router = useRouter()
   
   const [uploadState, setUploadState] = useState<UploadState>({
     isUploading: false,
@@ -58,6 +63,19 @@ export function BookUpload({
   })
   
   const progressRef = useRef(0)
+
+  const handleUploadSuccess = useCallback(async (bookData: Book) => {
+    // Completare onboarding se è il primo libro
+    if (user?.id) {
+      await completeOnboarding(user.id)
+    }
+    
+    // Reindirizzare alla pagina del libro
+    router.push(`/dashboard/books/${bookData.id}`)
+    
+    // Chiamare la callback originale se presente
+    onUploadSuccess?.(bookData)
+  }, [user?.id, router, onUploadSuccess])
 
   const uploadFile = useCallback(
     async (file: File) => {
@@ -146,7 +164,7 @@ export function BookUpload({
           success: true
         })
 
-        onUploadSuccess?.(result.book)
+        handleUploadSuccess(result.book)
 
         // Reset success state after 3 seconds
         setTimeout(() => {
@@ -166,7 +184,7 @@ export function BookUpload({
         onUploadError?.(errorMessage)
       }
     },
-    [onUploadSuccess, onUploadError, t]
+    [handleUploadSuccess, onUploadError, t]
   )
 
   const onDrop = useCallback(

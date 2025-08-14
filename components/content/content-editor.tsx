@@ -18,40 +18,27 @@ import {
   Image as ImageIcon
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Platform, PLATFORM_CONFIGS } from "@/lib/content-types"
 
-// Platform configurations
-const PLATFORM_CONFIGS = {
+// Platform icon configurations for UI
+const PLATFORM_ICONS = {
   twitter: {
-    maxLength: 280,
-    hashtagLimit: 5,
-    name: "Twitter/X",
     icon: Twitter,
     color: "bg-blue-500"
   },
   instagram: {
-    maxLength: 2200,
-    hashtagLimit: 30,
-    name: "Instagram",
     icon: Instagram,
     color: "bg-pink-500"
   },
   linkedin: {
-    maxLength: 3000,
-    hashtagLimit: 10,
-    name: "LinkedIn",
     icon: Linkedin,
     color: "bg-blue-600"
   },
   facebook: {
-    maxLength: 63206,
-    hashtagLimit: 10,
-    name: "Facebook",
     icon: Facebook,
     color: "bg-blue-700"
   }
 } as const
-
-export type Platform = keyof typeof PLATFORM_CONFIGS
 
 export interface GeneratedPost {
   id: string
@@ -62,6 +49,7 @@ export interface GeneratedPost {
   characterCount: number
   isValid: boolean
   validationErrors: string[]
+  engagementPotential?: number
 }
 
 interface ContentEditorProps {
@@ -86,7 +74,8 @@ export function ContentEditor({
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
 
   const config = PLATFORM_CONFIGS[post.platform]
-  const PlatformIcon = config.icon
+  const iconConfig = PLATFORM_ICONS[post.platform]
+  const PlatformIcon = iconConfig.icon
 
   // Calculate character count and validation
   const characterCount = content.length
@@ -185,7 +174,7 @@ export function ContentEditor({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className={cn("rounded p-1.5 text-white", config.color)}>
+          <div className={cn("rounded p-1.5 text-white", iconConfig.color)}>
             <PlatformIcon className="h-4 w-4" />
           </div>
           <h3 className="font-medium">{config.name}</h3>

@@ -15,6 +15,20 @@
       "when": 1753269000953,
       "tag": "0001_kind_blindfold",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1754561147650,
+      "tag": "0002_lowly_loners",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1754655644740,
+      "tag": "0003_clear_shadow_king",
+      "breakpoints": true
     }
   ]
 }

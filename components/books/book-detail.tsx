@@ -22,9 +22,11 @@ import {
   Clock,
   XCircle,
   RefreshCw,
-  Loader2
+  Loader2,
+  Sparkles
 } from "lucide-react"
 import { formatDistanceToNow, format } from "date-fns"
+import { ContentWorkshop } from "@/components/content/content-workshop"
 
 interface BookDetailProps {
   bookId: string
@@ -48,6 +50,20 @@ interface AnalysisData {
   discussionPoints?: string[]
 }
 
+interface AnalysisProgress {
+  status: "in_progress" | "completed" | "failed"
+  current_step: "text_extraction" | "themes_identification" | "quotes_extraction" | "insights_generation"
+  steps: {
+    text_extraction: "completed" | "in_progress" | "pending" | "failed"
+    themes_identification: "completed" | "in_progress" | "pending" | "failed"
+    quotes_extraction: "completed" | "in_progress" | "pending" | "failed"
+    insights_generation: "completed" | "in_progress" | "pending" | "failed"
+  }
+  started_at: string
+  completed_at?: string
+  error_message?: string
+}
+
 interface BookDetail {
   id: string
   title: string
@@ -57,6 +73,7 @@ interface BookDetail {
   fileSize?: string
   analysisStatus: "pending" | "processing" | "completed" | "failed"
   analysisData?: AnalysisData
+  analysisProgress?: AnalysisProgress
   createdAt: string
   updatedAt: string
   hasTextContent: boolean
@@ -89,6 +106,40 @@ const getStatusColor = (status: string) => {
   }
 }
 
+const getStepName = (step: string): string => {
+  switch (step) {
+    case "text_extraction":
+      return "Text Extraction"
+    case "themes_identification":
+      return "Themes Identification"
+    case "quotes_extraction":
+      return "Quotes Extraction"
+    case "insights_generation":
+      return "Insights Generation"
+    default:
+      return step
+  }
+}
+
+const getProgressPercentage = (progress: AnalysisProgress): number => {
+  const steps = Object.values(progress.steps)
+  const completedSteps = steps.filter(step => step === 'completed').length
+  return (completedSteps / steps.length) * 100
+}
+
+const getStepIcon = (stepStatus: string) => {
+  switch (stepStatus) {
+    case "completed":
+      return <CheckCircle className="h-4 w-4 text-green-600" />
+    case "in_progress":
+      return <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+    case "failed":
+      return <XCircle className="h-4 w-4 text-red-600" />
+    default:
+      return <Clock className="h-4 w-4 text-gray-400" />
+  }
+}
+
 export function BookDetail({ bookId, onBack }: BookDetailProps) {
   const router = useRouter()
   const params = useParams()
@@ -114,6 +165,15 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
   const [isDownloading, setIsDownloading] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [chaptersExpanded, setChaptersExpanded] = useState(false)
+  const [regeneratingSection, setRegeneratingSection] = useState<string | null>(null)
+  const [detailedProgress, setDetailedProgress] = useState<AnalysisProgress | null>(null)
+  
+  // Content Workshop states
+  const [showWorkshop, setShowWorkshop] = useState(false)
+  const [workshopSource, setWorkshopSource] = useState<{
+    type: 'theme' | 'quote' | 'insight'
+    content: string
+  } | null>(null)
 
   const fetchBookDetail = useCallback(async () => {
     try {
@@ -143,14 +203,37 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
     fetchBookDetail()
   }, [fetchBookDetail])
 
-  // Polling effect for analysis status
+  // Enhanced polling with granular progress
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
 
     if (book?.analysisStatus === "processing") {
-      interval = setInterval(() => {
-        fetchBookDetail()
-      }, 3000) // Poll every 3 seconds
+      // Use granular status endpoint for detailed progress
+      const pollGranularStatus = async () => {
+        try {
+          const response = await fetch(`/api/books/${bookId}/analysis/status`)
+          if (response.ok) {
+            const data = await response.json()
+            setDetailedProgress(data.progress)
+            
+            // Also update book status if analysis is completed
+            if (data.status === "completed" && data.analysisData) {
+              setBook(prev => prev ? {
+                ...prev,
+                analysisStatus: "completed",
+                analysisData: data.analysisData,
+                analysisProgress: data.progress
+              } : null)
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch granular status:", error)
+          // Fallback to regular polling
+          fetchBookDetail()
+        }
+      }
+
+      interval = setInterval(pollGranularStatus, 2000) // Poll every 2 seconds for more responsive UX
     }
 
     return () => {
@@ -158,7 +241,7 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
         clearInterval(interval)
       }
     }
-  }, [book?.analysisStatus, fetchBookDetail])
+  }, [book?.analysisStatus, bookId, fetchBookDetail])
 
   const handleStartAnalysis = async () => {
     try {
@@ -182,6 +265,58 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
     } finally {
       setIsAnalyzing(false)
     }
+  }
+
+  const handleRegenerateSection = async (section: "themes" | "quotes" | "insights") => {
+    try {
+      setRegeneratingSection(section)
+      setError(null)
+
+      const response = await fetch(`/api/books/${bookId}/regenerate/${section}`, {
+        method: "POST"
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || `Failed to regenerate ${section}`)
+      }
+
+      const data = await response.json()
+      
+      // Update the book data with the new section data
+      setBook(prev => {
+        if (!prev || !prev.analysisData) return prev
+        
+        const updatedAnalysisData = {
+          ...prev.analysisData,
+          [section === "insights" ? "keyInsights" : section]: data.data
+        }
+        
+        return {
+          ...prev,
+          analysisData: updatedAnalysisData
+        }
+      })
+
+      console.log(`Successfully regenerated ${section}:`, data.data)
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : `Failed to regenerate ${section}`
+      )
+    } finally {
+      setRegeneratingSection(null)
+    }
+  }
+
+  // Content Workshop functions
+  const openWorkshop = (type: 'theme' | 'quote' | 'insight', content: string) => {
+    setWorkshopSource({ type, content })
+    setShowWorkshop(true)
+  }
+
+  const closeWorkshop = () => {
+    setShowWorkshop(false)
+    setWorkshopSource(null)
   }
 
   const handleDownload = async () => {
@@ -418,14 +553,68 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
             )}
 
             {book.analysisStatus === "processing" && (
-              <div className="py-8 text-center">
-                <RefreshCw className="mx-auto mb-4 h-12 w-12 animate-spin text-blue-500" />
-                <h3 className="mb-2 text-lg font-medium text-gray-900">
-                  {t('status.analyzingContent')}
-                </h3>
-                <p className="text-gray-500">
-                  {t('detail.processingTime')}
-                </p>
+              <div className="space-y-6">
+                <div className="text-center">
+                  <RefreshCw className="mx-auto mb-4 h-12 w-12 animate-spin text-blue-500" />
+                  <h3 className="mb-2 text-lg font-medium text-gray-900">
+                    {t('status.analyzingContent')}
+                  </h3>
+                  <p className="text-gray-500">
+                    {t('detail.processingTime')}
+                  </p>
+                </div>
+
+                {/* Granular Progress Display */}
+                {(detailedProgress || book.analysisProgress) && (
+                  <div className="rounded-lg border bg-gray-50 p-4">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h4 className="font-medium text-gray-900">Analysis Progress</h4>
+                      <span className="text-sm text-gray-500">
+                        {Math.round(getProgressPercentage(detailedProgress || book.analysisProgress!))}% Complete
+                      </span>
+                    </div>
+                    
+                    {/* Progress Bar */}
+                    <div className="mb-4 h-2 rounded-full bg-gray-200">
+                      <div 
+                        className="h-2 rounded-full bg-blue-500 transition-all duration-300"
+                        style={{ 
+                          width: `${getProgressPercentage(detailedProgress || book.analysisProgress!)}%` 
+                        }}
+                      />
+                    </div>
+
+                    {/* Step-by-step progress */}
+                    <div className="space-y-3">
+                      {Object.entries((detailedProgress || book.analysisProgress!).steps).map(([step, status]) => (
+                        <div key={step} className="flex items-center space-x-3">
+                          {getStepIcon(status)}
+                          <span className={`text-sm ${
+                            status === 'completed' ? 'text-green-700' :
+                            status === 'in_progress' ? 'text-blue-700' :
+                            status === 'failed' ? 'text-red-700' :
+                            'text-gray-500'
+                          }`}>
+                            {getStepName(step)}
+                          </span>
+                          {status === 'in_progress' && (
+                            <span className="text-xs text-blue-600">In progress...</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Error message if any */}
+                    {(detailedProgress || book.analysisProgress!)?.error_message && (
+                      <Alert className="mt-4">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          {(detailedProgress || book.analysisProgress!)?.error_message}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -496,13 +685,51 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                 {book.analysisData.themes &&
                   book.analysisData.themes.length > 0 && (
                     <div>
-                      <h4 className="mb-2 font-medium text-gray-900">
-                        {t('detail.keyThemes')}
-                      </h4>
+                      <div className="mb-2 flex items-center justify-between">
+                        <h4 className="font-medium text-gray-900">
+                          {t('detail.keyThemes')}
+                        </h4>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRegenerateSection('themes')}
+                            disabled={regeneratingSection === 'themes'}
+                            className="text-xs"
+                          >
+                            {regeneratingSection === 'themes' ? (
+                              <>
+                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                Regenerating...
+                              </>
+                            ) : (
+                              <>
+                                <RefreshCw className="mr-1 h-3 w-3" />
+                                Regenerate
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openWorkshop('theme', book.analysisData?.themes?.[0] || '')}
+                            disabled={!book.analysisData?.themes?.[0]}
+                            className="text-xs"
+                          >
+                            <Sparkles className="mr-1 h-3 w-3" />
+                            Create Content
+                          </Button>
+                        </div>
+                      </div>
                       <div className="flex flex-wrap gap-2">
                         {book.analysisData.themes.map(
                           (theme: string, index: number) => (
-                            <Badge key={index} variant="outline">
+                            <Badge 
+                              key={index} 
+                              variant="outline"
+                              className="cursor-pointer hover:bg-purple-50"
+                              onClick={() => openWorkshop('theme', theme)}
+                            >
                               {theme}
                             </Badge>
                           )
@@ -514,13 +741,50 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                 {book.analysisData.quotes &&
                   book.analysisData.quotes.length > 0 && (
                     <div>
-                      <h4 className="mb-2 font-medium text-gray-900">
-                        {t('detail.keyQuotes')}
-                      </h4>
+                      <div className="mb-2 flex items-center justify-between">
+                        <h4 className="font-medium text-gray-900">
+                          {t('detail.keyQuotes')}
+                        </h4>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRegenerateSection('quotes')}
+                            disabled={regeneratingSection === 'quotes'}
+                            className="text-xs"
+                          >
+                            {regeneratingSection === 'quotes' ? (
+                              <>
+                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                Regenerating...
+                              </>
+                            ) : (
+                              <>
+                                <RefreshCw className="mr-1 h-3 w-3" />
+                                Regenerate
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openWorkshop('quote', book.analysisData?.quotes?.[0] || '')}
+                            disabled={!book.analysisData?.quotes?.[0]}
+                            className="text-xs"
+                          >
+                            <Sparkles className="mr-1 h-3 w-3" />
+                            Create Content
+                          </Button>
+                        </div>
+                      </div>
                       <div className="space-y-3">
                         {book.analysisData.quotes.slice(0, 5).map(
                           (quote: string, index: number) => (
-                            <blockquote key={index} className="border-l-4 border-blue-200 bg-blue-50 p-3 text-sm italic text-gray-700">
+                            <blockquote 
+                              key={index} 
+                              className="border-l-4 border-blue-200 bg-blue-50 p-3 text-sm italic text-gray-700 cursor-pointer hover:bg-blue-100 transition-colors"
+                              onClick={() => openWorkshop('quote', quote)}
+                            >
                               "{quote}"
                             </blockquote>
                           )
@@ -537,13 +801,50 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
                 {book.analysisData.keyInsights &&
                   book.analysisData.keyInsights.length > 0 && (
                     <div>
-                      <h4 className="mb-2 font-medium text-gray-900">
-                        {t('detail.keyInsights')}
-                      </h4>
+                      <div className="mb-2 flex items-center justify-between">
+                        <h4 className="font-medium text-gray-900">
+                          {t('detail.keyInsights')}
+                        </h4>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRegenerateSection('insights')}
+                            disabled={regeneratingSection === 'insights'}
+                            className="text-xs"
+                          >
+                            {regeneratingSection === 'insights' ? (
+                              <>
+                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                Regenerating...
+                              </>
+                            ) : (
+                              <>
+                                <RefreshCw className="mr-1 h-3 w-3" />
+                                Regenerate
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openWorkshop('insight', book.analysisData?.keyInsights?.[0] || '')}
+                            disabled={!book.analysisData?.keyInsights?.[0]}
+                            className="text-xs"
+                          >
+                            <Sparkles className="mr-1 h-3 w-3" />
+                            Create Content
+                          </Button>
+                        </div>
+                      </div>
                       <ul className="space-y-2">
                         {book.analysisData.keyInsights.map(
                           (insight: string, index: number) => (
-                            <li key={index} className="flex items-start">
+                            <li 
+                              key={index} 
+                              className="flex items-start cursor-pointer hover:bg-green-50 p-2 rounded transition-colors"
+                              onClick={() => openWorkshop('insight', insight)}
+                            >
                               <div className="mr-2 mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-green-500"></div>
                               <span className="text-sm text-gray-700">{insight}</span>
                             </li>
@@ -735,6 +1036,23 @@ export function BookDetail({ bookId, onBack }: BookDetailProps) {
           </div>
         </div>
       </div>
+
+      {/* Content Workshop Modal/Overlay */}
+      {showWorkshop && workshopSource && book && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-auto">
+            <ContentWorkshop
+              bookId={book.id}
+              bookTitle={book.title}
+              author={book.author}
+              sourceType={workshopSource.type}
+              sourceContent={workshopSource.content}
+              onClose={closeWorkshop}
+              className="p-6"
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

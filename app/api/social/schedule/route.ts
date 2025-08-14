@@ -6,7 +6,17 @@ import { z } from "zod"
 const scheduleSchema = z.object({
   contentId: z.string().uuid(),
   accountIds: z
-    .array(z.string().uuid())
+    .array(
+      z.string().refine(
+        (id) => {
+          // Allow UUIDs or mock IDs in development
+          const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
+          const isMockId = process.env.NODE_ENV === 'development' && id.startsWith('mock-')
+          return isUUID || isMockId
+        },
+        "Account ID must be a valid UUID or mock ID in development"
+      )
+    )
     .min(1, "At least one account must be selected"),
   scheduledAt: z.string().datetime()
 })

@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server"
-import DashboardOverview from "./_components/dashboard-overview"
+import DashboardOverviewWrapper from "./_components/dashboard-overview-wrapper"
 
 export default async function Page() {
   const t = await getTranslations("dashboard")
@@ -60,5 +60,5 @@ export default async function Page() {
     }
   }
   
-  return <DashboardOverview translations={translations} />
+  return <DashboardOverviewWrapper translations={translations} />
 }

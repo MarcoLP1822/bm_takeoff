@@ -213,3 +213,164 @@
     padding: 0.75rem;
   }
 }
+
+/* Content Manager Enhanced Animations - shadcn compatible */
+@keyframes gentle-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes slide-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Content Manager specific styles */
+.content-manager-card {
+  animation: slide-in-up 0.3s ease-out;
+}
+
+.content-manager-card:nth-child(odd) {
+  animation-delay: 0.1s;
+}
+
+.content-manager-card:nth-child(even) {
+  animation-delay: 0.2s;
+}
+
+.engagement-badge-glow {
+  box-shadow: 0 0 0 1px hsl(var(--ring) / 0.1);
+}
+
+.platform-indicator-hover {
+  transition: all 0.2s ease-in-out;
+}
+
+.platform-indicator-hover:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px hsl(var(--foreground) / 0.15);
+}
+
+/* High performance content special styling */
+.high-performance-card {
+  position: relative;
+}
+
+.high-performance-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, hsl(var(--chart-1)), hsl(var(--chart-2)));
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+/* Smooth transitions for interactive elements */
+.content-transition {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.content-transition:hover {
+  transform: translateY(-1px);
+}
+
+/* Drag and Drop styles for Calendar */
+.draft-card[draggable="true"] {
+  transition: all 0.2s ease-in-out;
+  user-select: none;
+  position: relative;
+}
+
+/* FullCalendar external event styling */
+.draft-card.fc-event {
+  background-color: transparent !important;
+  border-color: hsl(var(--border)) !important;
+  color: inherit !important;
+}
+
+.draft-card[draggable="true"]:hover {
+  cursor: grab;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: hsl(var(--primary));
+}
+
+.draft-card[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* Calendar drop zones */
+.fc-day-grid .fc-day {
+  transition: background-color 0.2s ease;
+}
+
+.fc-day-grid .fc-day:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Direct drop zone styling */
+.fc-day.drag-over {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  border: 2px dashed hsl(var(--primary)) !important;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
+
+/* Calendar receiving drag state */
+.fc.receiving-drag .fc-day {
+  border: 1px dashed rgba(59, 130, 246, 0.3);
+  background-color: rgba(59, 130, 246, 0.02);
+}
+
+.fc.receiving-drag .fc-day:hover {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border: 2px dashed hsl(var(--primary)) !important;
+}
+
+/* Dragging state */
+.draft-card.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Drop zone highlight */
+.fc-day.drag-over {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border: 2px dashed hsl(var(--primary)) !important;
+}
+
+/* Drag indicator */
+.draft-card::after {
+  content: '⋯';
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  color: hsl(var(--muted-foreground));
+  font-size: 16px;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.draft-card:hover::after {
+  opacity: 1;
+}

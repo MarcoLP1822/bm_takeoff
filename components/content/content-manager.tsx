@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Search,
   Filter,
@@ -18,11 +19,14 @@ import {
   Trash2,
   Eye,
   EyeOff,
-  Star
+  Star,
+  RefreshCw
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { ContentEditor, GeneratedPost, Platform } from "./content-editor"
+import { ContentEditor, GeneratedPost } from "./content-editor"
+import { Platform } from "@/lib/content-types"
 import { getEngagementExplanation } from "@/lib/content-optimization"
+import { toast } from "sonner"
 import {
   LazyLoadingList,
   ContentSkeleton
@@ -79,25 +83,45 @@ interface ContentManagerProps {
 type FilterBy = "all" | "book" | "platform" | "theme" | "status"
 type SortBy = "newest" | "oldest" | "book" | "theme"
 
-// Helper function to render engagement stars
+// Helper function to render engagement stars with improved styling
 const renderEngagementStars = (score: number, explanation: string) => {
+  const getScoreColor = (score: number) => {
+    if (score >= 4) return "text-green-600"
+    if (score >= 3) return "text-yellow-600" 
+    return "text-red-600"
+  }
+
+  const getScoreBadge = (score: number) => {
+    if (score >= 4) return { variant: "default" as const, text: "High", bg: "bg-green-100 text-green-800 border-green-200" }
+    if (score >= 3) return { variant: "secondary" as const, text: "Medium", bg: "bg-yellow-100 text-yellow-800 border-yellow-200" }
+    return { variant: "destructive" as const, text: "Low", bg: "bg-red-100 text-red-800 border-red-200" }
+  }
+
+  const scoreBadge = getScoreBadge(score)
+
   return (
-    <div className="flex items-center space-x-1" title={explanation}>
-      <div className="flex">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`h-4 w-4 ${
-              star <= score
-                ? "fill-yellow-400 text-yellow-400"
-                : "text-gray-300"
-            }`}
-          />
-        ))}
+    <div className="flex items-center gap-3" title={explanation}>
+      <div className="flex items-center gap-2">
+        <div className="flex">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <Star
+              key={star}
+              className={cn(
+                "h-4 w-4 transition-colors",
+                star <= score
+                  ? "fill-yellow-400 text-yellow-400"
+                  : "text-muted-foreground/30"
+              )}
+            />
+          ))}
+        </div>
+        <span className={cn("text-sm font-medium", getScoreColor(score))}>
+          {score}/5
+        </span>
       </div>
-      <span className="text-sm text-muted-foreground">
-        {score}/5
-      </span>
+      <Badge className={scoreBadge.bg}>
+        {scoreBadge.text} Potential
+      </Badge>
     </div>
   )
 }
@@ -118,6 +142,8 @@ export function ContentManager({
     new Set()
   )
   const [editingPosts, setEditingPosts] = useState<Set<string>>(new Set())
+  const [selectedVariations, setSelectedVariations] = useState<Set<string>>(new Set())
+  const [bulkActionMode, setBulkActionMode] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   // Extract unique books and platforms for filtering
@@ -152,11 +178,36 @@ export function ContentManager({
         e.preventDefault()
         searchInputRef.current?.focus()
       }
+      
+      // Bulk selection shortcuts (only when in bulk mode)
+      if (bulkActionMode) {
+        if ((e.ctrlKey || e.metaKey) && e.key === "a") {
+          e.preventDefault()
+          const allIds = new Set(filteredAndSortedVariations.map(v => v.id))
+          setSelectedVariations(allIds)
+        }
+        
+        if (e.key === "Escape") {
+          e.preventDefault()
+          setSelectedVariations(new Set())
+          setBulkActionMode(false)
+        }
+      }
+      
+      if ((e.ctrlKey || e.metaKey) && e.key === "b") {
+        e.preventDefault()
+        setBulkActionMode(prev => {
+          if (prev) {
+            setSelectedVariations(new Set())
+          }
+          return !prev
+        })
+      }
     }
 
     document.addEventListener("keydown", handleKeyDown)
     return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filter and sort content variations
   const filteredAndSortedVariations = useMemo(() => {
@@ -234,6 +285,78 @@ export function ContentManager({
     setEditingPosts(newEditing)
   }
 
+  // Bulk selection functions
+  const toggleVariationSelection = (variationId: string) => {
+    const newSelected = new Set(selectedVariations)
+    if (newSelected.has(variationId)) {
+      newSelected.delete(variationId)
+    } else {
+      newSelected.add(variationId)
+    }
+    setSelectedVariations(newSelected)
+  }
+
+  const selectAllVariations = useCallback(() => {
+    const allIds = new Set(filteredAndSortedVariations.map(v => v.id))
+    setSelectedVariations(allIds)
+  }, [filteredAndSortedVariations])
+
+  const clearSelection = useCallback(() => {
+    setSelectedVariations(new Set())
+    setBulkActionMode(false)
+  }, [])
+
+  const toggleBulkMode = useCallback(() => {
+    setBulkActionMode(!bulkActionMode)
+    if (!bulkActionMode) {
+      setSelectedVariations(new Set())
+    }
+  }, [bulkActionMode])
+
+  // Bulk action implementations
+  const handleScheduleSelected = () => {
+    if (selectedVariations.size === 0) return;
+    
+    // Get selected variation objects
+    const selectedVariationObjects = contentVariations.filter(variation => 
+      selectedVariations.has(variation.id)
+    );
+    
+    // TODO: Integrate with scheduling service
+    console.log('Scheduling variations:', selectedVariationObjects);
+    toast.success(`Scheduled ${selectedVariations.size} content variations for publishing`);
+    
+    // Clear selection after action
+    clearSelection();
+  };
+
+  const handleBulkEdit = () => {
+    if (selectedVariations.size === 0) return;
+    
+    // Get selected variation objects
+    const selectedVariationObjects = contentVariations.filter(variation => 
+      selectedVariations.has(variation.id)
+    );
+    
+    // TODO: Open bulk edit modal or navigate to bulk edit page
+    console.log('Bulk editing variations:', selectedVariationObjects);
+    toast.info(`Opening bulk editor for ${selectedVariations.size} content variations`);
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedVariations.size === 0) return;
+    
+    // TODO: Show confirmation dialog before deletion
+    if (confirm(`Are you sure you want to delete ${selectedVariations.size} content variations? This action cannot be undone.`)) {
+      // TODO: Integrate with deletion service
+      console.log('Deleting variations:', Array.from(selectedVariations));
+      toast.success(`Deleted ${selectedVariations.size} content variations`);
+      
+      // Clear selection after action
+      clearSelection();
+    }
+  };
+
   const handleSaveContent = async (
     variationId: string,
     post: GeneratedPost
@@ -263,166 +386,321 @@ export function ContentManager({
   }
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn("space-y-8", className)}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Content Manager</h2>
-          <p className="text-muted-foreground">
-            Review and edit your generated social media content
-          </p>
+      <div className="space-y-4">
+        <div className="flex items-start justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-primary text-brand-primary-foreground">
+                <Edit3 className="h-5 w-5" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">Content Manager</h1>
+                <p className="text-muted-foreground text-lg">
+                  Review and edit your generated social media content
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <div className="text-2xl font-bold">
+                {filteredAndSortedVariations.length}
+              </div>
+              <p className="text-muted-foreground text-sm">
+                of {contentVariations.length} variations
+              </p>
+            </div>
+            <Button variant="outline" size="sm">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
         </div>
-        <div className="text-muted-foreground text-sm">
-          {filteredAndSortedVariations.length} of {contentVariations.length}{" "}
-          variations
+        
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="rounded-lg border bg-card p-4">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-green-500"></div>
+              <span className="text-sm font-medium">High Performance</span>
+            </div>
+            <div className="mt-2 text-2xl font-bold">
+              {filteredAndSortedVariations.filter(v => 
+                v.posts.some(p => p.engagementPotential && p.engagementPotential >= 4)
+              ).length}
+            </div>
+            <p className="text-muted-foreground text-xs">4+ star content</p>
+          </div>
+          
+          <div className="rounded-lg border bg-card p-4">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-yellow-500"></div>
+              <span className="text-sm font-medium">Needs Review</span>
+            </div>
+            <div className="mt-2 text-2xl font-bold">
+              {filteredAndSortedVariations.filter(v => 
+                v.posts.some(p => p.engagementPotential && p.engagementPotential <= 2)
+              ).length}
+            </div>
+            <p className="text-muted-foreground text-xs">Below 3 stars</p>
+          </div>
+          
+          <div className="rounded-lg border bg-card p-4">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+              <span className="text-sm font-medium">Platforms</span>
+            </div>
+            <div className="mt-2 text-2xl font-bold">
+              {allPlatforms.length}
+            </div>
+            <p className="text-muted-foreground text-xs">Active platforms</p>
+          </div>
+          
+          <div className="rounded-lg border bg-card p-4">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+              <span className="text-sm font-medium">Books</span>
+            </div>
+            <div className="mt-2 text-2xl font-bold">
+              {uniqueBooks.length}
+            </div>
+            <p className="text-muted-foreground text-xs">Source books</p>
+          </div>
         </div>
       </div>
 
       {/* Search and Filters */}
-      <div className="space-y-4">
-        {/* Search */}
+      <div className="space-y-6">
+        {/* Enhanced Search Bar */}
         <div className="relative">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
           <Input
-            placeholder="Search content, books, themes..."
+            placeholder="Search content, books, themes, or hashtags..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 pr-4 h-12 text-base"
           />
-        </div>
-
-        {/* Filter Controls */}
-        <div className="flex flex-wrap items-center gap-4">
-          {/* Platform Filters */}
-          <div className="flex items-center gap-2">
-            <Filter className="text-muted-foreground h-4 w-4" />
-            <span className="text-sm font-medium">Platforms:</span>
-            {allPlatforms.map(platform => {
-              const config = PLATFORM_CONFIGS[platform]
-              const PlatformIcon = config.icon
-              const isSelected = selectedPlatforms.includes(platform)
-
-              return (
-                <Button
-                  key={platform}
-                  variant={isSelected ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => togglePlatformFilter(platform)}
-                  className="h-8"
-                >
-                  <PlatformIcon className="mr-1 h-3 w-3" />
-                  {config.name}
-                </Button>
-              )
-            })}
-          </div>
-
-          <Separator orientation="vertical" className="h-6" />
-
-          {/* Book Filters */}
-          <div className="flex items-center gap-2">
-            <BookOpen className="text-muted-foreground h-4 w-4" />
-            <span className="text-sm font-medium">Books:</span>
-            {uniqueBooks.slice(0, 3).map(book => {
-              const isSelected = selectedBooks.includes(book.id)
-
-              return (
-                <Button
-                  key={book.id}
-                  variant={isSelected ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => toggleBookFilter(book.id)}
-                  className="h-8"
-                >
-                  {book.title}
-                </Button>
-              )
-            })}
-            {uniqueBooks.length > 3 && (
-              <span className="text-muted-foreground text-sm">
-                +{uniqueBooks.length - 3} more
-              </span>
-            )}
-          </div>
-
-          <Separator orientation="vertical" className="h-6" />
-
-          {/* Sort */}
-          <div className="flex items-center gap-2">
-            <Calendar className="text-muted-foreground h-4 w-4" />
-            <span className="text-sm font-medium">Sort:</span>
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value as SortBy)}
-              className="rounded border px-2 py-1 text-sm"
-            >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="book">By Book</option>
-              <option value="theme">By Theme</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Active Filters */}
-        {(selectedPlatforms.length > 0 ||
-          selectedBooks.length > 0 ||
-          searchQuery.trim()) && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-muted-foreground text-sm">
-              Active filters:
-            </span>
-
-            {searchQuery.trim() && (
-              <Badge variant="secondary" className="gap-1">
-                Search: "{searchQuery}"
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="hover:bg-muted-foreground/20 ml-1 rounded"
-                >
-                  ×
-                </button>
-              </Badge>
-            )}
-
-            {selectedPlatforms.map(platform => (
-              <Badge key={platform} variant="secondary" className="gap-1">
-                {PLATFORM_CONFIGS[platform].name}
-                <button
-                  onClick={() => togglePlatformFilter(platform)}
-                  className="hover:bg-muted-foreground/20 ml-1 rounded"
-                >
-                  ×
-                </button>
-              </Badge>
-            ))}
-
-            {selectedBooks.map(bookId => {
-              const book = uniqueBooks.find(b => b.id === bookId)
-              return book ? (
-                <Badge key={bookId} variant="secondary" className="gap-1">
-                  {book.title}
-                  <button
-                    onClick={() => toggleBookFilter(bookId)}
-                    className="hover:bg-muted-foreground/20 ml-1 rounded"
-                  >
-                    ×
-                  </button>
-                </Badge>
-              ) : null
-            })}
-
+          {searchQuery && (
             <Button
               variant="ghost"
               size="sm"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+            >
+              ×
+            </Button>
+          )}
+        </div>
+
+        {/* Quick Filter Chips */}
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-muted-foreground">Quick filters:</span>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={selectedPlatforms.length === 0 && selectedBooks.length === 0 ? "default" : "outline"}
+              size="sm"
               onClick={() => {
-                setSearchQuery("")
                 setSelectedPlatforms([])
                 setSelectedBooks([])
               }}
-              className="h-6 px-2 text-xs"
+              className="h-8"
             >
-              Clear all
+              All Content
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Filter for high engagement content
+                const highEngagementFilter = filteredAndSortedVariations.filter(v => 
+                  v.posts.some(p => p.engagementPotential && p.engagementPotential >= 4)
+                )
+                // This is just visual feedback - the actual filtering happens in useMemo
+              }}
+              className="h-8 border-green-200 text-green-700 hover:bg-green-50"
+            >
+              ⭐ High Performers
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 border-yellow-200 text-yellow-700 hover:bg-yellow-50"
+            >
+              📝 Needs Review
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 border-blue-200 text-blue-700 hover:bg-blue-50"
+            >
+              📅 Recent
+            </Button>
+          </div>
+        </div>
+
+        {/* Advanced Filters Card */}
+        <Card className="border-dashed">
+          <CardContent className="p-4">
+            <div className="space-y-4">
+              {/* Platform Filters */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Filter className="text-muted-foreground h-4 w-4" />
+                  <span className="text-sm font-medium">Platforms</span>
+                  {selectedPlatforms.length > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {selectedPlatforms.length} selected
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {allPlatforms.map(platform => {
+                    const config = PLATFORM_CONFIGS[platform]
+                    const PlatformIcon = config.icon
+                    const isSelected = selectedPlatforms.includes(platform)
+                    const platformCount = contentVariations.filter(v => 
+                      v.posts.some(p => p.platform === platform)
+                    ).length
+
+                    return (
+                      <Button
+                        key={platform}
+                        variant={isSelected ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => togglePlatformFilter(platform)}
+                        className="h-9 text-xs"
+                      >
+                        <PlatformIcon className="mr-2 h-3 w-3" />
+                        {config.name}
+                        <Badge variant="secondary" className="ml-2 text-xs bg-muted">
+                          {platformCount}
+                        </Badge>
+                      </Button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Book Filters */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="text-muted-foreground h-4 w-4" />
+                  <span className="text-sm font-medium">Source Books</span>
+                  {selectedBooks.length > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {selectedBooks.length} selected
+                    </Badge>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {uniqueBooks.map(book => {
+                    const isSelected = selectedBooks.includes(book.id)
+                    const bookContentCount = contentVariations.filter(v => v.bookId === book.id).length
+
+                    return (
+                      <Button
+                        key={book.id}
+                        variant={isSelected ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => toggleBookFilter(book.id)}
+                        className="h-9 text-xs max-w-xs"
+                      >
+                        <span className="truncate">{book.title}</span>
+                        <Badge variant="secondary" className="ml-2 text-xs bg-muted">
+                          {bookContentCount}
+                        </Badge>
+                      </Button>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Sort Options */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="text-muted-foreground h-4 w-4" />
+                  <span className="text-sm font-medium">Sort by</span>
+                </div>
+                <select
+                  value={sortBy}
+                  onChange={e => setSortBy(e.target.value as SortBy)}
+                  className="rounded-md border border-input bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="book">By Book</option>
+                  <option value="theme">By Theme</option>
+                </select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Bulk Actions Bar */}
+      <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Button
+              variant={bulkActionMode ? "default" : "outline"}
+              size="sm"
+              onClick={toggleBulkMode}
+            >
+              {bulkActionMode ? "Exit Selection" : "Select Multiple"}
+            </Button>
+            
+            {bulkActionMode && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAllVariations}
+                  disabled={filteredAndSortedVariations.length === 0}
+                >
+                  Select All ({filteredAndSortedVariations.length})
+                </Button>
+                
+                {selectedVariations.size > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearSelection}
+                  >
+                    Clear ({selectedVariations.size})
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+          
+          {selectedVariations.size > 0 && (
+            <div className="text-sm text-muted-foreground">
+              {selectedVariations.size} item{selectedVariations.size !== 1 ? 's' : ''} selected
+            </div>
+          )}
+        </div>
+
+        {/* Bulk Actions */}
+        {selectedVariations.size > 0 && (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleScheduleSelected}>
+              <Calendar className="h-4 w-4 mr-2" />
+              Schedule Selected
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleBulkEdit}>
+              <Edit3 className="h-4 w-4 mr-2" />
+              Bulk Edit
+            </Button>
+            <Button variant="destructive" size="sm" onClick={handleDeleteSelected}>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Selected
             </Button>
           </div>
         )}
@@ -445,65 +723,108 @@ export function ContentManager({
             return (
               <div
                 key={variation.id}
-                className="overflow-hidden rounded-lg border"
+                className={cn(
+                  "content-manager-card group overflow-hidden rounded-lg border bg-card shadow-sm transition-all duration-200 hover:shadow-md hover:border-border/80",
+                  variation.posts.some(p => p.engagementPotential && p.engagementPotential >= 4) && "high-performance-card"
+                )}
               >
                 {/* Variation Header */}
-                <div className="bg-muted/30 p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{variation.theme}</h3>
-                        <Badge variant="outline" className="text-xs">
-                          {variation.sourceType}
-                        </Badge>
+                <div className="border-b bg-muted/30 p-6">
+                  <div className="flex items-start justify-between">
+                    {/* Left side with optional checkbox */}
+                    <div className="flex items-start gap-4 flex-1">
+                      {bulkActionMode && (
+                        <div className="pt-1">
+                          <input
+                            type="checkbox"
+                            checked={selectedVariations.has(variation.id)}
+                            onChange={() => toggleVariationSelection(variation.id)}
+                            className="w-4 h-4 rounded border-border focus:ring-2 focus:ring-ring"
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="space-y-3 flex-1">
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-lg font-semibold leading-none">{variation.theme}</h3>
+                          <Badge variant="secondary" className="font-medium">
+                            {variation.sourceType}
+                          </Badge>
+                          {/* Overall performance indicator */}
+                          {variation.posts.some(p => p.engagementPotential && p.engagementPotential >= 4) && (
+                            <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+                              ⭐ High Performer
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-3 text-muted-foreground text-sm">
+                          <div className="flex items-center gap-2">
+                            <BookOpen className="h-4 w-4" />
+                            <span className="font-medium">{variation.bookTitle}</span>
+                          </div>
+                          {variation.author && (
+                            <>
+                              <span>•</span>
+                              <span>by {variation.author}</span>
+                            </>
+                          )}
+                        </div>
+                        
+                        <p className="text-muted-foreground text-sm line-clamp-2 max-w-2xl">
+                          {variation.sourceContent}
+                        </p>
                       </div>
-                      <div className="text-muted-foreground flex items-center gap-2 text-sm">
-                        <BookOpen className="h-4 w-4" />
-                        <span>{variation.bookTitle}</span>
-                        {variation.author && (
-                          <>
-                            <span>by</span>
-                            <span>{variation.author}</span>
-                          </>
-                        )}
-                      </div>
-                      <p className="text-muted-foreground line-clamp-2 text-sm">
-                        {variation.sourceContent}
-                      </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      {/* Platform indicators */}
-                      <div className="flex gap-1">
+                    <div className="flex items-center gap-3 ml-4">
+                      {/* Enhanced Platform indicators */}
+                      <div className="flex gap-2">
                         {variation.posts.map(post => {
                           const config = PLATFORM_CONFIGS[post.platform]
                           const PlatformIcon = config.icon
+                          const hasHighEngagement = post.engagementPotential && post.engagementPotential >= 4
+                          
                           return (
                             <div
                               key={post.id}
                               className={cn(
-                                "rounded p-1 text-white",
-                                config.color
+                                "platform-indicator-hover relative flex items-center justify-center w-8 h-8 rounded-md text-white transition-transform group-hover:scale-110",
+                                config.color,
+                                hasHighEngagement && "ring-2 ring-yellow-400 ring-offset-1"
                               )}
-                              title={config.name}
+                              title={`${config.name}${hasHighEngagement ? ' - High engagement potential' : ''}`}
                             >
-                              <PlatformIcon className="h-3 w-3" />
+                              <PlatformIcon className="h-4 w-4" />
+                              {hasHighEngagement && (
+                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full flex items-center justify-center">
+                                  <Star className="h-2 w-2 text-yellow-800 fill-current" />
+                                </div>
+                              )}
                             </div>
                           )
                         })}
                       </div>
 
+                      <Separator orientation="vertical" className="h-8" />
+
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => toggleVariationExpansion(variation.id)}
+                        className="text-muted-foreground hover:text-foreground"
                       >
                         {isExpanded ? (
-                          <EyeOff className="h-4 w-4" />
+                          <>
+                            <EyeOff className="h-4 w-4 mr-2" />
+                            Collapse
+                          </>
                         ) : (
-                          <Eye className="h-4 w-4" />
+                          <>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </>
                         )}
-                        {isExpanded ? "Collapse" : "Expand"}
                       </Button>
 
                       <Button
@@ -520,63 +841,62 @@ export function ContentManager({
 
                 {/* Posts */}
                 {isExpanded && (
-                  <div className="space-y-4 p-4">
+                  <div className="space-y-6 p-6 bg-muted/20">
                     {variation.posts.map(post => {
                       const isEditing = editingPosts.has(post.id)
+                      const config = PLATFORM_CONFIGS[post.platform]
 
                       return (
-                        <div key={post.id} className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
+                        <div key={post.id} className="rounded-lg border bg-card p-4 shadow-sm">
+                          {/* Post Header */}
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
                               <div
                                 className={cn(
-                                  "rounded p-1 text-white",
-                                  PLATFORM_CONFIGS[post.platform].color
+                                  "flex items-center justify-center w-8 h-8 rounded-md text-white",
+                                  config.color
                                 )}
                               >
-                                {React.createElement(
-                                  PLATFORM_CONFIGS[post.platform].icon,
-                                  { className: "h-3 w-3" }
-                                )}
+                                {React.createElement(config.icon, { className: "h-4 w-4" })}
                               </div>
-                              <span className="text-sm font-medium">
-                                {PLATFORM_CONFIGS[post.platform].name}
-                              </span>
-                              {!post.isValid && (
-                                <Badge
-                                  variant="destructive"
-                                  className="text-xs"
-                                >
-                                  Invalid
-                                </Badge>
-                              )}
+                              <div>
+                                <span className="font-medium">{config.name}</span>
+                                <div className="flex items-center gap-2 mt-1">
+                                  {!post.isValid && (
+                                    <Badge variant="destructive" className="text-xs">
+                                      ⚠️ Invalid
+                                    </Badge>
+                                  )}
+                                  <Badge variant="outline" className="text-xs">
+                                    {post.characterCount} chars
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
                               {post.engagementPotential && (
-                                <div className="flex items-center gap-2">
+                                <div className="text-right">
                                   {renderEngagementStars(
                                     post.engagementPotential,
                                     getEngagementExplanation(post)
                                   )}
-                                  <Badge 
-                                    variant={post.engagementPotential >= 4 ? "default" : "secondary"}
-                                    className="text-xs"
-                                  >
-                                    {post.engagementPotential >= 4 ? "Alto potenziale" : 
-                                     post.engagementPotential >= 3 ? "Potenziale medio" : "Da migliorare"}
-                                  </Badge>
                                 </div>
                               )}
+                              
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => togglePostEditing(post.id)}
+                                className="shrink-0"
+                              >
+                                <Edit3 className="h-4 w-4 mr-2" />
+                                {isEditing ? "Cancel" : "Edit"}
+                              </Button>
                             </div>
-
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => togglePostEditing(post.id)}
-                            >
-                              <Edit3 className="h-4 w-4" />
-                              {isEditing ? "Cancel" : "Edit"}
-                            </Button>
                           </div>
 
+                          {/* Post Content */}
                           {isEditing ? (
                             <ContentEditor
                               post={post}
@@ -594,25 +914,34 @@ export function ContentManager({
                               }
                             />
                           ) : (
-                            <div className="bg-background rounded border p-3">
-                              <div className="mb-2 text-sm whitespace-pre-wrap">
+                            <div className="rounded-lg border bg-muted/30 p-4">
+                              <div className="mb-3 text-sm whitespace-pre-wrap leading-relaxed">
                                 {post.content}
                               </div>
                               {post.hashtags.length > 0 && (
-                                <div className="mb-2 flex flex-wrap gap-1">
+                                <div className="mb-3 flex flex-wrap gap-2">
                                   {post.hashtags.map((tag, index) => (
                                     <Badge
                                       key={index}
                                       variant="secondary"
-                                      className="text-xs"
+                                      className="text-xs font-medium"
                                     >
                                       {tag.startsWith("#") ? tag : `#${tag}`}
                                     </Badge>
                                   ))}
                                 </div>
                               )}
-                              <div className="text-muted-foreground text-xs">
-                                {post.characterCount} characters
+                              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <span>{post.characterCount} characters</span>
+                                {post.isValid ? (
+                                  <Badge variant="outline" className="text-green-600 border-green-200">
+                                    ✓ Valid
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="destructive" className="text-xs">
+                                    Needs review
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                           )}

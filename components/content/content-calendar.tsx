@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
-import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction'
+import interactionPlugin, { DateClickArg, DropArg } from '@fullcalendar/interaction'
 import { EventClickArg, EventDropArg } from '@fullcalendar/core'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -145,6 +145,25 @@ export default function ContentCalendar({ className }: ContentCalendarProps) {
     loadSocialAccounts()
   }, [])
 
+  // Initialize external events for drag and drop
+  useEffect(() => {
+    const initializeExternalEvents = () => {
+      // Make draft cards draggable as external events
+      const draftCards = document.querySelectorAll('.draft-card')
+      draftCards.forEach(card => {
+        if (card instanceof HTMLElement) {
+          card.draggable = true
+          // FullCalendar will automatically detect these as external events
+          // because they have the fc-event class
+        }
+      })
+    }
+
+    // Initialize after a short delay to ensure DOM is ready
+    const timer = setTimeout(initializeExternalEvents, 100)
+    return () => clearTimeout(timer)
+  }, [drafts]) // Re-run when drafts change
+
   const loadCalendarData = async () => {
     try {
       setLoading(true)
@@ -250,6 +269,227 @@ export default function ContentCalendar({ className }: ContentCalendarProps) {
     setScheduleDate(new Date().toISOString().split('T')[0]) // Default to today
     setSelectedAccounts([]) // Reset account selection
     setShowScheduleDialog(true)
+  }
+
+  const handleDrop = async (dropInfo: DropArg) => {
+    try {
+      console.log('Drop event triggered:', dropInfo)
+      
+      // Get the dropped draft data from multiple sources
+      let draftData = null
+      
+      // Try to get from draggedEl data attribute
+      const draftElement = dropInfo.draggedEl
+      if (draftElement) {
+        const draftDataString = draftElement.getAttribute('data-draft')
+        if (draftDataString) {
+          draftData = JSON.parse(draftDataString)
+        }
+      }
+      
+      // If not found, try from dataTransfer (fallback)
+      if (!draftData && dropInfo.draggedEl) {
+        const allDrafts = document.querySelectorAll('.draft-card')
+        for (const element of allDrafts) {
+          if (element === dropInfo.draggedEl) {
+            const dataString = element.getAttribute('data-draft')
+            if (dataString) {
+              draftData = JSON.parse(dataString)
+              break
+            }
+          }
+        }
+      }
+
+      if (!draftData || !draftData.id) {
+        console.error('No draft data found in drop event')
+        toast.error("Errore nel recupero dei dati della bozza")
+        return
+      }
+
+      console.log('Draft data found:', draftData)
+
+      const dropDate = dropInfo.date.toISOString().split('T')[0]
+      
+      // For now, schedule at 10:00 AM by default when dropping
+      const scheduledAt = new Date(`${dropDate}T10:00:00`)
+      
+      // Check if we have active social accounts
+      if (socialAccounts.length === 0) {
+        // For now, just show visual feedback without actual scheduling
+        toast.error("Nessun account social connesso, ma testiamo il drag and drop...")
+        
+        // Add to calendar visually for testing
+        const newEvent: CalendarEvent = {
+          id: draftData.id,
+          title: `${draftData.platform}: ${draftData.content.substring(0, 30)}...`,
+          date: dropDate,
+          backgroundColor: PLATFORM_CONFIGS[draftData.platform as keyof typeof PLATFORM_CONFIGS]?.color || '#3b82f6',
+          borderColor: PLATFORM_CONFIGS[draftData.platform as keyof typeof PLATFORM_CONFIGS]?.darkColor || '#1d4ed8',
+          extendedProps: {
+            platform: draftData.platform,
+            contentId: draftData.id,
+            status: 'scheduled',
+            engagementPotential: draftData.engagementPotential,
+            content: draftData.content
+          }
+        }
+        
+        setEvents(prev => [...prev, newEvent])
+        setDrafts(prev => prev.filter(d => d.id !== draftData.id))
+        toast.success(`Drop riuscito! Post aggiunto al ${dropDate} (test mode)`)
+        return
+      }
+
+      // Use the first active account by default for drag and drop
+      const defaultAccount = socialAccounts[0]
+      
+      console.log('Scheduling post:', {
+        contentId: draftData.id,
+        date: dropDate,
+        time: '10:00',
+        accountId: defaultAccount.id
+      })
+      
+      const response = await fetch('/api/social/schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contentId: draftData.id,
+          accountIds: [defaultAccount.id],
+          scheduledAt: scheduledAt.toISOString()
+        })
+      })
+
+      if (response.ok) {
+        // Add to calendar
+        const newEvent: CalendarEvent = {
+          id: draftData.id,
+          title: `${draftData.platform}: ${draftData.content.substring(0, 30)}...`,
+          date: dropDate,
+          backgroundColor: PLATFORM_CONFIGS[draftData.platform as keyof typeof PLATFORM_CONFIGS]?.color || '#3b82f6',
+          borderColor: PLATFORM_CONFIGS[draftData.platform as keyof typeof PLATFORM_CONFIGS]?.darkColor || '#1d4ed8',
+          extendedProps: {
+            platform: draftData.platform,
+            contentId: draftData.id,
+            status: 'scheduled',
+            engagementPotential: draftData.engagementPotential,
+            content: draftData.content
+          }
+        }
+        
+        setEvents(prev => [...prev, newEvent])
+        
+        // Remove from drafts
+        setDrafts(prev => prev.filter(d => d.id !== draftData.id))
+        
+        toast.success(`Post programmato per ${dropDate} alle 10:00!`)
+      } else {
+        const errorData = await response.json()
+        toast.error(errorData.error || "Errore nella programmazione")
+        console.error('Scheduling failed:', errorData)
+      }
+    } catch (error) {
+      console.error('Error in drag and drop:', error)
+      toast.error("Errore durante il drag and drop")
+    }
+  }
+
+  // Custom drop handler for direct day drops
+  const handleCustomDrop = async (draftData: DraftPost, dropDate: string) => {
+    try {
+      console.log('Custom drop triggered:', { draftData, dropDate })
+      
+      // For now, schedule at 10:00 AM by default when dropping
+      const scheduledAt = new Date(`${dropDate}T10:00:00`)
+      
+      // Check if we have active social accounts
+      if (socialAccounts.length === 0) {
+        // For now, just show visual feedback without actual scheduling
+        toast.success("Drop riuscito! (modalità test - nessun account social)")
+        
+        // Add to calendar visually for testing
+        const newEvent: CalendarEvent = {
+          id: draftData.id,
+          title: `${draftData.platform}: ${draftData.content.substring(0, 30)}...`,
+          date: dropDate,
+          backgroundColor: PLATFORM_CONFIGS[draftData.platform as keyof typeof PLATFORM_CONFIGS]?.color || '#3b82f6',
+          borderColor: PLATFORM_CONFIGS[draftData.platform as keyof typeof PLATFORM_CONFIGS]?.darkColor || '#1d4ed8',
+          extendedProps: {
+            platform: draftData.platform,
+            contentId: draftData.id,
+            status: 'scheduled',
+            engagementPotential: draftData.engagementPotential,
+            content: draftData.content
+          }
+        }
+        
+        setEvents(prev => [...prev, newEvent])
+        setDrafts(prev => prev.filter(d => d.id !== draftData.id))
+        return
+      }
+
+      // Use the first active account by default for drag and drop
+      const defaultAccount = socialAccounts[0]
+      
+      console.log('Scheduling post:', {
+        contentId: draftData.id,
+        date: dropDate,
+        time: '10:00',
+        accountId: defaultAccount.id
+      })
+      
+      const response = await fetch('/api/social/schedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contentId: draftData.id,
+          accountIds: [defaultAccount.id],
+          scheduledAt: scheduledAt.toISOString()
+        })
+      })
+
+      if (response.ok) {
+        // Add to calendar
+        const newEvent: CalendarEvent = {
+          id: draftData.id,
+          title: `${draftData.platform}: ${draftData.content.substring(0, 30)}...`,
+          date: dropDate,
+          backgroundColor: PLATFORM_CONFIGS[draftData.platform as keyof typeof PLATFORM_CONFIGS]?.color || '#3b82f6',
+          borderColor: PLATFORM_CONFIGS[draftData.platform as keyof typeof PLATFORM_CONFIGS]?.darkColor || '#1d4ed8',
+          extendedProps: {
+            platform: draftData.platform,
+            contentId: draftData.id,
+            status: 'scheduled',
+            engagementPotential: draftData.engagementPotential,
+            content: draftData.content
+          }
+        }
+        
+        setEvents(prev => [...prev, newEvent])
+        
+        // Remove from drafts
+        setDrafts(prev => prev.filter(d => d.id !== draftData.id))
+        
+        toast.success(`Post programmato per ${dropDate} alle 10:00!`)
+      } else {
+        const errorData = await response.json()
+        if (errorData.error === 'Scheduled time must be in the future') {
+          toast.error("⚠️ Impossibile programmare nel passato", {
+            description: "Seleziona una data futura per programmare il post",
+            duration: 8000
+          })
+        } else {
+          toast.error(errorData.error || "Errore nella programmazione", {
+            duration: 6000
+          })
+        }
+        console.error('Scheduling failed:', errorData)
+      }
+    } catch (error) {
+      console.error('Error in custom drop:', error)
+      toast.error("Errore durante il drag and drop")
+    }
   }
 
   const handleScheduleSubmit = async () => {
@@ -382,6 +622,79 @@ export default function ContentCalendar({ className }: ContentCalendarProps) {
               }}
               eventDisplay="block"
               eventTextColor="white"
+              // Add custom drop handling
+              viewDidMount={(info) => {
+                // Add drop zone listeners to calendar days
+                const calendarEl = info.el
+                const dayElements = calendarEl.querySelectorAll('.fc-day')
+                
+                dayElements.forEach((dayEl) => {
+                  if (dayEl instanceof HTMLElement) {
+                    dayEl.addEventListener('dragover', (e: DragEvent) => {
+                      e.preventDefault()
+                      if (e.dataTransfer) {
+                        e.dataTransfer.dropEffect = 'copy'
+                      }
+                      dayEl.classList.add('drag-over')
+                    })
+                    
+                    dayEl.addEventListener('dragleave', () => {
+                      dayEl.classList.remove('drag-over')
+                    })
+                    
+                    dayEl.addEventListener('drop', (e: DragEvent) => {
+                      e.preventDefault()
+                      dayEl.classList.remove('drag-over')
+                      
+                      try {
+                        const draftData = e.dataTransfer?.getData('application/json')
+                        if (draftData) {
+                          const draft = JSON.parse(draftData)
+                          
+                          // Get date from the day element's aria-label or data attributes
+                          let dateStr = dayEl.getAttribute('data-date')
+                          if (!dateStr) {
+                            // Try to get from aria-label or other attributes
+                            const ariaLabel = dayEl.getAttribute('aria-label')
+                            if (ariaLabel) {
+                              // Parse date from aria-label if available
+                              const dateMatch = ariaLabel.match(/(\d{4}-\d{2}-\d{2})/)
+                              if (dateMatch) {
+                                dateStr = dateMatch[1]
+                              }
+                            }
+                          }
+                          
+                          // Fallback: get from the text content and current view
+                          if (!dateStr) {
+                            const dayText = dayEl.textContent?.trim()
+                            if (dayText && /^\d{1,2}$/.test(dayText)) {
+                              const calendar = info.view.calendar
+                              const currentDate = calendar.getDate()
+                              const year = currentDate.getFullYear()
+                              const month = currentDate.getMonth()
+                              const day = parseInt(dayText)
+                              
+                              // Create date for this day
+                              const dropDate = new Date(year, month, day)
+                              dateStr = dropDate.toISOString().split('T')[0]
+                            }
+                          }
+                          
+                          if (dateStr) {
+                            handleCustomDrop(draft, dateStr)
+                          } else {
+                            toast.error("Impossibile determinare la data del drop")
+                          }
+                        }
+                      } catch (error) {
+                        console.error('Error handling drop:', error)
+                        toast.error("Errore durante il drop")
+                      }
+                    })
+                  }
+                })
+              }}
               eventContent={(arg) => {
                 const { event } = arg
                 const platform = event.extendedProps.platform
@@ -445,7 +758,38 @@ export default function ContentCalendar({ className }: ContentCalendarProps) {
               </div>
             ) : (
               filteredDrafts.map((draft) => (
-              <div key={draft.id} className="draft-card border rounded-lg p-3 space-y-2 min-w-0 overflow-hidden">
+              <div 
+                key={draft.id} 
+                className="draft-card fc-event border rounded-lg p-3 space-y-2 min-w-0 overflow-hidden cursor-move hover:shadow-md transition-all duration-200"
+                draggable={true}
+                data-draft={JSON.stringify(draft)}
+                data-event={JSON.stringify({
+                  id: draft.id,
+                  title: `${draft.platform}: ${draft.content.substring(0, 30)}...`,
+                  backgroundColor: PLATFORM_CONFIGS[draft.platform as keyof typeof PLATFORM_CONFIGS]?.color || '#3b82f6',
+                  borderColor: PLATFORM_CONFIGS[draft.platform as keyof typeof PLATFORM_CONFIGS]?.darkColor || '#1d4ed8'
+                })}
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('application/json', JSON.stringify(draft))
+                  e.dataTransfer.effectAllowed = 'copy'
+                  e.currentTarget.classList.add('dragging')
+                  
+                  // Add visual feedback to calendar
+                  const calendarEl = document.querySelector('.fc')
+                  if (calendarEl) {
+                    calendarEl.classList.add('receiving-drag')
+                  }
+                }}
+                onDragEnd={(e) => {
+                  e.currentTarget.classList.remove('dragging')
+                  
+                  // Remove visual feedback from calendar
+                  const calendarEl = document.querySelector('.fc')
+                  if (calendarEl) {
+                    calendarEl.classList.remove('receiving-drag')
+                  }
+                }}
+              >
                 <div className="flex items-center justify-between gap-1 min-w-0">
                   <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
                     {getPlatformIcon(draft.platform)}

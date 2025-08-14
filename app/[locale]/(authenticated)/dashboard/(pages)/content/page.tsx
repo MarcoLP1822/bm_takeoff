@@ -295,35 +295,6 @@ export default function ContentPage() {
         </Alert>
       )}
 
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Content Management</h1>
-          <p className="text-muted-foreground">
-            Review, edit, and manage your generated social media content
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-          >
-            <RefreshCw
-              className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
-            />
-            Refresh
-          </Button>
-          <Button
-            onClick={() => {
-              window.location.href = `/dashboard/content/generate`
-            }}
-          >
-            Generate New Content
-          </Button>
-        </div>
-      </div>
-
       {contentVariations.length === 0 ? (
         <div className="text-center py-12">
           <div className="mb-4">

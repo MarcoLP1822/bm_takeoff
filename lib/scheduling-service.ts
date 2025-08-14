@@ -27,6 +27,26 @@ export class SchedulingService {
   private static readonly MAX_RETRIES = 3
 
   /**
+   * Safely parse post data from Redis (handles both string and object cases)
+   */
+  private static parsePostData(postData: unknown): ScheduledPost {
+    let post: ScheduledPost
+    
+    if (typeof postData === 'string') {
+      post = JSON.parse(postData) as ScheduledPost
+    } else {
+      post = postData as ScheduledPost
+    }
+    
+    // Ensure scheduledAt is a Date object
+    if (typeof post.scheduledAt === 'string') {
+      post.scheduledAt = new Date(post.scheduledAt)
+    }
+    
+    return post
+  }
+
+  /**
    * Schedule content for future publishing
    */
   static async schedulePost(
@@ -149,7 +169,7 @@ export class SchedulingService {
       const postData = await redis.get(key)
 
       if (postData) {
-        const post = JSON.parse(postData as string) as ScheduledPost
+        const post = this.parsePostData(postData)
 
         // Check if this post belongs to the user
         const content = await db
@@ -170,7 +190,11 @@ export class SchedulingService {
     }
 
     return scheduledPosts.sort(
-      (a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime()
+      (a, b) => {
+        const dateA = a.scheduledAt instanceof Date ? a.scheduledAt : new Date(a.scheduledAt)
+        const dateB = b.scheduledAt instanceof Date ? b.scheduledAt : new Date(b.scheduledAt)
+        return dateA.getTime() - dateB.getTime()
+      }
     )
   }
 
@@ -188,7 +212,7 @@ export class SchedulingService {
       throw new Error("Scheduled post not found")
     }
 
-    const post = JSON.parse(postData as string) as ScheduledPost
+    const post = this.parsePostData(postData)
 
     // Verify user owns this content
     const content = await db
@@ -247,7 +271,7 @@ export class SchedulingService {
       throw new Error("Scheduled post not found")
     }
 
-    const post = JSON.parse(postData as string) as ScheduledPost
+    const post = this.parsePostData(postData)
 
     // Verify user owns this content
     const content = await db
@@ -344,7 +368,7 @@ export class SchedulingService {
         return
       }
 
-      const post = JSON.parse(postData as string) as ScheduledPost
+      const post = this.parsePostData(postData)
 
       // Get user ID from content
       const content = await db
@@ -389,7 +413,7 @@ export class SchedulingService {
       // Handle unexpected errors
       const postData = await redis.get(key)
       if (postData) {
-        const post = JSON.parse(postData as string) as ScheduledPost
+        const post = this.parsePostData(postData)
         await this.handlePublishFailure(
           post,
           error instanceof Error ? error.message : "Unknown error"
@@ -467,7 +491,7 @@ export class SchedulingService {
       const postData = await redis.get(key)
 
       if (postData) {
-        const post = JSON.parse(postData as string) as ScheduledPost
+        const post = this.parsePostData(postData)
         if (post.contentId === contentId) {
           posts.push(post)
         }

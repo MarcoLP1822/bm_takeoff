@@ -70,12 +70,15 @@ export async function GET(request: NextRequest) {
       const variationKey = content.variationGroupId || content.id
 
       if (!variationsMap.has(variationKey)) {
+        // Create more unique and descriptive theme names
+        const theme = content.sourceType === 'theme' 
+          ? content.sourceContent || extractThemeFromContent(content.content)
+          : createUniqueThemeName(content.content, content.sourceType || "quote", content.id)
+        
         variationsMap.set(variationKey, {
           id: variationKey,
           posts: [],
-          theme: content.sourceType === 'theme' 
-            ? content.sourceContent || extractThemeFromContent(content.content)
-            : extractThemeFromContent(content.content),
+          theme: theme,
           sourceType: content.sourceType || "quote" as const,
           sourceContent: content.sourceContent || (content.content.substring(0, 200) + "..."),
           bookId: book.id,
@@ -126,6 +129,45 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+// Helper function to create unique theme names to avoid duplicates
+function createUniqueThemeName(content: string, sourceType: string, contentId: string): string {
+  // Extract the first meaningful sentence or phrase (up to 50 characters)
+  const cleanContent = content.trim().replace(/\s+/g, ' ')
+  const firstSentence = cleanContent.split(/[.!?]/)[0].trim()
+  const shortTitle = firstSentence.length > 50 
+    ? firstSentence.substring(0, 47) + "..." 
+    : firstSentence
+
+  // Add source type prefix for clarity
+  const prefixes = {
+    quote: "Quote:",
+    insight: "Insight:",
+    theme: "Theme:",
+    summary: "Summary:",
+    discussion: "Discussion:"
+  }
+
+  const prefix = prefixes[sourceType as keyof typeof prefixes] || "Content:"
+  
+  // If the content is too short or generic, use a more descriptive approach
+  if (shortTitle.length < 10) {
+    const words = cleanContent.toLowerCase().split(" ").slice(0, 5)
+    const keyWords = words.filter(word => 
+      word.length > 3 && 
+      !["this", "that", "with", "from", "they", "have", "been", "will", "there", "would"].includes(word)
+    )
+    
+    if (keyWords.length > 0) {
+      const capitalizedWords = keyWords.slice(0, 3).map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      )
+      return `${prefix} ${capitalizedWords.join(" ")}`
+    }
+  }
+
+  return `${prefix} ${shortTitle}`
 }
 
 // Helper function to extract theme from content (simplified)

@@ -167,3 +167,49 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
 }
+
+/* Content calendar responsive optimizations */
+.content-calendar-container {
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.draft-card {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.draft-card .draft-actions {
+  min-height: 32px; /* Altezza minima per il pulsante */
+}
+
+/* Quando il pulsante va su nuova riga, mantieni l'allineamento */
+.draft-actions > *:last-child {
+  margin-left: auto;
+}
+
+/* Su schermi molto piccoli, permetti al pulsante di prendere tutta la larghezza */
+@media (max-width: 280px) {
+  .draft-actions > *:last-child {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+.draft-content {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Mobile-first responsive breakpoints */
+@media (max-width: 640px) {
+  .content-calendar-container {
+    padding: 0.5rem;
+  }
+  
+  .draft-card {
+    padding: 0.75rem;
+  }
+}

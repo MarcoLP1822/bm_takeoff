@@ -286,7 +286,8 @@ async function generateQuoteContent(
   tone: string,
   maxRetries: number,
   bookAnalysis: BookAnalysisResult,
-  locale: string = 'en'
+  locale: string = 'en',
+  bookId?: string
 ): Promise<ContentVariation[]> {
   const variations: ContentVariation[] = []
 
@@ -377,9 +378,9 @@ Format: Just return the post content, no quotes or extra formatting.`
     }
 
     variations.push({
-      id: `quote-${Date.now()}-${i}`,
+      id: `quote-${bookId ? bookId.slice(-8) : Date.now()}-${Date.now()}-${i}`, // More unique ID
       posts,
-      theme: "Quote",
+      theme: `Quote: ${quote.length > 50 ? quote.substring(0, 47) + "..." : quote}`, // More descriptive theme
       sourceType: "quote",
       sourceContent: quote
     })
@@ -400,7 +401,8 @@ async function generateInsightContent(
   tone: string,
   maxRetries: number,
   bookAnalysis: BookAnalysisResult,
-  locale: string = 'en'
+  locale: string = 'en',
+  bookId?: string
 ): Promise<ContentVariation[]> {
   const variations: ContentVariation[] = []
 
@@ -491,9 +493,9 @@ Format: Just return the post content, no quotes or extra formatting.`
     }
 
     variations.push({
-      id: `insight-${Date.now()}-${i}`,
+      id: `insight-${bookId ? bookId.slice(-8) : Date.now()}-${Date.now()}-${i}`,
       posts,
-      theme: "Key Insight",
+      theme: `Insight: ${insight.length > 50 ? insight.substring(0, 47) + "..." : insight}`,
       sourceType: "insight",
       sourceContent: insight
     })
@@ -514,7 +516,8 @@ async function generateThemeContent(
   tone: string,
   maxRetries: number,
   bookAnalysis: BookAnalysisResult,
-  locale: string = 'en'
+  locale: string = 'en',
+  bookId?: string
 ): Promise<ContentVariation[]> {
   const variations: ContentVariation[] = []
 
@@ -603,9 +606,9 @@ Format: Just return the post content, no quotes or extra formatting.`
     }
 
     variations.push({
-      id: `theme-${Date.now()}-${i}`,
+      id: `theme-${bookId ? bookId.slice(-8) : Date.now()}-${Date.now()}-${i}`,
       posts,
-      theme: theme,
+      theme: theme, // Use the actual theme name instead of generic "theme"
       sourceType: "theme",
       sourceContent: theme
     })
@@ -1003,7 +1006,8 @@ export async function generateSocialContent(
         tone,
         maxRetries,
         bookAnalysis,
-        locale
+        locale,
+        bookId
       )
       variations.push(...quoteVariations)
     }
@@ -1019,7 +1023,8 @@ export async function generateSocialContent(
         tone,
         maxRetries,
         bookAnalysis,
-        locale
+        locale,
+        bookId
       )
       variations.push(...insightVariations)
     }
@@ -1035,7 +1040,8 @@ export async function generateSocialContent(
         tone,
         maxRetries,
         bookAnalysis,
-        locale
+        locale,
+        bookId
       )
       variations.push(...themeVariations)
     }

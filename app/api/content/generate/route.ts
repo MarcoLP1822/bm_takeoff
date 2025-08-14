@@ -146,6 +146,12 @@ export async function POST(request: NextRequest) {
     // For each variation, save the posts to the database
     try {
       for (const variation of contentVariations) {
+        // Check if posts exist and is an array
+        if (!variation.posts || !Array.isArray(variation.posts)) {
+          console.warn(`Skipping variation ${variation.id} - no posts found`)
+          continue
+        }
+        
         for (const post of variation.posts) {
           // Use direct DB insert to bypass authentication issues
           const [newContent] = await db
@@ -159,6 +165,15 @@ export async function POST(request: NextRequest) {
               hashtags: post.hashtags || [],
               imageUrl: post.imageUrl,
               status: 'draft',
+              sourceType: variation.sourceType,
+              sourceContent: variation.sourceContent,
+              variationGroupId: variation.id, // Proper grouping for variations
+              generationContext: {
+                bookTitle: bookData.title,
+                sourceType: variation.sourceType,
+                generatedAt: new Date().toISOString(),
+                generationMethod: 'batch'
+              },
               createdAt: new Date(),
               updatedAt: new Date()
             })

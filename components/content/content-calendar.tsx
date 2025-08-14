@@ -354,17 +354,17 @@ export default function ContentCalendar({ className }: ContentCalendarProps) {
   }
 
   return (
-    <div className={cn("grid grid-cols-1 lg:grid-cols-4 gap-6", className)}>
+    <div className={cn("content-calendar-container grid grid-cols-1 lg:grid-cols-4 gap-6 min-w-0 w-full overflow-hidden", className)}>
       {/* Calendario principale */}
-      <div className="lg:col-span-3">
-        <Card>
+      <div className="lg:col-span-3 min-w-0 overflow-hidden">
+        <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
               Calendario Editoriale
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-hidden">
             <FullCalendar
               ref={calendarRef}
               plugins={[dayGridPlugin, interactionPlugin]}
@@ -408,14 +408,14 @@ export default function ContentCalendar({ className }: ContentCalendarProps) {
       </div>
 
       {/* Sidebar con bozze e controlli */}
-      <div className="space-y-6">
-        <Card className="h-fit">
+      <div className="space-y-6 min-w-0">
+        <Card className="h-fit overflow-hidden">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Edit className="h-4 w-4" />
-              Bozze Pronte
+            <CardTitle className="text-lg flex items-center gap-2 min-w-0">
+              <Edit className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">Bozze Pronte</span>
               {filteredDrafts.length > 0 && (
-                <Badge variant="secondary" className="ml-auto">
+                <Badge variant="secondary" className="ml-auto flex-shrink-0">
                   {filteredDrafts.length}
                 </Badge>
               )}
@@ -445,9 +445,9 @@ export default function ContentCalendar({ className }: ContentCalendarProps) {
               </div>
             ) : (
               filteredDrafts.map((draft) => (
-              <div key={draft.id} className="border rounded-lg p-3 space-y-2">
-                <div className="flex items-center justify-between flex-wrap gap-1">
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
+              <div key={draft.id} className="draft-card border rounded-lg p-3 space-y-2 min-w-0 overflow-hidden">
+                <div className="flex items-center justify-between gap-1 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
                     {getPlatformIcon(draft.platform)}
                     <span className="text-sm font-medium truncate">
                       {PLATFORM_CONFIGS[draft.platform as keyof typeof PLATFORM_CONFIGS]?.name}
@@ -458,23 +458,22 @@ export default function ContentCalendar({ className }: ContentCalendarProps) {
                   </div>
                 </div>
                 
-                <p className="text-sm text-muted-foreground line-clamp-2">
+                <p className="draft-content text-sm text-muted-foreground line-clamp-2">
                   {draft.content}
                 </p>
                 
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <Badge variant="secondary" className="text-xs flex-shrink-0">
+                <div className="draft-actions flex items-center justify-between flex-wrap gap-2 min-w-0">
+                  <Badge variant="secondary" className="text-xs flex-shrink-0 truncate max-w-[100px]">
                     {draft.theme}
                   </Badge>
                   <Button 
                     size="sm" 
                     variant="outline"
                     onClick={() => handleScheduleDraft(draft)}
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 min-w-fit"
                   >
                     <Plus className="h-3 w-3 mr-1" />
-                    <span className="hidden sm:inline">Programma</span>
-                    <span className="sm:hidden">Prog</span>
+                    <span className="whitespace-nowrap">Programma</span>
                   </Button>
                 </div>
               </div>

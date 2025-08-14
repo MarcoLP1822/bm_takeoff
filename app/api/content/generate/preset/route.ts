@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       for (const variation of result) {
         if (variation.posts && Array.isArray(variation.posts)) {
           for (const post of variation.posts) {
-            // Use direct DB insert to save each post
+            // Use direct DB insert to save each post with proper grouping
             const [newContent] = await db
               .insert(generatedContent)
               .values({
@@ -102,6 +102,14 @@ export async function POST(request: NextRequest) {
                 status: 'draft',
                 sourceType: variation.sourceType,
                 sourceContent: variation.sourceContent,
+                variationGroupId: variation.id, // Use variation ID for proper grouping
+                generationContext: {
+                  preset: preset.id,
+                  presetName: preset.name,
+                  bookTitle: book[0].title,
+                  generatedAt: new Date().toISOString(),
+                  sourceType: variation.sourceType
+                },
                 createdAt: new Date(),
                 updatedAt: new Date()
               })

@@ -27,7 +27,11 @@ import {
   Search,
   X,
   SortAsc,
-  SortDesc
+  SortDesc,
+  Lightbulb,
+  Target,
+  TrendingDown,
+  CheckCircle
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import {
@@ -44,6 +48,43 @@ import type {
   AnalyticsInsights,
   OptimalPostingTime
 } from "@/lib/analytics-service"
+import ContentRecommendations from "./content-recommendations"
+
+// Helper functions for actionable insights
+const getEngagementRateExplanation = (rate: number) => {
+  if (rate > 3) return "🎉 Eccellente! Il tuo engagement è molto sopra la media. Continua con questa strategia!"
+  if (rate > 2) return "👍 Buono! Un engagement rate superiore al 2% è considerato positivo."
+  if (rate > 1) return "📈 Nella media. Prova a utilizzare più domande e call-to-action nei tuoi post."
+  return "⚠️ Sotto la media. Considera di migliorare il timing e il tipo di contenuti."
+}
+
+const getReachExplanation = (reach: number, previousReach: number) => {
+  const change = previousReach > 0 ? ((reach - previousReach) / previousReach) * 100 : 0
+  if (change > 20) return `🚀 Ottima crescita del ${change.toFixed(0)}% rispetto al periodo precedente!`
+  if (change > 0) return `📈 In crescita del ${change.toFixed(0)}%. Continua così!`
+  if (change < -10) return `📉 Calo del ${Math.abs(change).toFixed(0)}%. Prova a variare i contenuti o gli orari di pubblicazione.`
+  return "📊 Performance stabile. Considera di sperimentare con nuovi formati."
+}
+
+const getThemeRecommendation = (theme: ThemePerformance, avgEngagement: number) => {
+  if (theme.avgEngagementRate > avgEngagement * 1.5) {
+    return `🌟 Tema ad alta performance! Crea più contenuti su "${theme.theme}" per massimizzare l'engagement.`
+  }
+  if (theme.avgEngagementRate < avgEngagement * 0.7) {
+    return `💡 Tema sottoperformante. Prova a cambiare approccio o a combinare "${theme.theme}" con temi più popolari.`
+  }
+  return `📋 Tema stabile. Mantieni la frequenza attuale per "${theme.theme}".`
+}
+
+const getOptimalTimeRecommendation = (times: OptimalPostingTime[]) => {
+  if (times.length === 0) return "📊 Raccogliendo dati per suggerimenti personalizzati..."
+  
+  const bestTime = times[0]
+  const bestHour = bestTime.hour
+  const timeLabel = bestHour < 12 ? "mattina" : bestHour < 18 ? "pomeriggio" : "sera"
+  
+  return `⏰ Il tuo pubblico è più attivo in ${timeLabel} (${bestHour}:00). Programma i contenuti più importanti in questa fascia oraria.`
+}
 
 interface AnalyticsDashboardProps {
   className?: string
@@ -367,91 +408,150 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
         </Card>
       )}
 
-      <Tabs defaultValue="platforms" className="space-y-4">
+      <Tabs defaultValue="recommendations" className="space-y-4">
         <TabsList>
+          <TabsTrigger value="recommendations">🎯 Raccomandazioni</TabsTrigger>
           <TabsTrigger value="platforms">Platform Performance</TabsTrigger>
           <TabsTrigger value="themes">Theme Analysis</TabsTrigger>
           <TabsTrigger value="timing">Optimal Times</TabsTrigger>
           <TabsTrigger value="posts">Recent Posts</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="recommendations" className="space-y-4">
+          <ContentRecommendations 
+            topThemes={themes}
+            optimalTimes={optimalTimes}
+            className="w-full"
+          />
+        </TabsContent>
+
         <TabsContent value="platforms" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {platforms.map(platform => (
-              <Card key={platform.platform}>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <span>{getPlatformIcon(platform.platform)}</span>
-                    <span className="capitalize">{platform.platform}</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Posts:</span>
-                    <span className="font-medium">{platform.totalPosts}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Avg Engagement Rate:</span>
-                    <span className="font-medium">
-                      {formatPercentage(platform.avgEngagementRate)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Total Impressions:</span>
-                    <span className="font-medium">
-                      {formatNumber(platform.totalImpressions)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Total Likes:</span>
-                    <span className="font-medium">
-                      {formatNumber(platform.totalLikes)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            {platforms.map(platform => {
+              const overallAvgEngagement = platforms.reduce((sum, p) => sum + p.avgEngagementRate, 0) / platforms.length
+              return (
+                <Card key={platform.platform}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <span>{getPlatformIcon(platform.platform)}</span>
+                      <span className="capitalize">{platform.platform}</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <div className="flex justify-between">
+                      <span>Posts:</span>
+                      <span className="font-medium">{platform.totalPosts}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Avg Engagement Rate:</span>
+                      <span className="font-medium">
+                        {formatPercentage(platform.avgEngagementRate)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Total Impressions:</span>
+                      <span className="font-medium">
+                        {formatNumber(platform.totalImpressions)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Total Likes:</span>
+                      <span className="font-medium">
+                        {formatNumber(platform.totalLikes)}
+                      </span>
+                    </div>
+                    
+                    {/* Insight Actionable */}
+                    <div className="mt-4 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                      <div className="flex items-start space-x-2">
+                        <Lightbulb className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-sm">
+                          <p className="font-medium text-blue-800 mb-1">💡 Insight</p>
+                          <p className="text-blue-700">
+                            {getEngagementRateExplanation(platform.avgEngagementRate)}
+                          </p>
+                          {platform.avgEngagementRate > overallAvgEngagement * 1.2 && (
+                            <p className="text-green-700 mt-2">
+                              <CheckCircle className="h-3 w-3 inline mr-1" />
+                              Questa piattaforma performa meglio della media. Considera di aumentare la frequenza dei post.
+                            </p>
+                          )}
+                          {platform.avgEngagementRate < overallAvgEngagement * 0.8 && (
+                            <p className="text-orange-700 mt-2">
+                              <Target className="h-3 w-3 inline mr-1" />
+                              Performance sotto la media. Prova formati diversi o orari di pubblicazione alternativi.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </TabsContent>
 
         <TabsContent value="themes" className="space-y-4">
           <div className="grid grid-cols-1 gap-4">
-            {themes.slice(0, 10).map((theme, index) => (
-              <Card key={theme.theme}>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>
-                      #{index + 1} {theme.theme}
-                    </span>
-                    <Badge>{theme.postCount} posts</Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Avg Engagement Rate:</span>
-                      <span className="font-medium">
-                        {formatPercentage(theme.avgEngagementRate)}
+            {themes.slice(0, 10).map((theme, index) => {
+              const avgEngagement = themes.reduce((sum, t) => sum + t.avgEngagementRate, 0) / themes.length
+              return (
+                <Card key={theme.theme}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span>
+                        #{index + 1} {theme.theme}
                       </span>
+                      <Badge>{theme.postCount} posts</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span>Avg Engagement Rate:</span>
+                        <span className="font-medium">
+                          {formatPercentage(theme.avgEngagementRate)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Total Engagement:</span>
+                        <span className="font-medium">
+                          {formatNumber(theme.totalEngagement)}
+                        </span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {theme.platforms.map(platform => (
+                          <Badge key={platform.platform} variant="outline">
+                            {getPlatformIcon(platform.platform)}{" "}
+                            {formatPercentage(platform.avgEngagementRate)}
+                          </Badge>
+                        ))}
+                      </div>
+                      
+                      {/* Insight Actionable per Temi */}
+                      <div className="mt-4 p-3 bg-green-50 rounded-lg border-l-4 border-green-400">
+                        <div className="flex items-start space-x-2">
+                          <Target className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm">
+                            <p className="font-medium text-green-800 mb-1">📊 Raccomandazione</p>
+                            <p className="text-green-700">
+                              {getThemeRecommendation(theme, avgEngagement)}
+                            </p>
+                            {index < 3 && (
+                              <p className="text-blue-700 mt-2">
+                                <CheckCircle className="h-3 w-3 inline mr-1" />
+                                Top performer! Considera di creare contenuti simili o variazioni di questo tema.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Total Engagement:</span>
-                      <span className="font-medium">
-                        {formatNumber(theme.totalEngagement)}
-                      </span>
-                    </div>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {theme.platforms.map(platform => (
-                        <Badge key={platform.platform} variant="outline">
-                          {getPlatformIcon(platform.platform)}{" "}
-                          {formatPercentage(platform.avgEngagementRate)}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </TabsContent>
 
@@ -467,6 +567,21 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Insight globale sui tempi */}
+              {optimalTimes.length > 0 && (
+                <div className="mb-6 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-400">
+                  <div className="flex items-start space-x-2">
+                    <Clock className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-medium text-purple-800 mb-1">🕐 Ottimizzazione Timing</p>
+                      <p className="text-purple-700">
+                        {getOptimalTimeRecommendation(optimalTimes)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {optimalTimes.slice(0, 12).map((time, index) => (
                   <div
@@ -488,6 +603,14 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
                     <div className="text-muted-foreground text-xs">
                       Based on {time.postCount} posts
                     </div>
+                    
+                    {index === 0 && (
+                      <div className="mt-2">
+                        <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                          ⭐ Orario TOP
+                        </Badge>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

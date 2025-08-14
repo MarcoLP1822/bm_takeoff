@@ -67,26 +67,35 @@ export function SocialAccountsManager({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchAccounts()
-
-    // Check for OAuth callback results in URL params
+    // Check for OAuth callback results in URL params first
     const urlParams = new URLSearchParams(window.location.search)
     const connected = urlParams.get("connected")
     const error = urlParams.get("error")
+    const mock = urlParams.get("mock")
 
     if (connected) {
-      toast.success(
-        `Successfully connected ${platformConfig[connected as SocialPlatform]?.name}`
-      )
-      // Clean up URL
+      const message = mock 
+        ? `Mock ${platformConfig[connected as SocialPlatform]?.name} connected for development`
+        : `Successfully connected ${platformConfig[connected as SocialPlatform]?.name}`
+      
+      toast.success(message)
+      
+      // Reset connecting state
+      setConnecting(null)
+      
+      // Clean up URL first
       window.history.replaceState({}, "", window.location.pathname)
     }
 
     if (error) {
       toast.error(decodeURIComponent(error))
+      setConnecting(null)
       // Clean up URL
       window.history.replaceState({}, "", window.location.pathname)
     }
+
+    // Fetch accounts after handling URL params
+    fetchAccounts()
   }, [])
 
   const fetchAccounts = async () => {
@@ -108,17 +117,32 @@ export function SocialAccountsManager({
     setConnecting(platform)
     setError(null)
 
+    // Show immediate feedback
+    toast.info(`Connecting to ${platformConfig[platform].name}...`)
+
     try {
       const response = await fetch(`/api/social/connect/${platform}`)
-      if (!response.ok) throw new Error("Failed to generate auth URL")
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to generate auth URL")
+      }
 
       const data = await response.json()
 
-      // Redirect to OAuth provider
-      window.location.href = data.authUrl
+      // Handle mock connections
+      if (data.mock) {
+        // For mock connections, redirect within the app
+        toast.info("Using mock connection for development...")
+        window.location.href = data.authUrl
+      } else {
+        // For real OAuth, redirect to OAuth provider
+        window.location.href = data.authUrl
+      }
     } catch (error) {
       console.error("Error connecting account:", error)
-      toast.error(`Failed to connect ${platformConfig[platform].name}`)
+      const errorMessage = error instanceof Error ? error.message : 
+        `Failed to connect ${platformConfig[platform].name}`
+      toast.error(errorMessage)
       setConnecting(null)
     }
   }

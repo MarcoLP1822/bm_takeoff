@@ -47,6 +47,12 @@ export default function ContentGeneratePage() {
       return
     }
 
+    // Prevent multiple clicks
+    if (generating) {
+      toast.warning("Generazione già in corso, attendi...")
+      return
+    }
+
     setGenerating(presetId)
     
     try {
@@ -170,14 +176,20 @@ export default function ContentGeneratePage() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-              {categoryPresets.map((preset) => (
-                <Card 
-                  key={preset.id} 
-                  className={`cursor-pointer hover:shadow-md transition-all ${
-                    !selectedBookId ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  onClick={() => selectedBookId && handlePresetSelect(preset.id)}
-                >
+              {categoryPresets.map((preset) => {
+                const isDisabled = !selectedBookId || generating !== null
+                const isGenerating = generating === preset.id
+                
+                return (
+                  <Card 
+                    key={preset.id} 
+                    className={`transition-all ${
+                      isDisabled 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : 'cursor-pointer hover:shadow-md'
+                    } ${isGenerating ? 'ring-2 ring-blue-500' : ''}`}
+                    onClick={() => !isDisabled && handlePresetSelect(preset.id)}
+                  >
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div>
@@ -207,7 +219,8 @@ export default function ContentGeneratePage() {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                )
+              })}
             </div>
           </div>
         )

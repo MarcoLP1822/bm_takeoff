@@ -1,4 +1,4 @@
-import { ContentGenerationOptions } from "@/lib/content-generation"
+import { ContentGenerationOptions } from "@/lib/content-types"
 
 export interface ContentPreset {
   id: string

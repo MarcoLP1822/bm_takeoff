@@ -6,12 +6,15 @@ import {
   ContentManager,
   ContentVariation
 } from "@/components/content/content-manager"
+import ContentCalendar from "@/components/content/content-calendar"
+import SmartScheduler from "@/components/content/smart-scheduler"
 import { GeneratedPost } from "@/components/content/content-editor"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { AlertTriangle, RefreshCw, CheckCircle, Sparkles } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AlertTriangle, RefreshCw, CheckCircle, Sparkles, Calendar, List, Settings } from "lucide-react"
 import { toast } from "sonner"
 import { getPresetById } from "@/lib/content-presets"
 
@@ -23,6 +26,7 @@ export default function ContentPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [activeTab, setActiveTab] = useState("list")
 
   // Check for success messages from generation
   const isNewGeneration = searchParams.get('new') === 'true'
@@ -156,33 +160,38 @@ export default function ContentPage() {
         method: "DELETE"
       })
 
-      if (!response.ok) {
-        throw new Error("Failed to delete content variation")
-      }
-
       const result = await response.json()
 
       if (result.success) {
-        // Remove from local state
         setContentVariations(prev =>
           prev.filter(variation => variation.id !== variationId)
         )
-
         toast.success("Content variation deleted successfully")
       } else {
-        throw new Error(result.error || "Failed to delete content variation")
+        throw new Error(result.error || "Failed to delete variation")
       }
     } catch (error) {
-      console.error("Error deleting content variation:", error)
+      console.error("Error deleting variation:", error)
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to delete content variation"
+        error instanceof Error ? error.message : "Failed to delete variation"
       )
     }
   }
 
-  // Handle refresh
+  // Handle smart scheduling
+  const handleSmartSchedule = async (config: object) => {
+    try {
+      toast.success("Programmazione avviata! I contenuti saranno pubblicati secondo il piano.")
+      setActiveTab("calendar")
+      
+      // In una vera implementazione, qui chiameresti l'API per la programmazione
+      // await fetch('/api/social/schedule', { method: 'POST', body: JSON.stringify(config) })
+      
+    } catch (error) {
+      console.error("Error scheduling content:", error)
+      toast.error("Errore nella programmazione dei contenuti")
+    }
+  }  // Handle refresh
   const handleRefresh = () => {
     setIsRefreshing(true)
     fetchContentVariations()
@@ -346,12 +355,39 @@ export default function ContentPage() {
           </Button>
         </div>
       ) : (
-        <ContentManager
-          contentVariations={contentVariations}
-          onSaveContentAction={handleSaveContent}
-          onDeleteVariationAction={handleDeleteVariation}
-          onAutoSaveAction={handleAutoSave}
-        />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="list" className="flex items-center gap-2">
+              <List className="h-4 w-4" />
+              Gestione Contenuti
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Calendario Editoriale
+            </TabsTrigger>
+            <TabsTrigger value="scheduler" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Programmazione Smart
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="list" className="mt-6">
+            <ContentManager
+              contentVariations={contentVariations}
+              onSaveContentAction={handleSaveContent}
+              onDeleteVariationAction={handleDeleteVariation}
+              onAutoSaveAction={handleAutoSave}
+            />
+          </TabsContent>
+          
+          <TabsContent value="calendar" className="mt-6">
+            <ContentCalendar />
+          </TabsContent>
+          
+          <TabsContent value="scheduler" className="mt-6">
+            <SmartScheduler onSchedule={handleSmartSchedule} />
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   )

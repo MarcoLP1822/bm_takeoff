@@ -58,6 +58,40 @@ export class SchedulingService {
 
     // Create scheduled posts for each account
     for (const accountId of request.accountIds) {
+      // Handle mock accounts in development
+      if (process.env.NODE_ENV === 'development' && accountId.startsWith('mock-')) {
+        const scheduledPost: ScheduledPost = {
+          id: crypto.randomUUID(),
+          contentId: request.contentId,
+          accountId,
+          platform: contentData.platform as SocialPlatform,
+          content: contentData.content,
+          scheduledAt: request.scheduledAt,
+          status: "scheduled",
+          retryCount: 0
+        }
+
+        // Store in Redis with expiration for mock accounts
+        const key = `${this.QUEUE_KEY}:${scheduledPost.id}`
+        await redis.setex(
+          key,
+          Math.ceil((request.scheduledAt.getTime() - Date.now()) / 1000) + 3600, // 1 hour buffer
+          JSON.stringify({
+            ...scheduledPost,
+            isMock: true // Flag to identify mock posts
+          })
+        )
+
+        // Add to sorted set for time-based processing
+        await redis.zadd(this.QUEUE_KEY, {
+          score: request.scheduledAt.getTime(),
+          member: scheduledPost.id
+        })
+
+        continue // Skip database operations for mock accounts
+      }
+
+      // Normal processing for real accounts
       const scheduledPost: ScheduledPost = {
         id: crypto.randomUUID(),
         contentId: request.contentId,

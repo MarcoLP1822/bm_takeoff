@@ -1,6 +1,6 @@
 import { Redis } from "@upstash/redis"
 import { BookAnalysisResult } from "./ai-analysis"
-import { ContentVariation } from "./content-generation"
+import { ContentVariation } from "./content-types"
 
 // Initialize Redis client
 const redis =

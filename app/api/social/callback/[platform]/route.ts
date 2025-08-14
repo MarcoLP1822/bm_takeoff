@@ -7,26 +7,33 @@ export async function GET(
   { params }: { params: Promise<{ platform: string }> }
 ) {
   try {
+    console.log("=== OAUTH CALLBACK START ===")
+    console.log("Request URL:", request.url)
+    
     const { searchParams } = new URL(request.url)
     const code = searchParams.get("code")
     const state = searchParams.get("state")
     const error = searchParams.get("error")
+    
+    console.log("OAuth params:", { code: !!code, state: !!state, error })
 
     // Handle OAuth errors
     if (error) {
+      console.log("OAuth error received:", error)
       const errorDescription = searchParams.get("error_description") || error
       return NextResponse.redirect(
         new URL(
-          `/dashboard/settings?error=${encodeURIComponent(errorDescription)}`,
+          `/dashboard/settings/social?error=${encodeURIComponent(errorDescription)}`,
           request.url
         )
       )
     }
 
     if (!code || !state) {
+      console.log("Missing code or state in OAuth callback")
       return NextResponse.redirect(
         new URL(
-          "/dashboard/settings?error=Missing authorization code",
+          "/dashboard/settings/social?error=Missing authorization code",
           request.url
         )
       )
@@ -37,9 +44,10 @@ export async function GET(
     const { userId } = await auth()
 
     if (!userId || userId !== stateUserId) {
+      console.log("Invalid state parameter:", { userId, stateUserId })
       return NextResponse.redirect(
         new URL(
-          "/dashboard/settings?error=Invalid state parameter",
+          "/dashboard/settings/social?error=Invalid state parameter",
           request.url
         )
       )

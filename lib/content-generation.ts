@@ -7,13 +7,54 @@ import {
   cacheGeneratedContent
 } from "./cache-service"
 import { calculateEngagementPotential } from "./content-optimization"
+import {
+  Platform,
+  PLATFORM_CONFIGS,
+  GeneratedPost,
+  ContentVariation,
+  ContentGenerationOptions,
+  GenerationProgress,
+  ContentGenerationResult,
+  ImageSuggestion
+} from "./content-types"
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "test-key",
-  dangerouslyAllowBrowser: process.env.NODE_ENV === "test",
-  timeout: 120000 // 120 seconds timeout
-})
+// Re-export types for server-side use
+export type {
+  Platform,
+  GeneratedPost,
+  ContentVariation,
+  ContentGenerationOptions,
+  GenerationProgress,
+  ContentGenerationResult,
+  ImageSuggestion
+}
+export { PLATFORM_CONFIGS }
+
+// Check if we're in a browser environment
+const isBrowser = typeof window !== "undefined"
+
+// Initialize OpenAI client only on server-side
+const openai = isBrowser 
+  ? null 
+  : new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || "test-key",
+      timeout: 120000 // 120 seconds timeout
+    })
+
+// Helper function to ensure server-side execution
+function ensureServerSide(functionName: string) {
+  if (isBrowser) {
+    throw new Error(
+      `${functionName} should not be called on the client-side. ` +
+      `Use the API routes in /api/content/ instead. ` +
+      `This protects your OpenAI API keys from being exposed to clients.`
+    )
+  }
+  if (!openai) {
+    throw new Error(`OpenAI client not initialized for ${functionName}`)
+  }
+  return openai
+}
 
 /**
  * Helper function to generate locale instruction for AI prompts
@@ -30,64 +71,6 @@ function getLocaleInstruction(locale: string): string {
   
   const language = languageMap[locale] || locale
   return `**Provide the response in ${language} language.**`
-}
-
-// Platform-specific configuration
-export const PLATFORM_CONFIGS = {
-  twitter: {
-    maxLength: 280,
-    hashtagLimit: 5,
-    imageSupported: true,
-    name: "Twitter/X"
-  },
-  instagram: {
-    maxLength: 2200,
-    hashtagLimit: 30,
-    imageSupported: true,
-    name: "Instagram"
-  },
-  linkedin: {
-    maxLength: 3000,
-    hashtagLimit: 10,
-    imageSupported: true,
-    name: "LinkedIn"
-  },
-  facebook: {
-    maxLength: 63206,
-    hashtagLimit: 10,
-    imageSupported: true,
-    name: "Facebook"
-  }
-} as const
-
-export type Platform = keyof typeof PLATFORM_CONFIGS
-
-export interface GeneratedPost {
-  platform: Platform
-  content: string
-  hashtags: string[]
-  imageUrl?: string
-  characterCount: number
-  isValid: boolean
-  validationErrors: string[]
-  engagementPotential?: number
-}
-
-export interface ContentVariation {
-  id: string
-  posts: GeneratedPost[]
-  theme: string
-  sourceType: "quote" | "insight" | "theme" | "summary" | "discussion"
-  sourceContent: string
-}
-
-export interface ContentGenerationOptions {
-  platforms?: Platform[]
-  variationsPerTheme?: number
-  includeImages?: boolean
-  tone?: "professional" | "casual" | "inspirational" | "educational"
-  maxRetries?: number
-  locale?: string
 }
 
 /**
@@ -261,11 +244,14 @@ export function generateImageSuggestion(
   bookTitle: string,
   bookAnalysis?: BookAnalysisResult
 ): string {
+  // Provide default if sourceType is undefined
+  const safeSourceType = sourceType || "summary"
+  
   if (bookAnalysis) {
     const suggestions = ImageSuggestionEngine.generateImageSuggestions(
       content,
       platform,
-      sourceType,
+      safeSourceType,
       bookTitle,
       bookAnalysis.genre,
       bookAnalysis.themes
@@ -285,7 +271,7 @@ export function generateImageSuggestion(
     discussion: "conversation-bubble"
   }
 
-  return `/api/images/generate?type=${imageTypes[sourceType]}&content=${encodeURIComponent(content.slice(0, 100))}`
+  return `/api/images/generate?type=${imageTypes[safeSourceType]}&content=${encodeURIComponent(content.slice(0, 100))}`
 }
 
 /**
@@ -326,7 +312,8 @@ Requirements:
 
 Format: Just return the post content, no quotes or extra formatting.`
 
-        const response = await openai.chat.completions.create({
+        const client = ensureServerSide('generateQuotePosts')
+        const response = await client.chat.completions.create({
           model: "gpt-4",
           messages: [{ role: "user", content: prompt }],
           max_tokens: 200,
@@ -439,7 +426,8 @@ Requirements:
 
 Format: Just return the post content, no quotes or extra formatting.`
 
-        const response = await openai.chat.completions.create({
+        const client = ensureServerSide('generateInsightPosts')
+        const response = await client.chat.completions.create({
           model: "gpt-4",
           messages: [{ role: "user", content: prompt }],
           max_tokens: 250,
@@ -550,7 +538,8 @@ Requirements:
 
 Format: Just return the post content, no quotes or extra formatting.`
 
-        const response = await openai.chat.completions.create({
+        const client = ensureServerSide('generateThemePosts')
+        const response = await client.chat.completions.create({
           model: "gpt-4",
           messages: [{ role: "user", content: prompt }],
           max_tokens: 250,
@@ -663,7 +652,8 @@ Requirements:
 
 Format: Just return the post content, no quotes or extra formatting.`
 
-        const response = await openai.chat.completions.create({
+        const client = ensureServerSide('generateSummaryPosts')
+        const response = await client.chat.completions.create({
           model: "gpt-4",
           messages: [{ role: "user", content: prompt }],
           max_tokens: 300,
@@ -776,7 +766,8 @@ Requirements:
 
 Format: Just return the post content, no quotes or extra formatting.`
 
-        const response = await openai.chat.completions.create({
+        const client = ensureServerSide('generateDiscussionPosts')
+        const response = await client.chat.completions.create({
           model: "gpt-4",
           messages: [{ role: "user", content: prompt }],
           max_tokens: 250,
@@ -946,17 +937,19 @@ export async function generatePlatformContent(
     // Add image suggestions if requested
     if (includeImages) {
       variations.forEach(variation => {
-        variation.posts.forEach(post => {
-          if (PLATFORM_CONFIGS[post.platform].imageSupported) {
-            post.imageUrl = generateImageSuggestion(
-              post.content,
-              variation.sourceType,
-              post.platform,
-              bookTitle,
-              bookContext
-            )
-          }
-        })
+        if (variation.posts && Array.isArray(variation.posts)) {
+          variation.posts.forEach(post => {
+            if (PLATFORM_CONFIGS[post.platform].imageSupported) {
+              post.imageUrl = generateImageSuggestion(
+                post.content,
+                variation.sourceType,
+                post.platform,
+                bookTitle,
+                bookContext
+              )
+            }
+          })
+        }
       })
     }
 
@@ -1069,17 +1062,19 @@ export async function generateSocialContent(
     // Add image suggestions if requested
     if (includeImages) {
       variations.forEach(variation => {
-        variation.posts.forEach(post => {
-          if (PLATFORM_CONFIGS[post.platform].imageSupported) {
-            post.imageUrl = generateImageSuggestion(
-              post.content,
-              variation.sourceType,
-              post.platform,
-              bookTitle,
-              bookAnalysis
-            )
-          }
-        })
+        if (variation.posts && Array.isArray(variation.posts)) {
+          variation.posts.forEach(post => {
+            if (PLATFORM_CONFIGS[post.platform].imageSupported) {
+              post.imageUrl = generateImageSuggestion(
+                post.content,
+                variation.sourceType,
+                post.platform,
+                bookTitle,
+                bookAnalysis
+              )
+            }
+          })
+        }
       })
     }
 

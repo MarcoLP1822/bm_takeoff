@@ -4,7 +4,7 @@ import { generateSocialContent } from "@/lib/content-generation"
 import { BookAnalysisResult } from "@/lib/ai-analysis"
 import { getPresetById } from "@/lib/content-presets"
 import { db } from "@/db"
-import { books } from "@/db/schema"
+import { books, generatedContent } from "@/db/schema"
 import { eq, and } from "drizzle-orm"
 import { z } from "zod"
 
@@ -79,6 +79,44 @@ export async function POST(request: NextRequest) {
       generationOptions
     )
 
+    // Save content to database
+    console.log('Saving generated content to database...');
+    let savedCount = 0;
+    
+    // For each variation, save the posts to the database
+    try {
+      for (const variation of result) {
+        if (variation.posts && Array.isArray(variation.posts)) {
+          for (const post of variation.posts) {
+            // Use direct DB insert to save each post
+            const [newContent] = await db
+              .insert(generatedContent)
+              .values({
+                bookId,
+                userId,
+                platform: post.platform,
+                contentType: 'post',
+                content: post.content,
+                hashtags: post.hashtags || [],
+                imageUrl: post.imageUrl,
+                status: 'draft',
+                sourceType: variation.sourceType,
+                sourceContent: variation.sourceContent,
+                createdAt: new Date(),
+                updatedAt: new Date()
+              })
+              .returning();
+            
+            if (newContent) savedCount++;
+          }
+        }
+      }
+      console.log(`Successfully saved ${savedCount} content items to database`);
+    } catch (dbError) {
+      console.error('Failed to save content to database:', dbError);
+      // Continue even if some saves fail - we still return what we could generate
+    }
+
     return NextResponse.json({
       success: true,
       preset: {
@@ -92,7 +130,9 @@ export async function POST(request: NextRequest) {
         author: book[0].author
       },
       generatedContent: result,
-      totalPosts: Array.isArray(result) ? result.length : 0
+      savedCount,
+      totalPosts: Array.isArray(result) ? result.reduce((sum, variation) => 
+        sum + (variation.posts && Array.isArray(variation.posts) ? variation.posts.length : 0), 0) : 0
     })
 
   } catch (error) {

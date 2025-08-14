@@ -1,4 +1,4 @@
-import { Platform, PLATFORM_CONFIGS, GeneratedPost } from "./content-generation"
+import { Platform, PLATFORM_CONFIGS, GeneratedPost } from "./content-types"
 
 /**
  * Optimize content for better engagement

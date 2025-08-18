@@ -204,7 +204,7 @@ export default function ContentPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto space-y-6 py-8">
+      <div className="container mx-auto px-4 space-y-6 py-8">
         <div className="space-y-2">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-4 w-96" />
@@ -243,7 +243,7 @@ export default function ContentPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto px-4 py-8">
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
@@ -266,7 +266,7 @@ export default function ContentPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto px-4 py-8">
       {/* Success Banner for New Generation */}
       {isNewGeneration && (
         <Alert className="border-green-200 bg-green-50 mb-6">

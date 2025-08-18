@@ -47,18 +47,18 @@ export default function OnboardingSection({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-section">
       {/* Welcome Badge and Action Buttons */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col justify-between gap-component sm:flex-row sm:items-center">
+        <div className="flex items-center gap-element">
           {isFirstTime && (
             <Badge variant="secondary" className="inline-flex">
-              <Sparkles className="mr-1 h-3 w-3" />
+              <Sparkles className="mr-1 icon-xs" />
               Benvenuto!
             </Badge>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-element">
           {/* Refresh Button */}
           {onRefresh && (
             <Button
@@ -68,7 +68,7 @@ export default function OnboardingSection({
               disabled={refreshing}
             >
               <RefreshCw
-                className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+                className={`mr-2 icon-sm ${refreshing ? "animate-spin" : ""}`}
               />
               {refreshLabel}
             </Button>
@@ -81,7 +81,7 @@ export default function OnboardingSection({
               variant="ghost"
               size="sm"
             >
-              <HelpCircle className="mr-2 h-4 w-4" />
+              <HelpCircle className="mr-2 icon-sm" />
               Aiuto
             </Button>
           )}

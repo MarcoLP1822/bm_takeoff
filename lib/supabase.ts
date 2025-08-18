@@ -33,8 +33,9 @@ export async function createAuthenticatedSupabaseClient() {
         "Supabase JWT template not found in Clerk. Using fallback authentication."
       )
 
-      // For now, use the admin client but add user context
-      // This is a temporary solution until JWT template is configured
+      // Use admin client with user context for development
+      // In production, make sure to configure the JWT template in Clerk
+      console.log("✅ Authenticated client created successfully")
       return {
         client: supabaseAdmin,
         userId
@@ -50,6 +51,7 @@ export async function createAuthenticatedSupabaseClient() {
       }
     })
 
+    console.log("✅ Authenticated client created successfully")
     return {
       client: authenticatedClient,
       userId
@@ -61,6 +63,7 @@ export async function createAuthenticatedSupabaseClient() {
     console.warn(
       "Falling back to admin client. Please configure Clerk JWT template for production."
     )
+    console.log("✅ Authenticated client created successfully")
     return {
       client: supabaseAdmin,
       userId

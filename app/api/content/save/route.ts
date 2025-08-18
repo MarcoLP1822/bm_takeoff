@@ -26,17 +26,19 @@ export async function POST(request: NextRequest) {
     const contentRecords = []
 
     for (const variation of contentVariations as ContentVariation[]) {
-      for (const post of variation.posts) {
-        contentRecords.push({
-          bookId,
-          userId,
-          platform: post.platform,
-          contentType: "post" as const,
-          content: post.content,
-          hashtags: post.hashtags,
-          imageUrl: post.imageUrl || null,
-          status: "draft" as const
-        })
+      if (variation.posts && Array.isArray(variation.posts)) {
+        for (const post of variation.posts) {
+          contentRecords.push({
+            bookId,
+            userId,
+            platform: post.platform,
+            contentType: "post" as const,
+            content: post.content,
+            hashtags: post.hashtags,
+            imageUrl: post.imageUrl || null,
+            status: "draft" as const
+          })
+        }
       }
     }
 

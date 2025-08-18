@@ -3,6 +3,7 @@
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import { ChevronRight, type LucideIcon } from "lucide-react"
 import { Link } from "@/lib/navigation"
+import { ICONS } from "@/lib/design-tokens"
 
 import {
   Collapsible,
@@ -89,7 +90,7 @@ export function NavMain({
                     sideOffset={12}
                   >
                     <div className="flex items-center gap-2 px-2 py-1.5 text-sm font-medium">
-                      {item.icon && <item.icon className="h-4 w-4" />}
+                      {item.icon && <item.icon className={ICONS.sm} />}
                       <span>{item.title}</span>
                     </div>
                     <DropdownMenuSeparator className="my-1" />

@@ -97,17 +97,18 @@ export async function POST(request: NextRequest) {
     // Save generated content to database with source tracking
     const savedContent = []
     for (const variation of contentVariations) {
-      for (const post of variation.posts) {
-        const contentData = {
-          id: uuidv4(),
-          platform: post.platform,
-          contentType: 'post' as const,
-          content: post.content,
-          hashtags: post.hashtags,
-          imageUrl: post.imageUrl,
-          status: 'draft' as const,
-          scheduledAt: null,
-          publishedAt: null,
+      if (variation.posts && Array.isArray(variation.posts)) {
+        for (const post of variation.posts) {
+          const contentData = {
+            id: uuidv4(),
+            platform: post.platform,
+            contentType: 'post' as const,
+            content: post.content,
+            hashtags: post.hashtags,
+            imageUrl: post.imageUrl,
+            status: 'draft' as const,
+            scheduledAt: null,
+            publishedAt: null,
           // New source tracking fields (from Phase 1)
           sourceType: sourceType,
           sourceContent: sourceContent,
@@ -129,6 +130,7 @@ export async function POST(request: NextRequest) {
 
         const saved = await createContentForBook(bookId, contentData)
         savedContent.push(saved)
+        }
       }
     }
 

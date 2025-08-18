@@ -49,6 +49,142 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* Typography Scale - Standardized text utilities */
+@layer components {
+  .text-display-xl {
+    @apply text-4xl font-bold tracking-tight;
+  }
+  
+  .text-display-lg {
+    @apply text-3xl font-bold tracking-tight;
+  }
+  
+  .text-display-md {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+  
+  .text-display-sm {
+    @apply text-xl font-semibold;
+  }
+  
+  .text-body-lg {
+    @apply text-lg font-medium;
+  }
+  
+  .text-body-md {
+    @apply text-base font-medium;
+  }
+  
+  .text-body-sm {
+    @apply text-sm font-medium;
+  }
+  
+  .text-caption {
+    @apply text-xs font-medium;
+  }
+  
+  .text-muted-lg {
+    @apply text-lg text-muted-foreground;
+  }
+  
+  .text-muted-md {
+    @apply text-base text-muted-foreground;
+  }
+  
+  .text-muted-sm {
+    @apply text-sm text-muted-foreground;
+  }
+  
+  .text-muted-xs {
+    @apply text-xs text-muted-foreground;
+  }
+}
+
+/* Status Colors - Standardized semantic colors */
+@layer components {
+  .text-status-success {
+    @apply text-green-600 dark:text-green-400;
+  }
+  
+  .text-status-warning {
+    @apply text-orange-600 dark:text-orange-400;
+  }
+  
+  .text-status-error {
+    @apply text-red-600 dark:text-red-400;
+  }
+  
+  .text-status-info {
+    @apply text-blue-600 dark:text-blue-400;
+  }
+  
+  .bg-status-success {
+    @apply bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300;
+  }
+  
+  .bg-status-warning {
+    @apply bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300;
+  }
+  
+  .bg-status-error {
+    @apply bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300;
+  }
+  
+  .bg-status-info {
+    @apply bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300;
+  }
+}
+
+/* Icon Sizes - Standardized icon utilities */
+@layer components {
+  .icon-xs {
+    @apply h-3 w-3;
+  }
+  
+  .icon-sm {
+    @apply h-4 w-4;
+  }
+  
+  .icon-md {
+    @apply h-5 w-5;
+  }
+  
+  .icon-lg {
+    @apply h-6 w-6;
+  }
+  
+  .icon-xl {
+    @apply h-8 w-8;
+  }
+}
+
+/* Spacing Utilities - Standardized spacing patterns */
+@layer components {
+  .space-section {
+    @apply space-y-6;
+  }
+  
+  .space-component {
+    @apply space-y-4;
+  }
+  
+  .space-element {
+    @apply space-y-2;
+  }
+  
+  .gap-section {
+    @apply gap-6;
+  }
+  
+  .gap-component {
+    @apply gap-4;
+  }
+  
+  .gap-element {
+    @apply gap-2;
+  }
+}
+
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);

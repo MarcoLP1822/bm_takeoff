@@ -2,7 +2,8 @@
 
 import React, { useState, useCallback } from "react"
 import { ContentManager, ContentVariation } from "./content-manager"
-import { GeneratedPost, Platform } from "./content-editor"
+import { GeneratedPost } from "./content-editor"
+import { Platform } from "@/lib/content-types"
 import {
   LazyLoadingList,
   ContentSkeleton

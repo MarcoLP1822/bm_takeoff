@@ -22,7 +22,8 @@ import {
   Edit3
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { ContentEditor, GeneratedPost, Platform } from "./content-editor"
+import { ContentEditor, GeneratedPost } from "./content-editor"
+import { Platform } from "@/lib/content-types"
 
 // Platform configurations
 const PLATFORM_CONFIGS = {

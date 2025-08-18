@@ -1,4 +1,5 @@
 import OpenAI from "openai"
+import { randomUUID } from "crypto"
 import { BookAnalysisResult } from "./ai-analysis"
 import { HashtagGenerator } from "./hashtag-generator"
 import { ImageSuggestionEngine } from "./image-suggestions"
@@ -378,7 +379,7 @@ Format: Just return the post content, no quotes or extra formatting.`
     }
 
     variations.push({
-      id: `quote-${bookId ? bookId.slice(-8) : Date.now()}-${Date.now()}-${i}`, // More unique ID
+      id: randomUUID(), // Use proper UUID instead of string
       posts,
       theme: `Quote: ${quote.length > 50 ? quote.substring(0, 47) + "..." : quote}`, // More descriptive theme
       sourceType: "quote",
@@ -493,7 +494,7 @@ Format: Just return the post content, no quotes or extra formatting.`
     }
 
     variations.push({
-      id: `insight-${bookId ? bookId.slice(-8) : Date.now()}-${Date.now()}-${i}`,
+      id: randomUUID(), // Use proper UUID instead of string
       posts,
       theme: `Insight: ${insight.length > 50 ? insight.substring(0, 47) + "..." : insight}`,
       sourceType: "insight",
@@ -606,7 +607,7 @@ Format: Just return the post content, no quotes or extra formatting.`
     }
 
     variations.push({
-      id: `theme-${bookId ? bookId.slice(-8) : Date.now()}-${Date.now()}-${i}`,
+      id: randomUUID(), // Use proper UUID instead of string
       posts,
       theme: theme, // Use the actual theme name instead of generic "theme"
       sourceType: "theme",
@@ -720,7 +721,7 @@ Format: Just return the post content, no quotes or extra formatting.`
     }
 
     variations.push({
-      id: `summary-${Date.now()}-${i}`,
+      id: randomUUID(), // Use proper UUID instead of string
       posts,
       theme: "Book Summary",
       sourceType: "summary",
@@ -837,7 +838,7 @@ Format: Just return the post content, no quotes or extra formatting.`
     }
 
     variations.push({
-      id: `discussion-${Date.now()}-${i}`,
+      id: randomUUID(), // Use proper UUID instead of string
       posts,
       theme: "Discussion",
       sourceType: "discussion",

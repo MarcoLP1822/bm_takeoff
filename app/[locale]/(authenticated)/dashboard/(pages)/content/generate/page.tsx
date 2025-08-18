@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Loader2, Settings, BookOpen, TrendingUp, ChevronDown, ChevronUp } from "lucide-react"
+import { PageHeader } from "@/components/ui/page-header"
+import { Loader2, Settings, BookOpen, TrendingUp, ChevronDown, ChevronUp, Sparkles } from "lucide-react"
 import { CONTENT_PRESETS, PRESET_CATEGORIES, getPresetsByCategory } from "@/lib/content-presets"
 import { useBooks } from "@/hooks/use-books"
 import { toast } from "sonner"
@@ -108,14 +109,19 @@ export default function ContentGeneratePage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold">Genera Contenuti</h1>
-        <p className="text-muted-foreground">
-          Scegli il tipo di campagna per il tuo libro
-        </p>
-      </div>
+    <div className="container mx-auto px-4 py-8">
+      {/* Standardized Header */}
+      <PageHeader
+        icon={Sparkles}
+        title="Genera Contenuti"
+        description="Scegli il tipo di campagna per il tuo libro"
+        action={{
+          label: "Impostazioni Avanzate",
+          onClick: () => setShowAdvanced(!showAdvanced),
+          icon: Settings,
+          variant: "outline"
+        }}
+      />
 
       {/* Analytics Insight Banner */}
       {analyticsTheme && analyticsEngagement && (

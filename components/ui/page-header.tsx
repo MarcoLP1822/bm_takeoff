@@ -73,25 +73,25 @@ export function PageHeader({
   }
 
   return (
-    <div className={cn("space-y-4 mb-8", className)}>
+    <div className={cn("space-section mb-8", className)}>
       <div className="flex items-start justify-between">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
+        <div className="space-element">
+          <div className="flex items-center gap-component">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-primary text-brand-primary-foreground">
-              <IconComponent className="h-5 w-5" />
+              <IconComponent className="icon-md" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-              <p className="text-muted-foreground text-lg">{description}</p>
+              <h1 className="text-display-lg">{title}</h1>
+              <p className="text-muted-lg">{description}</p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-component">
           {/* Stats */}
           {stats && (
-            <div className="flex items-center gap-6 text-sm">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center gap-6 text-body-sm">
+              <div className="flex items-center gap-element">
                 <div className="h-2 w-2 rounded-full bg-green-500" />
                 <span className="text-muted-foreground">{stats.value}</span>
                 <span className="font-medium">{stats.label}</span>
@@ -110,7 +110,7 @@ export function PageHeader({
                 onClick={secondaryAction.onClick}
                 disabled={secondaryAction.disabled}
               >
-                {SecondaryIcon && <SecondaryIcon className="mr-2 h-4 w-4" />}
+                {SecondaryIcon && <SecondaryIcon className="mr-2 icon-sm" />}
                 {secondaryAction.label}
               </Button>
             )
@@ -122,7 +122,7 @@ export function PageHeader({
               variant={action.variant || "default"}
               onClick={action.onClick}
             >
-              {action.icon && <action.icon className="mr-2 h-4 w-4" />}
+              {action.icon && <action.icon className="mr-2 icon-sm" />}
               {action.label}
             </Button>
           )}

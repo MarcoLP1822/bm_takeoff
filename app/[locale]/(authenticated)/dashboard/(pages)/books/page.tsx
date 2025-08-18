@@ -7,7 +7,8 @@ import { BookUpload } from "@/components/books/book-upload"
 import { BookLibrary } from "@/components/books/book-library"
 import { BookDetail } from "@/components/books/book-detail"
 import { Button } from "@/components/ui/button"
-import { Plus, BookOpen } from "lucide-react"
+import { PageHeader } from "@/components/ui/page-header"
+import { Plus } from "lucide-react"
 
 interface Book {
   id: string
@@ -125,22 +126,16 @@ export default function BooksPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="flex items-center text-3xl font-bold text-gray-900">
-            <BookOpen className="mr-3 h-8 w-8" />
-            {t('library')}
-          </h1>
-          <p className="mt-2 text-gray-600">
-            {t('libraryDescription')}
-          </p>
-        </div>
-
-        <Button onClick={() => setShowUpload(!showUpload)}>
-          <Plus className="mr-2 h-4 w-4" />
-          {t('upload')}
-        </Button>
-      </div>
+      <PageHeader
+        icon="BookOpen"
+        title={t('library')}
+        description={t('libraryDescription')}
+        action={{
+          label: t('upload'),
+          onClick: () => setShowUpload(!showUpload),
+          icon: Plus
+        }}
+      />
 
       {showUpload && (
         <div className="mb-8">

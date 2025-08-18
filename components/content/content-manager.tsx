@@ -386,89 +386,55 @@ export function ContentManager({
   }
 
   return (
-    <div className={cn("space-y-8", className)}>
-      {/* Header */}
-      <div className="space-y-4">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-primary text-brand-primary-foreground">
-                <Edit3 className="h-5 w-5" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight">Content Manager</h1>
-                <p className="text-muted-foreground text-lg">
-                  Review and edit your generated social media content
-                </p>
-              </div>
-            </div>
+    <div className={cn("space-y-6", className)}>
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="rounded-lg border bg-card p-4">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-green-500"></div>
+            <span className="text-sm font-medium">High Performance</span>
           </div>
-          
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <div className="text-2xl font-bold">
-                {filteredAndSortedVariations.length}
-              </div>
-              <p className="text-muted-foreground text-sm">
-                of {contentVariations.length} variations
-              </p>
-            </div>
-            <Button variant="outline" size="sm">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
+          <div className="mt-2 text-2xl font-bold">
+            {filteredAndSortedVariations.filter(v => 
+              v.posts.some(p => p.engagementPotential && p.engagementPotential >= 4)
+            ).length}
           </div>
+          <p className="text-muted-foreground text-xs">4+ star content</p>
         </div>
         
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="rounded-lg border bg-card p-4">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-green-500"></div>
-              <span className="text-sm font-medium">High Performance</span>
-            </div>
-            <div className="mt-2 text-2xl font-bold">
-              {filteredAndSortedVariations.filter(v => 
-                v.posts.some(p => p.engagementPotential && p.engagementPotential >= 4)
-              ).length}
-            </div>
-            <p className="text-muted-foreground text-xs">4+ star content</p>
+        <div className="rounded-lg border bg-card p-4">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-yellow-500"></div>
+            <span className="text-sm font-medium">Needs Review</span>
           </div>
-          
-          <div className="rounded-lg border bg-card p-4">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-yellow-500"></div>
-              <span className="text-sm font-medium">Needs Review</span>
-            </div>
-            <div className="mt-2 text-2xl font-bold">
-              {filteredAndSortedVariations.filter(v => 
-                v.posts.some(p => p.engagementPotential && p.engagementPotential <= 2)
-              ).length}
-            </div>
-            <p className="text-muted-foreground text-xs">Below 3 stars</p>
+          <div className="mt-2 text-2xl font-bold">
+            {filteredAndSortedVariations.filter(v => 
+              v.posts.some(p => p.engagementPotential && p.engagementPotential <= 2)
+            ).length}
           </div>
-          
-          <div className="rounded-lg border bg-card p-4">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-              <span className="text-sm font-medium">Platforms</span>
-            </div>
-            <div className="mt-2 text-2xl font-bold">
-              {allPlatforms.length}
-            </div>
-            <p className="text-muted-foreground text-xs">Active platforms</p>
+          <p className="text-muted-foreground text-xs">Below 3 stars</p>
+        </div>
+        
+        <div className="rounded-lg border bg-card p-4">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+            <span className="text-sm font-medium">Platforms</span>
           </div>
-          
-          <div className="rounded-lg border bg-card p-4">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-purple-500"></div>
-              <span className="text-sm font-medium">Books</span>
-            </div>
-            <div className="mt-2 text-2xl font-bold">
-              {uniqueBooks.length}
-            </div>
-            <p className="text-muted-foreground text-xs">Source books</p>
+          <div className="mt-2 text-2xl font-bold">
+            {allPlatforms.length}
           </div>
+          <p className="text-muted-foreground text-xs">Active platforms</p>
+        </div>
+        
+        <div className="rounded-lg border bg-card p-4">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+            <span className="text-sm font-medium">Books</span>
+          </div>
+          <div className="mt-2 text-2xl font-bold">
+            {uniqueBooks.length}
+          </div>
+          <p className="text-muted-foreground text-xs">Source books</p>
         </div>
       </div>
 
@@ -847,21 +813,21 @@ export function ContentManager({
                       const config = PLATFORM_CONFIGS[post.platform]
 
                       return (
-                        <div key={post.id} className="rounded-lg border bg-card p-4 shadow-sm">
+                        <div key={post.id} className="rounded-lg border bg-card p-4 shadow-sm max-w-full overflow-hidden">
                           {/* Post Header */}
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                            <div className="flex items-center gap-3 min-w-0">
                               <div
                                 className={cn(
-                                  "flex items-center justify-center w-8 h-8 rounded-md text-white",
+                                  "flex items-center justify-center w-8 h-8 rounded-md text-white flex-shrink-0",
                                   config.color
                                 )}
                               >
                                 {React.createElement(config.icon, { className: "h-4 w-4" })}
                               </div>
-                              <div>
+                              <div className="min-w-0">
                                 <span className="font-medium">{config.name}</span>
-                                <div className="flex items-center gap-2 mt-1">
+                                <div className="flex items-center gap-2 mt-1 flex-wrap">
                                   {!post.isValid && (
                                     <Badge variant="destructive" className="text-xs">
                                       ⚠️ Invalid
@@ -874,7 +840,7 @@ export function ContentManager({
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-shrink-0">
                               {post.engagementPotential && (
                                 <div className="text-right">
                                   {renderEngagementStars(
@@ -898,40 +864,43 @@ export function ContentManager({
 
                           {/* Post Content */}
                           {isEditing ? (
-                            <ContentEditor
-                              post={post}
-                              onSaveAction={(updatedPost: GeneratedPost) =>
-                                handleSaveContent(variation.id, updatedPost)
-                              }
-                              onAutoSaveAction={
-                                onAutoSaveAction
-                                  ? (updatedPost: GeneratedPost) =>
-                                      onAutoSaveAction(
-                                        variation.id,
-                                        updatedPost
-                                      )
-                                  : undefined
-                              }
-                            />
+                            <div className="max-w-full overflow-hidden">
+                              <ContentEditor
+                                post={post}
+                                onSaveAction={(updatedPost: GeneratedPost) =>
+                                  handleSaveContent(variation.id, updatedPost)
+                                }
+                                onAutoSaveAction={
+                                  onAutoSaveAction
+                                    ? (updatedPost: GeneratedPost) =>
+                                        onAutoSaveAction(
+                                          variation.id,
+                                          updatedPost
+                                        )
+                                    : undefined
+                                }
+                                className="border-0 p-0"
+                              />
+                            </div>
                           ) : (
-                            <div className="rounded-lg border bg-muted/30 p-4">
-                              <div className="mb-3 text-sm whitespace-pre-wrap leading-relaxed">
+                            <div className="rounded-lg border bg-muted/30 p-4 max-w-full overflow-hidden">
+                              <div className="mb-3 text-sm whitespace-pre-wrap leading-relaxed break-words">
                                 {post.content}
                               </div>
                               {post.hashtags.length > 0 && (
-                                <div className="mb-3 flex flex-wrap gap-2">
+                                <div className="mb-3 flex flex-wrap gap-2 overflow-hidden">
                                   {post.hashtags.map((tag, index) => (
                                     <Badge
                                       key={index}
                                       variant="secondary"
-                                      className="text-xs font-medium"
+                                      className="text-xs font-medium break-all"
                                     >
                                       {tag.startsWith("#") ? tag : `#${tag}`}
                                     </Badge>
                                   ))}
                                 </div>
                               )}
-                              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <div className="flex items-center justify-between text-xs text-muted-foreground flex-wrap gap-2">
                                 <span>{post.characterCount} characters</span>
                                 {post.isValid ? (
                                   <Badge variant="outline" className="text-green-600 border-green-200">

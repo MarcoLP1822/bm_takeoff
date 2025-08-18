@@ -1,8 +1,10 @@
 import { getTranslations } from "next-intl/server"
 import DashboardOverviewWrapper from "./_components/dashboard-overview-wrapper"
+import { PageHeader } from "@/components/ui/page-header"
 
 export default async function Page() {
   const t = await getTranslations("dashboard")
+  const tNav = await getTranslations("navigation")
   
   const translations = {
     title: t("title"),
@@ -60,5 +62,14 @@ export default async function Page() {
     }
   }
   
-  return <DashboardOverviewWrapper translations={translations} />
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <PageHeader
+        icon="LayoutDashboard"
+        title={tNav('dashboard')}
+        description="Panoramica generale del tuo account e attività"
+      />
+      <DashboardOverviewWrapper translations={translations} />
+    </div>
+  )
 }

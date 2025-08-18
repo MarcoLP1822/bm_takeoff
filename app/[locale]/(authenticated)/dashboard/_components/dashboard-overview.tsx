@@ -163,27 +163,10 @@ export default function DashboardOverview({
       {/* Header and Onboarding */}
       <OnboardingSection 
         isFirstTime={isFirstTime}
-        translations={{
-          title: translations.title,
-          welcome: translations.welcome,
-          subtitle: translations.subtitle
-        }}
+        onRefresh={refreshData}
+        refreshing={refreshing}
+        refreshLabel={translations.buttons.refresh}
       />
-
-      {/* Refresh Button */}
-      <div className="flex justify-end">
-        <Button
-          onClick={refreshData}
-          variant="outline"
-          size="sm"
-          disabled={refreshing}
-        >
-          <RefreshCw
-            className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
-          />
-          {translations.buttons.refresh}
-        </Button>
-      </div>
 
       {/* Notifications and Active Operations */}
       <NotificationsPanel

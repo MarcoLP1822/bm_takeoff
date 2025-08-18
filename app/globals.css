@@ -374,3 +374,68 @@
 .draft-card:hover::after {
   opacity: 1;
 }
+
+/* Content Editor Responsive Styles */
+.content-editor-container {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+  .content-editor-container {
+    padding: 0.75rem;
+  }
+  
+  .content-editor-container .flex {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .content-editor-container .flex-wrap {
+    flex-wrap: wrap;
+  }
+}
+
+/* Fix for long text overflow */
+.break-words-anywhere {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+/* Ensure hashtags don't break layout */
+.hashtag-container {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.hashtag-container .badge {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Platform preview responsive styles */
+.platform-preview {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.platform-preview .flex {
+  min-width: 0;
+}
+
+.platform-preview .truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Social media post preview adjustments */
+.social-preview-content {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-width: 100%;
+}

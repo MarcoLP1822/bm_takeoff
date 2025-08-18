@@ -9,18 +9,27 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import OnboardingFlow from "@/components/utility/onboarding-flow"
 import HelpDocumentation from "@/components/utility/help-documentation"
-import { Sparkles, HelpCircle } from "lucide-react"
+import { Sparkles, HelpCircle, RefreshCw } from "lucide-react"
 
 interface OnboardingSectionProps {
   isFirstTime: boolean
-  translations: {
-    title: string
-    welcome: string
-    subtitle: string
+  onRefresh?: () => void
+  refreshing?: boolean
+  refreshLabel?: string
+  translations?: {
+    title?: string
+    welcome?: string
+    subtitle?: string
   }
 }
 
-export default function OnboardingSection({ isFirstTime, translations }: OnboardingSectionProps) {
+export default function OnboardingSection({ 
+  isFirstTime, 
+  onRefresh, 
+  refreshing = false, 
+  refreshLabel = "Aggiorna",
+  translations 
+}: OnboardingSectionProps) {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
 
@@ -39,33 +48,38 @@ export default function OnboardingSection({ isFirstTime, translations }: Onboard
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Welcome Badge and Action Buttons */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              {translations.title}
-            </h1>
-            {isFirstTime && (
-              <Badge variant="secondary" className="hidden sm:inline-flex">
-                <Sparkles className="mr-1 h-3 w-3" />
-                Benvenuto!
-              </Badge>
-            )}
-          </div>
-          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-            {isFirstTime
-              ? translations.welcome
-              : translations.subtitle}
-          </p>
+        <div className="flex items-center gap-2">
+          {isFirstTime && (
+            <Badge variant="secondary" className="inline-flex">
+              <Sparkles className="mr-1 h-3 w-3" />
+              Benvenuto!
+            </Badge>
+          )}
         </div>
         <div className="flex items-center gap-2">
+          {/* Refresh Button */}
+          {onRefresh && (
+            <Button
+              onClick={onRefresh}
+              variant="outline"
+              size="sm"
+              disabled={refreshing}
+            >
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
+              />
+              {refreshLabel}
+            </Button>
+          )}
+          
+          {/* Help Button */}
           {!isFirstTime && (
             <Button
               onClick={() => setShowHelp(true)}
               variant="ghost"
               size="sm"
-              className="hidden sm:inline-flex"
             >
               <HelpCircle className="mr-2 h-4 w-4" />
               Aiuto

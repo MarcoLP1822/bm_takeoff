@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AlertTriangle, RefreshCw, CheckCircle, Sparkles, Calendar, List, Settings } from "lucide-react"
+import { AlertTriangle, RefreshCw, CheckCircle, Sparkles, Calendar, List, Settings, Edit3 } from "lucide-react"
 import { toast } from "sonner"
 import { getPresetById } from "@/lib/content-presets"
 
@@ -293,6 +293,58 @@ export default function ContentPage() {
             </div>
           </AlertDescription>
         </Alert>
+      )}
+
+      {/* Dynamic Header based on active tab */}
+      {contentVariations.length > 0 && (
+        <div className="space-y-4 mb-8">
+          <div className="flex items-start justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-primary text-brand-primary-foreground">
+                  {activeTab === "list" && <Edit3 className="h-5 w-5" />}
+                  {activeTab === "calendar" && <Calendar className="h-5 w-5" />}
+                  {activeTab === "scheduler" && <Settings className="h-5 w-5" />}
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight">
+                    {activeTab === "list" && "Content Manager"}
+                    {activeTab === "calendar" && "Calendario Editoriale"}
+                    {activeTab === "scheduler" && "Programmazione Smart"}
+                  </h1>
+                  <p className="text-muted-foreground text-lg">
+                    {activeTab === "list" && "Review and edit your generated social media content"}
+                    {activeTab === "calendar" && "Plan and schedule your content publications"}
+                    {activeTab === "scheduler" && "Intelligent scheduling and automation tools"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {activeTab === "list" && (
+                <div className="flex items-center gap-6 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-green-500" />
+                    <span className="text-muted-foreground">{contentVariations.length}</span>
+                    <span className="font-medium">of {contentVariations.length} variations</span>
+                  </div>
+                </div>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+              >
+                <RefreshCw
+                  className={`mr-2 h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                />
+                Refresh
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
 
       {contentVariations.length === 0 ? (

@@ -170,19 +170,19 @@ export function ContentEditor({
   }
 
   return (
-    <div className={cn("space-y-4 rounded-lg border p-4", className)}>
+    <div className={cn("content-editor-container space-y-4 rounded-lg border p-4 max-w-full overflow-hidden", className)}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className={cn("rounded p-1.5 text-white", iconConfig.color)}>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className={cn("rounded p-1.5 text-white flex-shrink-0", iconConfig.color)}>
             <PlatformIcon className="h-4 w-4" />
           </div>
-          <h3 className="font-medium">{config.name}</h3>
+          <h3 className="font-medium truncate">{config.name}</h3>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {lastSaved && (
-            <span className="text-muted-foreground text-xs">
+            <span className="text-muted-foreground text-xs hidden sm:inline">
               Saved {lastSaved.toLocaleTimeString()}
             </span>
           )}
@@ -224,9 +224,10 @@ export function ContentEditor({
           onChange={e => setContent(e.target.value)}
           placeholder={`Write your ${config.name} post...`}
           className={cn(
-            "min-h-32 resize-none",
+            "min-h-32 resize-none w-full",
             isOverLimit && "border-destructive focus-visible:border-destructive"
           )}
+          style={{ wordWrap: "break-word", whiteSpace: "pre-wrap" }}
         />
       </div>
 
@@ -252,16 +253,17 @@ export function ContentEditor({
           onChange={e => setHashtags(e.target.value)}
           placeholder="Enter hashtags separated by spaces..."
           className={cn(
-            "min-h-20 resize-none",
+            "min-h-20 resize-none w-full",
             hasExcessHashtags &&
               "border-destructive focus-visible:border-destructive"
           )}
+          style={{ wordWrap: "break-word", whiteSpace: "pre-wrap" }}
         />
 
         {hashtagArray.length > 0 && (
-          <div className="flex flex-wrap gap-1">
+          <div className="hashtag-container flex flex-wrap gap-1 max-w-full overflow-hidden">
             {hashtagArray.map((tag, index) => (
-              <Badge key={index} variant="secondary" className="text-xs">
+              <Badge key={index} variant="secondary" className="badge text-xs break-all">
                 {tag.startsWith("#") ? tag : `#${tag}`}
               </Badge>
             ))}
@@ -276,7 +278,7 @@ export function ContentEditor({
             <ImageIcon className="h-4 w-4" />
             Suggested Image
           </label>
-          <div className="text-muted-foreground bg-muted rounded p-2 font-mono text-xs">
+          <div className="text-muted-foreground bg-muted rounded p-2 font-mono text-xs break-all overflow-hidden">
             {post.imageUrl}
           </div>
         </div>
@@ -301,7 +303,7 @@ export function ContentEditor({
       {/* Platform Preview */}
       <div className="space-y-2">
         <label className="text-sm font-medium">Preview</label>
-        <div className="bg-muted/30 rounded-lg border p-3">
+        <div className="platform-preview bg-muted/30 rounded-lg border p-3 max-w-full overflow-hidden">
           <PlatformPreview
             platform={post.platform}
             content={content}
@@ -331,19 +333,19 @@ function PlatformPreview({
   switch (platform) {
     case "twitter":
       return (
-        <div className="space-y-2">
+        <div className="space-y-2 max-w-full">
           <div className="flex items-start gap-3">
             <div className="h-8 w-8 flex-shrink-0 rounded-full bg-gray-300" />
-            <div className="flex-1">
-              <div className="mb-1 flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="mb-1 flex items-center gap-2 flex-wrap">
                 <span className="text-sm font-semibold">Your Name</span>
                 <span className="text-muted-foreground text-sm">@username</span>
                 <span className="text-muted-foreground text-sm">·</span>
                 <span className="text-muted-foreground text-sm">now</span>
               </div>
-              <div className="text-sm whitespace-pre-wrap">{content}</div>
+              <div className="text-sm whitespace-pre-wrap break-words social-preview-content">{content}</div>
               {hashtags.length > 0 && (
-                <div className="mt-1 text-sm text-blue-500">
+                <div className="mt-1 text-sm text-blue-500 break-words social-preview-content">
                   {hashtags
                     .map(tag => (tag.startsWith("#") ? tag : `#${tag}`))
                     .join(" ")}
@@ -356,21 +358,21 @@ function PlatformPreview({
 
     case "instagram":
       return (
-        <div className="space-y-2">
+        <div className="space-y-2 max-w-full">
           <div className="mb-2 flex items-center gap-2">
-            <div className="h-6 w-6 rounded-full bg-gray-300" />
-            <span className="text-sm font-semibold">your_username</span>
+            <div className="h-6 w-6 rounded-full bg-gray-300 flex-shrink-0" />
+            <span className="text-sm font-semibold truncate">your_username</span>
           </div>
           {imageUrl && (
             <div className="text-muted-foreground flex h-32 w-full items-center justify-center rounded bg-gray-200 text-sm">
               Image Preview
             </div>
           )}
-          <div className="text-sm">
+          <div className="text-sm min-w-0">
             <span className="font-semibold">your_username</span>{" "}
-            <span className="whitespace-pre-wrap">{content}</span>
+            <span className="whitespace-pre-wrap break-words social-preview-content">{content}</span>
             {hashtags.length > 0 && (
-              <div className="mt-1 text-blue-600">
+              <div className="mt-1 text-blue-600 break-words social-preview-content">
                 {hashtags
                   .map(tag => (tag.startsWith("#") ? tag : `#${tag}`))
                   .join(" ")}
@@ -382,17 +384,17 @@ function PlatformPreview({
 
     case "linkedin":
       return (
-        <div className="space-y-3">
+        <div className="space-y-3 max-w-full">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-gray-300" />
-            <div>
-              <div className="text-sm font-semibold">Your Name</div>
-              <div className="text-muted-foreground text-xs">Your Title</div>
+            <div className="h-8 w-8 rounded-full bg-gray-300 flex-shrink-0" />
+            <div className="min-w-0">
+              <div className="text-sm font-semibold truncate">Your Name</div>
+              <div className="text-muted-foreground text-xs truncate">Your Title</div>
             </div>
           </div>
-          <div className="text-sm whitespace-pre-wrap">{content}</div>
+          <div className="text-sm whitespace-pre-wrap break-words social-preview-content">{content}</div>
           {hashtags.length > 0 && (
-            <div className="text-sm text-blue-600">
+            <div className="text-sm text-blue-600 break-words social-preview-content">
               {hashtags
                 .map(tag => (tag.startsWith("#") ? tag : `#${tag}`))
                 .join(" ")}
@@ -403,17 +405,17 @@ function PlatformPreview({
 
     case "facebook":
       return (
-        <div className="space-y-2">
+        <div className="space-y-2 max-w-full">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-gray-300" />
-            <div>
-              <div className="text-sm font-semibold">Your Name</div>
+            <div className="h-8 w-8 rounded-full bg-gray-300 flex-shrink-0" />
+            <div className="min-w-0">
+              <div className="text-sm font-semibold truncate">Your Name</div>
               <div className="text-muted-foreground text-xs">Just now</div>
             </div>
           </div>
-          <div className="text-sm whitespace-pre-wrap">{content}</div>
+          <div className="text-sm whitespace-pre-wrap break-words social-preview-content">{content}</div>
           {hashtags.length > 0 && (
-            <div className="text-sm text-blue-600">
+            <div className="text-sm text-blue-600 break-words social-preview-content">
               {hashtags
                 .map(tag => (tag.startsWith("#") ? tag : `#${tag}`))
                 .join(" ")}
@@ -423,7 +425,7 @@ function PlatformPreview({
       )
 
     default:
-      return <div className="text-sm whitespace-pre-wrap">{content}</div>
+      return <div className="text-sm whitespace-pre-wrap break-words max-w-full social-preview-content">{content}</div>
   }
 }
 
